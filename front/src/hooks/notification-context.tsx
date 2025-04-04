@@ -8,7 +8,7 @@ interface NotificationManagerType {
     title: string;
     description: string;
     createdAt: Date;
-    status: string;
+    status: number;
 }
 
 
