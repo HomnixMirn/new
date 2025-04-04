@@ -37,8 +37,8 @@ export default function LoginForm({
       const response = await axi.post(`${API_URL}auth/login`, formData);
       if (response.status === 200) {
         localStorage.setItem("token", response.data.token);
-        // await fetchUser(); //пока что не реализованно
-        // onLoginSuccess(); тут какая то ошибка падает
+        await fetchUser(); //пока что не реализованно
+        // onLoginSuccess(); //тут какая то ошибка падает
         onClose();
       }
     } catch (error: any) {
