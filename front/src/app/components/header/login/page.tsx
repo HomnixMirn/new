@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { API_URL } from "@/index";
 import axi from "@/utils/api";
 import { useUser } from "@/hooks/user-context";
-import SolidButton from "@components/buttons/solid_button/page";
 import HollowButton from "@components/buttons/hollow_button/page";
 import { useNotificationManager } from "@/hooks/notification-context";
 
@@ -30,23 +29,44 @@ export default function LoginForm({
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-    const formData = {
-      login: login,
-      password: password,
-    };
 
-    
-      await axi.post(`${API_URL}auth/login`, formData).then((response) => {
-        if (response.status === 200) {
-          localStorage.setItem("token", response.data.token);
-          fetchUser(); //пока что не реализованно
-          // onLoginSuccess(); //тут какая то ошибка падает
-          onClose();
-        }
-      }).catch(error => {
-        addNotification({ id: 1, title: 'Ошибка', description: error.response.data, createdAt: new Date(), status: error.status });
+    try {
+      const response = await axi.post(`${API_URL}auth/login`, {
+        login,
+        password,
       });
-      
+
+      if (response.status === 200) {
+        localStorage.setItem("token", response.data.token);
+        await fetchUser?.();
+        onLoginSuccess();
+        addNotification({
+          id: Date.now().toString(),
+          title: "Успешная авторизация",
+          description: "Добро пожаловать!",
+          status: 200,
+          createdAt: new Date().toISOString(),
+        });
+        onClose();
+      }
+    } catch (error) {
+      const err = error as any;
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Произошла ошибка при авторизации";
+
+      setError(errorMessage);
+      addNotification({
+        id: Date.now().toString(),
+        title: "Ошибка авторизации",
+        description: errorMessage,
+        status: 401,
+        createdAt: new Date().toISOString(),
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import SolidButton from "@components/buttons/solid_button/page";
+import SolidButton from "@/app/components/buttons/solid_button/page";
 import HollowButton from "@components/buttons/hollow_button/page";
 import { useNotificationManager } from "@/hooks/notification-context";
 
