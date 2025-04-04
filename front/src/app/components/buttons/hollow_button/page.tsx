@@ -6,6 +6,7 @@ interface HollowButtonProps {
 }
 
 const HollowButton: React.FC<HollowButtonProps> = ({ onClick, label }) => {
+
   return (
     <button
       onClick={onClick}

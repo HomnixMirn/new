@@ -2,8 +2,11 @@
 import Image from "next/image";
 import SolidButton from "@components/buttons/solid_button/page";
 import HollowButton from "@components/buttons/hollow_button/page";
+import { useNotificationManager } from "@/hooks/notification-context";
 
 export default function SectionHero() {
+  const { addNotification } = useNotificationManager();
+
   return (
     <section className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-12 px-4 sm:py-16">
       <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
@@ -22,7 +25,15 @@ export default function SectionHero() {
 
           <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 mb-8">
             <SolidButton
-              onClick={() => console.log("suck")}
+              onClick={() => {
+                addNotification({
+                  title: "info",
+                  description: "Услуга предложена",
+                  createdAt : new Date(),
+                  id : 0,
+                  status: "102",
+                })
+              }}
               label="Предложить услугу"
             />
             <HollowButton
