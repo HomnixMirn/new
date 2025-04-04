@@ -9,12 +9,15 @@ export default function SectionHero() {
       <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
         <div className="lg:w-1/2 text-center lg:text-left">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            Обменивайся услугами — получай знания без денег!
+            <span className="text-white">SKILLSWAP</span> — обменивайся услугами
+            и получай знания без денег!
           </h1>
 
           <p className="text-lg md:text-xl mb-8">
-            Предоставляй свои услуги и получай взамен курсы, обучение и помощь в
-            любых направлениях. Без денег, по системе "услуга за услугу".
+            Предоставляй свои услуги через{" "}
+            <span className="font-semibold">SKILLSWAP</span> и получай взамен
+            курсы, обучение и помощь в любых направлениях. Без денег, по системе
+            "услуга за услугу".
           </p>
 
           <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 mb-8">
