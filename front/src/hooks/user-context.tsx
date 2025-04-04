@@ -35,7 +35,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       const token = localStorage.getItem("token");
       if (!token) return;
       
-      const response = await axi.get(API_URL + "personal_account", {
+      const response = await axi.get(API_URL + "account/info", { 
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.status !== 200) localStorage.removeItem("token");
