@@ -2,7 +2,8 @@
 import React from "react";
 
 interface SolidButtonProps {
-  onClick: () => void;
+  type?: "button" | "submit" | "reset";
+  onClick?: () => void;
   label: string;
 }
 

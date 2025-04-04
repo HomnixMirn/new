@@ -4,7 +4,6 @@ import "./globals.css";
 import { UserProvider } from "@/hooks/user-context";
 import Header from "./components/header/page";
 
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -25,16 +24,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  
   return (
     <UserProvider>
-    <html lang="en">
-      <body>
-        <Header/>
-        {children}
-      </body>
-      
-    </html>
+      <html lang="en" suppressHydrationWarning>
+        <body>
+          <Header />
+          {children}
+        </body>
+      </html>
     </UserProvider>
   );
 }
