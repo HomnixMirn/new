@@ -5,6 +5,7 @@ import axi from "@/utils/api";
 import { useUser } from "@/hooks/user-context";
 import SolidButton from "@components/buttons/solid_button/page";
 import HollowButton from "@components/buttons/hollow_button/page";
+import { useNotificationManager } from "@/hooks/notification-context";
 
 interface LoginFormProps {
   onClose: () => void;
@@ -23,6 +24,7 @@ export default function LoginForm({
   const [isLoading, setIsLoading] = useState(false);
 
   const { fetchUser } = useUser();
+  const { addNotification } = useNotificationManager();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,19 +35,18 @@ export default function LoginForm({
       password: password,
     };
 
-    try {
-      const response = await axi.post(`${API_URL}auth/login`, formData);
-      if (response.status === 200) {
-        localStorage.setItem("token", response.data.token);
-        await fetchUser(); //пока что не реализованно
-        // onLoginSuccess(); //тут какая то ошибка падает
-        onClose();
-      }
-    } catch (error: any) {
-      setError(error.response?.data?.message || "Неверный логин или пароль");
-    } finally {
-      setIsLoading(false);
-    }
+    
+      await axi.post(`${API_URL}auth/login`, formData).then((response) => {
+        if (response.status === 200) {
+          localStorage.setItem("token", response.data.token);
+          fetchUser(); //пока что не реализованно
+          // onLoginSuccess(); //тут какая то ошибка падает
+          onClose();
+        }
+      }).catch(error => {
+        addNotification({ id: 1, title: 'Ошибка', description: error.response.data, createdAt: new Date(), status: error.status });
+      });
+      
   };
 
   return (
