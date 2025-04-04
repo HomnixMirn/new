@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from "@/hooks/user-context";
+import { NotificationManagerProvider } from "@/hooks/notification-context";
 import Header from "./components/header/page";
+import Notifications from "./components/notifications/page";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,12 +28,15 @@ export default function RootLayout({
 }>) {
   return (
     <UserProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body>
-          <Header />
-          {children}
-        </body>
-      </html>
+      <NotificationManagerProvider>
+        <html lang="en">
+          <body>
+            <Header />
+            <Notifications />
+            {children}
+          </body>
+        </html>
+      </NotificationManagerProvider>
     </UserProvider>
   );
 }
