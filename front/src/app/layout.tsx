@@ -4,6 +4,7 @@ import "./globals.css";
 import { UserProvider } from "@/hooks/user-context";
 import Header from "./components/header/page";
 
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
