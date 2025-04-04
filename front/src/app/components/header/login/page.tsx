@@ -50,7 +50,7 @@ export default function LoginForm({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-opacity-20 backdrop-blur-sm border-2 border-white rounded-lg shadow-lg p-6 w-full max-w-md">
+      <div className="bg-opacity-90 backdrop-blur-sm border-2 border-white rounded-lg shadow-lg p-6 w-full max-w-md">
         <h1 className="text-3xl font-bold mb-4 text-center">Авторизация</h1>
 
         {error && <p className="text-red-500 text-sm mb-2">{error}</p>}

@@ -12,16 +12,19 @@ export default function Header() {
     <>
       <header className="bg-white w-full h-[68px] content-center ">
         <div className="flex flex-row justify-around items-center">
-          <Link className="text-[#AA6227] text-[45px] w-[30%]" href="null ">
-            trai Hotels
+          <Link className="text-[45px] w-[30%]" href="/">
+            <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-600">
+              SKILLSWAP
+            </span>
           </Link>
+
           <div className="flex w-[35%] content-evenly gap-[20px] flex-row items-center justify-between">
             <Link
               className="flex flex-col content-center items-center  text-[#898989] hover:text-[#2E4C59]"
-              href="Home"
+              href="/"
             >
               Home
-              {pathname === "/Home" ? (
+              {pathname === "/" ? (
                 <div className="relative w-[150px] h-[1px] bg-black hover:bg-[#2E4C59]"></div>
               ) : (
                 <div></div>

@@ -27,12 +27,12 @@ export default function SectionHero() {
             <SolidButton
               onClick={() => {
                 addNotification({
-                  title: "info",
+                  title: "Информация",
                   description: "Услуга предложена",
-                  createdAt : new Date(),
-                  id : 0,
+                  createdAt: new Date(),
+                  id: 0,
                   status: 200,
-                })
+                });
               }}
               label="Предложить услугу"
             />
