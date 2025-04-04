@@ -6,7 +6,6 @@ import { NotificationManagerProvider } from "@/hooks/notification-context";
 import Header from "./components/header/page";
 import Notifications from "./components/notifications/page";
 
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -27,17 +26,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  
   return (
     <UserProvider>
       <NotificationManagerProvider>
         <html lang="en">
           <body>
-            <Header/>
-            <Notifications/>
+            <Header />
+            <Notifications />
             {children}
           </body>
-          
         </html>
       </NotificationManagerProvider>
     </UserProvider>
