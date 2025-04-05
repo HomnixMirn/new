@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import SolidButton from "@components/buttons/solid_button/page";
+import SolidButton from "@/app/components/buttons/solid_button/page";
 import HollowButton from "@components/buttons/hollow_button/page";
 import { useNotificationManager } from "@/hooks/notification-context";
 
@@ -27,12 +27,12 @@ export default function SectionHero() {
             <SolidButton
               onClick={() => {
                 addNotification({
-                  title: "info",
+                  title: "Информация",
                   description: "Услуга предложена",
-                  createdAt : new Date(),
-                  id : 0,
-                  status: "102",
-                })
+                  createdAt: new Date(),
+                  id: 0,
+                  status: 200,
+                });
               }}
               label="Предложить услугу"
             />

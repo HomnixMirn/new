@@ -1,7 +1,8 @@
 import React from "react";
 
 interface HollowButtonProps {
-  onClick: () => void;
+  type?: "button" | "submit" | "reset";
+  onClick?: () => void;
   label: string;
 }
 

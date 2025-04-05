@@ -8,7 +8,7 @@ interface NotificationManagerType {
     title: string;
     description: string;
     createdAt: Date;
-    status: string;
+    status: number;
 }
 
 
@@ -23,12 +23,16 @@ const NotificationManagerContext = createContext<NotificationManagerContextType>
 
 
 export const NotificationManagerProvider = ({ children }: { children: React.ReactNode }) => {
-    const [notifications, setNotifications] = useState<NotificationManagerType[]>([]);
+    const savedNotifications = localStorage.getItem('notifications');
+    const initialNotifications = savedNotifications ? JSON.parse(savedNotifications) : [];
+    const [notifications, setNotifications] = useState<NotificationManagerType[]>([...initialNotifications]);
 
     const addNotification = async (notification: NotificationManagerType) => {
         try {
             notification.id = notifications.length + 1;
             setNotifications([...notifications, notification]);
+            const newNotifications = [...notifications, notification];
+            localStorage.setItem('notifications', JSON.stringify(newNotifications));
             console.log(notifications);
         } catch (error) {
             addNotification({ id: notifications.length + 1, title: 'Ошибка', description: 'Произошла ошибка при добавлении уведомления', createdAt: new Date(), status: 'error' })
@@ -37,6 +41,9 @@ export const NotificationManagerProvider = ({ children }: { children: React.Reac
 
     const removeNotification = (id: number) => {
         setNotifications(notifications.filter((notification) => notification.id !== id));
+        const newNotifications = [...notifications.filter((notification) => notification.id !== id)];
+        console.log(newNotifications);
+        localStorage.setItem('notifications', JSON.stringify(newNotifications));
     };
 
     return (
