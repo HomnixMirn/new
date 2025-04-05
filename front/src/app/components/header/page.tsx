@@ -46,7 +46,7 @@ return(
                 </Link>
                 </div>
                 <div className="bg-[#2E4C59] rounded-[5px] w-[160px] content-center justify-around flex h-[35px] ">
-                    <Link className="p-1 text-white hover:underline flex content-center justify-around w-[200px] items-center flex-row-reverse "  href="null" >
+                    <Link className="p-1 text-white hover:underline flex content-center justify-around w-[200px] items-center flex-row-reverse "  href="/registr" >
                         <Image 
                             src="/image/login.png"                   
                             alt="Логотип"
