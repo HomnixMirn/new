@@ -44,7 +44,7 @@ export default function Header() {
                 <div className="relative w-[200%] h-0.5 bg-blue-500"></div>
               )}
             </Link>
-<<<<<<< HEAD
+
             <div className="flex w-[35%] content-evenly gap-[20px] flex-row items-center justify-between">
                 <Link  className="flex flex-col content-center items-center  text-[#898989] hover:text-[#2E4C59]" href="Home">
                 Home
@@ -86,7 +86,6 @@ export default function Header() {
                     Авторизация 
                     </Link>
             </div>
-=======
             <Link
               className="flex flex-col items-center text-[#898989] hover:text-blue-500 "
               href="/catalog"
@@ -132,7 +131,6 @@ export default function Header() {
               />
             )}
           </div>
->>>>>>> 9e65a6a02e98b2d337ceecf2af743d9f8b4cc22e
         </div>
       </header>
       {isLoginOpen && (
