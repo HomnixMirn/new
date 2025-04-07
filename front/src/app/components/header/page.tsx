@@ -1,30 +1,43 @@
 "use client";
 import Link from "next/link";
-import Image from "next/image";
 import SolidButton from "@/app/components/buttons/solid_button/page";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import LoginForm from "@components/header/login/page";
 import { useUser } from "@/hooks/user-context";
+import LoginForm from "@components/header/login/page";
+import RegisterForm from "@/app/components/header/register/page";
+
 export default function Header() {
   const pathname = usePathname();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const { user, fetchUser } = useUser();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   useEffect(() => {
     if (user) {
       console.log("Текущий пользователь:", user);
       setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
     }
   }, [user]);
+
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
     setIsLoginOpen(false);
   };
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    localStorage.removeItem("token");
+
+  const handleRegisterSuccess = () => {
+    setIsRegisterOpen(false);
+    setIsLoginOpen(true);
   };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    fetchUser?.();
+  };
+
   return (
     <>
       <header className="bg-white w-full h-[68px] content-center">
@@ -44,48 +57,6 @@ export default function Header() {
                 <div className="relative w-[200%] h-0.5 bg-blue-500"></div>
               )}
             </Link>
-
-            <div className="flex w-[35%] content-evenly gap-[20px] flex-row items-center justify-between">
-                <Link  className="flex flex-col content-center items-center  text-[#898989] hover:text-[#2E4C59]" href="Home">
-                Home
-                {pathname === "/Home" ?(
-                <div  className="relative w-[150px] h-[1px] bg-black hover:bg-[#2E4C59]">
-                </div>
-                ):(<div></div>)}
-                </Link>
-                <Link className="flex flex-col items-center text-[#898989] hover:text-[#2E4C59] hover:underline after" href="Hotels_for_saleome">
-                Hotels for sale
-                {pathname === "/Hotels_for_saleome" ?(
-                <div  className="relative w-[150px] h-[1px] bg-black hover:bg-[#2E4C59]">
-                </div>
-                ):(<div></div>)}
-                </Link>
-                <Link  className="flex flex-col items-center text-[#898989] hover:text-[#2E4C59] hover:underline" href="News">
-                News
-                {pathname === "/News" ?(
-                <div  className=" relative w-[150px] h-[1px] bg-black hover:bg-[#2E4C59]">
-                </div>
-                ):(<div></div>)}
-                </Link>
-                <Link  className="flex flex-col items-center text-[#898989] hover:text-[#2E4C59] hover:underline" href="Contacts">
-                Contacts
-                {pathname === "/Contacts" ?(
-                <div  className="relative w-[150px] h-[1px] bg-black hover:bg-[#2E4C59]">
-                </div>
-                ):(<div></div>)}
-                </Link>
-                </div>
-                <div className="bg-[#2E4C59] rounded-[5px] w-[160px] content-center justify-around flex h-[35px] ">
-                    <Link className="p-1 text-white hover:underline flex content-center justify-around w-[200px] items-center flex-row-reverse "  href="/registr" >
-                        <Image 
-                            src="/image/login.png"                   
-                            alt="Логотип"
-                            width={20}
-                            height={20}
-                        />
-                    Авторизация 
-                    </Link>
-            </div>
             <Link
               className="flex flex-col items-center text-[#898989] hover:text-blue-500 "
               href="/catalog"
@@ -133,12 +104,25 @@ export default function Header() {
           </div>
         </div>
       </header>
+
       {isLoginOpen && (
         <LoginForm
           onClose={() => setIsLoginOpen(false)}
           onLoginSuccess={handleLoginSuccess}
           onRegisterOpen={() => {
             setIsLoginOpen(false);
+            setIsRegisterOpen(true);
+          }}
+        />
+      )}
+
+      {isRegisterOpen && (
+        <RegisterForm
+          onClose={() => setIsRegisterOpen(false)}
+          onRegisterSuccess={handleRegisterSuccess}
+          onLoginOpen={() => {
+            setIsRegisterOpen(false);
+            setIsLoginOpen(true);
           }}
         />
       )}
