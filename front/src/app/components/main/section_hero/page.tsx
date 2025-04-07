@@ -31,7 +31,7 @@ export default function SectionHero() {
                   description: "Услуга предложена",
                   createdAt: new Date(),
                   id: 0,
-                  status: 200,
+                  status: 500,
                 });
               }}
               label="Предложить услугу"
