@@ -21,6 +21,22 @@ def info(request: Request):
         except Profile.DoesNotExist:
             return Response({'message': 'Профиль не обнаружен'}, status=status.HTTP_404_NOT_FOUND)
 
-        
+
+@api_view(['POST'])
+@token_required
+def set_icon(request: Request):
+    if request.method == 'POST':
+        user = request.user
+        try:
+            profile = Profile.objects.get(user=user)
+            data = request.data
+            
+            profile.icon.delete()
+            profile.icon = data['icon']
+            profile.save()
+            return Response('Фото профиля обновлено', status=status.HTTP_200_OK)
+            
+        except Profile.DoesNotExist:
+            return Response({'message': 'Профиль не обнаружен'}, status=status.HTTP_404_NOT_FOUND)
             
         
