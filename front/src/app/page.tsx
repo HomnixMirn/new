@@ -7,6 +7,7 @@ export default function Home() {
     <div>
       <SectionHero />
       <SectionCategories />
+      <h1>bruh</h1>
     </div>
   );
 }
