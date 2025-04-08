@@ -11,7 +11,7 @@ from core.utils.serializers import OfficeSerializer
 
 
 @api_view(['GET'])
-def all_offices(request: Request):
+def all_office(request: Request):
     if request.method == 'GET':
         offices = Office.objects.all()
         data = OfficeSerializer(offices, many=True).data
