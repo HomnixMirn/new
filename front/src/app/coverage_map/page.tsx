@@ -25,7 +25,7 @@ export default function CoverageMap({
   const [isBalloonOpen, setIsBalloonOpen] = useState(false);
   const [offices, setOffices] = useState([]);
   const [comments, setComments] = useState([]);
-  const [cells , setCells] = useState([])
+  const [cells, setCells] = useState([]);
   const [newComment, setNewComment] = useState({
     text: "",
     rating: 5,
@@ -140,11 +140,16 @@ export default function CoverageMap({
     });
   }, []);
 
-  useEffect(()=> {
-    axi.get('/map/all_cells').then((response) => {
-      setCells([...response.data])
-      console.log(response.data)
-    })
+  useEffect(() => {
+    axi
+      .post("/map/all_cells", {
+        left_top: mapBounds[0],
+        right_top: mapBounds[1],
+      })
+      .then((response) => {
+        setCells([...response.data]);
+        console.log(response.data);
+      });
   }, []);
 
   useEffect(() => {
@@ -186,6 +191,7 @@ export default function CoverageMap({
 
   const handleBoundsChange = () => {
     const bounds = getMapBounds(mapRef);
+    console.log(bounds);
     setMapBounds(bounds);
   };
 
@@ -514,7 +520,7 @@ export default function CoverageMap({
             </Clusterer>
 
             {cells.map((cell) => {
-              console.log(cell)
+              console.log(cell);
               return (
                 <Placemark
                   key={cell.id}
@@ -533,14 +539,10 @@ export default function CoverageMap({
                     balloonCloseButton: true,
                     balloonPanelMaxMapArea: 0,
                   }}
-                  
                   modules={["geoObject.addon.balloon", "geoObject.addon.hint"]}
                 />
-              )
-            }
-              
-            )
-            }
+              );
+            })}
             <Placemark
               geometry={[56.19, 44.0]}
               options={{
