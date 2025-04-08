@@ -31,12 +31,34 @@ class dayScheduleSerializer(serializers.ModelSerializer):
         model = daySchedule
         fields = '__all__'
         
+class commentsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = comments
+        fields = '__all__'
+        
 class OfficeSerializer(serializers.ModelSerializer):
     sites = siteSerializer(many=True)
     services = serviceSerializer(many=True)
     daySchedules = dayScheduleSerializer(many=True)
     souring = serializers.SerializerMethodField()
+    rating = serializers.SerializerMethodField()
+    manyComments = serializers.SerializerMethodField()
     
+    def get_manyComments(self,obj):
+        if obj.comments:
+            return len(obj.comments.all())
+        else:
+            return 0
+    
+    def get_rating(self,obj):
+        if obj.comments:
+            if len(obj.comments.all()) == 0:
+                return 0
+            return sum([i.rating for i in obj.comments.all()])/len(obj.comments.all())
+        else:
+            return 0
+        
+        
     def get_souring(self,obj):
         translate = {
             "MONDAY":'ПН',

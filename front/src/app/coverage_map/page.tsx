@@ -13,6 +13,13 @@ export default function CoverageMap({
   const [searchQuery, setSearchQuery] = useState("");
   const [isBalloonOpen, setIsBalloonOpen] = useState(false);
   const [offices, setOffices] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState({
+    text: "",
+    rating: 5,
+    officeId: null,
+  });
+  const [selectedOffice, setSelectedOffice] = useState(null);
 
   const handlePlacemarkClick = () => {
     setIsBalloonOpen(true);
@@ -26,6 +33,48 @@ export default function CoverageMap({
       setOffices([...response.data]);
     });
   }, []);
+
+  useEffect(() => {
+    const handleShowComments = (e) => {
+      fetchComments(e.detail);
+    };
+
+    window.addEventListener("showComments", handleShowComments);
+
+    return () => {
+      window.removeEventListener("showComments", handleShowComments);
+    };
+  }, []);
+
+  const fetchComments = async (officeId) => {
+    try {
+      const response = await axi.get(`/map/get_comments?id=${officeId}`);
+      setComments(response.data);
+      setSelectedOffice(officeId);
+      setNewComment((prev) => ({ ...prev, officeId }));
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+    }
+  };
+
+  const handleSubmitComment = async (e) => {
+    e.preventDefault();
+    try {
+      await axi.post("/map/add_comment", {
+        id: newComment.officeId,
+        text: newComment.text,
+        rating: newComment.rating,
+      });
+      await fetchComments(newComment.officeId);
+      setNewComment({
+        text: "",
+        rating: 5,
+        officeId: newComment.officeId,
+      });
+    } catch (error) {
+      console.error("Error adding comment:", error);
+    }
+  };
 
   const createBalloonContent = (office) => {
     return `
@@ -45,6 +94,12 @@ export default function CoverageMap({
             office.phone || "+7 (XXX) XXX-XX-XX"
           }</span>
         </div>
+        <button onclick="window.dispatchEvent(new CustomEvent('showComments', { detail: ${
+          office.id
+        } }))" 
+          style="margin-top: auto; background: #3fcbff; border: none; padding: 8px 16px; border-radius: 4px; color: white; cursor: pointer; align-self: flex-start;">
+          Показать комментарии
+        </button>
       </div>
     `;
   };
@@ -178,6 +233,81 @@ export default function CoverageMap({
                 </label>
               </li>
             </ul>
+          </div>
+        )}
+
+        {selectedOffice && (
+          <div className="p-4 bg-white shadow-lg rounded-lg mt-4">
+            <h2 className="text-xl font-semibold mb-4">Комментарии</h2>
+
+            <form onSubmit={handleSubmitComment} className="mb-6">
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">
+                  Ваш комментарий
+                </label>
+                <textarea
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  rows={3}
+                  value={newComment.text}
+                  onChange={(e) =>
+                    setNewComment({ ...newComment, text: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">Рейтинг</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  value={newComment.rating}
+                  onChange={(e) =>
+                    setNewComment({
+                      ...newComment,
+                      rating: parseInt(e.target.value),
+                    })
+                  }
+                >
+                  {[5, 4, 3, 2, 1].map((num) => (
+                    <option key={num} value={num}>
+                      {num} звезд{num !== 1 ? "ы" : "а"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                type="submit"
+                className="bg-[#3fcbff] text-white px-4 py-2 rounded-md hover:bg-[#35b5e6]"
+              >
+                Отправить
+              </button>
+            </form>
+
+            <div className="space-y-4">
+              {comments.length > 0 ? (
+                comments.map((comment) => (
+                  <div
+                    key={comment.id}
+                    className="border-b border-gray-200 pb-4"
+                  >
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-medium">{comment.author.username}</h3>
+                      <div className="text-yellow-500">
+                        {"★".repeat(comment.rating)}
+                        {"☆".repeat(5 - comment.rating)}
+                      </div>
+                    </div>
+                    <p className="text-gray-600 mt-1">{comment.text}</p>
+                    <p className="text-sm text-gray-400 mt-2">
+                      {new Date(comment.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">
+                  Пока нет комментариев. Будьте первым!
+                </p>
+              )}
+            </div>
           </div>
         )}
       </div>
