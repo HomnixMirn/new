@@ -20,13 +20,13 @@ export default function Header() {
     "https://t.me/shadow7xbot?start=u_129&utm_campaign=115371697&utm_content=16641918526|clid|15984713945027182591&utm_term=бесплатный%20телеграм%20бот&yclid=15984713945027182591";
   useEffect(() => {
     setIsLoggedIn(!!user);
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     fetchUser().catch((error) => {
       console.error("Ошибка загрузки пользователя:", error);
     });
-  }, [fetchUser]);
+  }, []);
 
   const handleLoginSuccess = () => {
     setIsLoginOpen(false);

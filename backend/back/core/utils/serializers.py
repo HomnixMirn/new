@@ -32,6 +32,9 @@ class dayScheduleSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
 class OfficeSerializer(serializers.ModelSerializer):
+    sites = siteSerializer(many=True)
+    services = serviceSerializer(many=True)
+    daySchedules = dayScheduleSerializer(many=True)
     class Meta:
         model = Office
         fields = '__all__'
