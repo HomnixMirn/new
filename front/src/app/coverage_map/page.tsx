@@ -10,9 +10,6 @@ export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
 }) {
   const [activeTab, setActiveTab] = useState<"offices" | "coverage">("offices");
-  const [show4g, setShow4g] = useState(true);
-  const [show3g, setShow3g] = useState(true);
-  const [show2g, setShow2g] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isBalloonOpen, setIsBalloonOpen] = useState(false);
   const [offices, setOffices] = useState([]);
@@ -24,6 +21,58 @@ export default function CoverageMap({
   });
   const [selectedOffice, setSelectedOffice] = useState(null);
   const mapRef = useRef(null);
+  const [mapBounds, setMapBounds] = useState([]);
+
+  const getConvexHull = (points) => {
+    const sorted = points.sort((a, b) =>
+      a[1] === b[1] ? a[0] - b[0] : a[1] - b[1]
+    );
+
+    const cross = (o, a, b) =>
+      (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+
+    const lower = [];
+    for (let p of sorted) {
+      while (
+        lower.length >= 2 &&
+        cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0
+      ) {
+        lower.pop();
+      }
+      lower.push(p);
+    }
+
+    const upper = [];
+    for (let i = sorted.length - 1; i >= 0; i--) {
+      let p = sorted[i];
+      while (
+        upper.length >= 2 &&
+        cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0
+      ) {
+        upper.pop();
+      }
+      upper.push(p);
+    }
+
+    upper.pop();
+    lower.pop();
+    return [...lower, ...upper];
+  };
+
+  const generatePolygonCoords = (center, radius, sides = 12) => {
+    const [lat, lon] = center;
+    const coords = [];
+
+    for (let i = 0; i < sides; i++) {
+      const angle = (2 * Math.PI * i) / sides;
+      const dx = (radius / 111000) * Math.cos(angle); // 1° lat ~ 111km
+      const dy =
+        (radius / (111000 * Math.cos(lat * (Math.PI / 180)))) * Math.sin(angle); // longitude compensation
+      coords.push([lat + dx, lon + dy]);
+    }
+
+    return coords;
+  };
 
   const handlePlacemarkClick = (e) => {
     e.stopPropagation();
@@ -89,6 +138,28 @@ export default function CoverageMap({
       setNewComment((prev) => ({ ...prev, officeId }));
     } catch (error) {
       console.error("Error fetching comments:", error);
+    }
+  };
+
+  const getMapBounds = (mapRef: React.RefObject<any>) => {
+    if (!mapRef.current) return null;
+    const map = mapRef.current;
+    console.log(map);
+    const bounds = map.getBounds();
+
+    if (!bounds) return null;
+
+    return [
+      [bounds[0][0], bounds[0][1]], // Юго-западная точка (southWest)
+      [bounds[1][0], bounds[1][1]], // Северо-восточная точка (northEast)
+    ];
+  };
+
+  const handleBoundsChange = () => {
+    const bounds = getMapBounds(mapRef);
+    console.log(bounds);
+    if (bounds) {
+      setMapBounds(bounds);
     }
   };
 
@@ -373,6 +444,9 @@ export default function CoverageMap({
                 groupByCoordinates: false,
                 clusterDisableClickZoom: true,
                 clusterOpenBalloonOnClick: false,
+                zIndex: 1000,
+                iconColor: "#000000",
+                iconSize: [40, 40],
               }}
               onClick={handleClusterClick}
             >
@@ -439,4 +513,3 @@ export default function CoverageMap({
     </div>
   );
 }
-  

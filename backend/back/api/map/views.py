@@ -69,11 +69,25 @@ def get_comments(request: Request):
 @api_view(["POST"])
 def get_cells(request: Request):
     if request.method == 'POST':
-        left_bottom = request.POST['left_bottom']
-        right_top = request.POST['right_top']
-        
-        cell = cells.objects.filter(Q(latitude__gte=left_bottom[0]) & Q(latitude__lte=right_top[0]) & Q(longitude__gte=left_bottom[1]) & Q(longitude__lte=right_top[1]))
+        print(request.data)
+        left_bottom = list(map(float, request.data['left_bottom']))
+        right_top = list(map(float, request.data['right_top']))
+
+        # Определяем границы с учетом любого порядка координат
+        lat_min = min(left_bottom[0], right_top[0])
+        lat_max = max(left_bottom[0], right_top[0])
+        lon_min = min(left_bottom[1], right_top[1])
+        lon_max = max(left_bottom[1], right_top[1])
+
+        # Фильтруем объекты в прямоугольнике
+        cell = cells.objects.filter(
+            latitude__gte=lat_min,
+            latitude__lte=lat_max,
+            longitude__gte=lon_min,
+            longitude__lte=lon_max
+)[:400]
         data = CellsSerializer(cell, many=True).data
-        return Response(data, status=status.HTTP_200_OK)
+        return Response(data, status=status.HTTP_200_OK)   
+    
     else:
         return Response('Метод не поддерживается',status=status.HTTP_405_METHOD_NOT_ALLOWED)
