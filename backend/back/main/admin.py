@@ -5,3 +5,4 @@ from core.models.models import *
 
 
 admin.site.register(Profile)
+admin.site.register(Office) 
