@@ -21,8 +21,8 @@ const SolidButton: React.FC<SolidButtonProps> = ({
       className={`px-6 py-2 rounded-lg font-medium transition-all duration-300 border 
         ${
           color === "white"
-            ? "bg-white text-blue-500 border-white hover:bg-transparent hover:text-white"
-            : "bg-white border-transparent text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600"
+            ? "bg-white text-blue-500 text-black border-white hover:bg-transparent hover:text-white"
+            : "bg-white text-black border border-transparent hover:bg-transparent hover:border-blue-500 hover:text-white" 
         }
       `}
     >
