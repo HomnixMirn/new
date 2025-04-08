@@ -1,6 +1,12 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { YMaps, Map, Placemark, Clusterer } from "@pbe/react-yandex-maps";
+import {
+  YMaps,
+  Map,
+  Placemark,
+  Clusterer,
+  Circle,
+} from "@pbe/react-yandex-maps";
 import axi from "@/utils/api";
 import Image from "next/image";
 import Link from "next/link";
@@ -422,6 +428,30 @@ export default function CoverageMap({
                 />
               ))}
             </Clusterer>
+            <Placemark
+              geometry={[56.19, 44.0]}
+              options={{
+                iconLayout: "default#image",
+                iconImageHref: "/images/tvTower.svg",
+                iconImageSize: [30, 30],
+                iconImageOffset: [-15, -15],
+
+                balloonShadow: true,
+                balloonOffset: [0, 0],
+                balloonAutoPan: true,
+                balloonCloseButton: true,
+                balloonPanelMaxMapArea: 0,
+              }}
+            />
+            <Circle
+              geometry={[[56.19, 44.0], 4000]}
+              options={{
+                fillColor: "#FF349559",
+                strokeColor: "#FF3495",
+                strokeWidth: 2,
+                strokeOpacity: 0.5,
+              }}
+            />
           </Map>
         </YMaps>
       </div>
