@@ -70,52 +70,35 @@ export default function Header() {
           </Link>
 
           <div className="flex w-[35%] content-evenly gap-[20px] flex-row items-center justify-between">
-            <Link
-              className="flex flex-col items-center text-[#898989] hover:text-blue-500"
-              href="/"
-            >
-              Главная
-              {pathname === "/" && (
-                <div className="relative w-[200%] h-0.5 bg-blue-500"></div>
-              )}
-            </Link>
-
-            <Link
-              className="flex flex-col items-center text-[#898989] hover:text-blue-500"
-              href="/catalog"
-            >
-              Каталог
-              {pathname === "/catalog" && (
-                <div className="relative w-[200%] h-0.5 bg-blue-500"></div>
-              )}
+          <Link
+            className="flex flex-col items-center text-[#898989] hover:text-white "
+            href="/"
+          >
+            Главная
+            {pathname === "/" && ( <div className="relative w-[200%] h-0.5 bg-white"></div> )}
+          </Link>
+            
+            <Link className="flex flex-col items-center text-[#898989] hover:text-white" href="/catalog">
+              каталог
+              {pathname === "/catalog" && <div className="relative w-[200%] h-0.5 bg-white"></div>}
             </Link>
             <a
               href="https://t.me/shadow7xbot?start=u_129&utm_campaign=115371697&utm_content=16641918526|clid|15984713945027182591&utm_term=бесплатный%20телеграм%20бот&yclid=15984713945027182"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex flex-col items-center text-[#898989] hover:text-blue-500"
+              className="flex flex-col items-center text-[#898989] hover:text-white"
             >
               Наш бот
             </a>
-            <Link
-              className="flex flex-col items-center text-[#898989] hover:text-blue-500"
-              href="/coverage_map"
-            >
+            <Link className="flex flex-col items-center text-[#898989] hover:text-white" href="/map">
               Карта
-              {pathname === "/coverage_map" && (
-                <div className="relative w-[200%] h-0.5 bg-blue-500"></div>
-              )}
+              {pathname === "/map" && <div className="relative w-[200%] h-0.5 bg-white"></div>}
             </Link>
 
             {isLoggedIn && (
-              <Link
-                className="flex flex-col items-center text-[#898989] hover:text-blue-500"
-                href="/profile"
-              >
+              <Link  className="flex flex-col items-center text-[#898989] hover:text-white hover:bg-blue" href="/profile">
                 Профиль
-                {pathname === "/profile" && (
-                  <div className="relative w-[200%] h-0.5 bg-blue-500"></div>
-                )}
+                {pathname === "/profile" && <div className="relative w-[200%] h-0.5 bg-white"></div>}
               </Link>
             )}
           </div>
