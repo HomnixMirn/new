@@ -6,6 +6,7 @@ import {
   Placemark,
   Clusterer,
   Circle,
+  Polygon,
 } from "@pbe/react-yandex-maps";
 import axi from "@/utils/api";
 import Image from "next/image";
@@ -32,6 +33,81 @@ export default function CoverageMap({
   const [selectedOffice, setSelectedOffice] = useState(null);
   const mapRef = useRef(null);
   const [mapBounds, setMapBounds] = useState(null);
+
+  const getConvexHull = (points) => {
+    const sorted = points.sort((a, b) =>
+      a[1] === b[1] ? a[0] - b[0] : a[1] - b[1]
+    );
+
+    const cross = (o, a, b) =>
+      (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+
+    const lower = [];
+    for (let p of sorted) {
+      while (
+        lower.length >= 2 &&
+        cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0
+      ) {
+        lower.pop();
+      }
+      lower.push(p);
+    }
+
+    const upper = [];
+    for (let i = sorted.length - 1; i >= 0; i--) {
+      let p = sorted[i];
+      while (
+        upper.length >= 2 &&
+        cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0
+      ) {
+        upper.pop();
+      }
+      upper.push(p);
+    }
+
+    upper.pop();
+    lower.pop();
+    return [...lower, ...upper];
+  };
+
+  const generatePolygonCoords = (center, radius, sides = 12) => {
+    const [lat, lon] = center;
+    const coords = [];
+
+    for (let i = 0; i < sides; i++) {
+      const angle = (2 * Math.PI * i) / sides;
+      const dx = (radius / 111000) * Math.cos(angle); // 1° lat ~ 111km
+      const dy =
+        (radius / (111000 * Math.cos(lat * (Math.PI / 180)))) * Math.sin(angle); // longitude compensation
+      coords.push([lat + dx, lon + dy]);
+    }
+
+    return coords;
+  };
+
+  const getUnifiedCoverageArea = (centers, radius) => {
+    let allPoints = [];
+    centers.forEach((center) => {
+      const polygon = generatePolygonCoords(center, radius);
+      allPoints.push(...polygon);
+    });
+
+    const convexHull = getConvexHull(allPoints);
+    return [convexHull];
+  };
+  const coverageCenters = [
+    [56.345, 43.85], // северо-запад
+    [56.33, 44.0],
+    [56.31, 44.15], // северо-восток
+    [56.25, 44.25], // восток
+    [56.18, 44.28],
+    [56.11, 44.23], // юго-восток
+    [56.07, 44.1], // юг
+    [56.06, 43.95], // юго-запад
+    [56.1, 43.8],
+    [56.18, 43.75], // запад
+    [56.26, 43.77],
+  ];
 
   const handlePlacemarkClick = (e) => {
     e.stopPropagation();
@@ -443,8 +519,8 @@ export default function CoverageMap({
                 balloonPanelMaxMapArea: 0,
               }}
             />
-            <Circle
-              geometry={[[56.19, 44.0], 4000]}
+            <Polygon
+              geometry={getUnifiedCoverageArea(coverageCenters, 4000)}
               options={{
                 fillColor: "#FF349559",
                 strokeColor: "#FF3495",
