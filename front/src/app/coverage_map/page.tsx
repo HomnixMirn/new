@@ -1,21 +1,10 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import {
-  YMaps,
-  Map,
-  Placemark,
-  Clusterer,
-  Circle,
-  Polygon,
-} from "@pbe/react-yandex-maps";
+import { YMaps, Map, Placemark, Clusterer } from "@pbe/react-yandex-maps";
 import axi from "@/utils/api";
 import Image from "next/image";
 import Offices from "../slide_office/page";
 import CoverageRoaming from "../slide_cover/page";
-import Link from "next/link";
-import AddStarRating from "../components/star_rating/add_star_rating";
-import StarRating from "../components/star_rating/star_rating";
-import { useUser } from "@/hooks/user-context";
 
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
@@ -28,7 +17,6 @@ export default function CoverageMap({
   const [isBalloonOpen, setIsBalloonOpen] = useState(false);
   const [offices, setOffices] = useState([]);
   const [comments, setComments] = useState([]);
-  const [cells, setCells] = useState([]);
   const [newComment, setNewComment] = useState({
     text: "",
     rating: 5,
@@ -36,82 +24,6 @@ export default function CoverageMap({
   });
   const [selectedOffice, setSelectedOffice] = useState(null);
   const mapRef = useRef(null);
-  const [mapBounds, setMapBounds] = useState(null);
-
-  const getConvexHull = (points) => {
-    const sorted = points.sort((a, b) =>
-      a[1] === b[1] ? a[0] - b[0] : a[1] - b[1]
-    );
-
-    const cross = (o, a, b) =>
-      (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
-
-    const lower = [];
-    for (let p of sorted) {
-      while (
-        lower.length >= 2 &&
-        cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0
-      ) {
-        lower.pop();
-      }
-      lower.push(p);
-    }
-
-    const upper = [];
-    for (let i = sorted.length - 1; i >= 0; i--) {
-      let p = sorted[i];
-      while (
-        upper.length >= 2 &&
-        cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0
-      ) {
-        upper.pop();
-      }
-      upper.push(p);
-    }
-
-    upper.pop();
-    lower.pop();
-    return [...lower, ...upper];
-  };
-
-  const generatePolygonCoords = (center, radius, sides = 12) => {
-    const [lat, lon] = center;
-    const coords = [];
-
-    for (let i = 0; i < sides; i++) {
-      const angle = (2 * Math.PI * i) / sides;
-      const dx = (radius / 111000) * Math.cos(angle); // 1° lat ~ 111km
-      const dy =
-        (radius / (111000 * Math.cos(lat * (Math.PI / 180)))) * Math.sin(angle); // longitude compensation
-      coords.push([lat + dx, lon + dy]);
-    }
-
-    return coords;
-  };
-
-  const getUnifiedCoverageArea = (centers, radius) => {
-    let allPoints = [];
-    centers.forEach((center) => {
-      const polygon = generatePolygonCoords(center, radius);
-      allPoints.push(...polygon);
-    });
-
-    const convexHull = getConvexHull(allPoints);
-    return [convexHull];
-  };
-  const coverageCenters = [
-    [56.345, 43.85], // северо-запад
-    [56.33, 44.0],
-    [56.31, 44.15], // северо-восток
-    [56.25, 44.25], // восток
-    [56.18, 44.28],
-    [56.11, 44.23], // юго-восток
-    [56.07, 44.1], // юг
-    [56.06, 43.95], // юго-запад
-    [56.1, 43.8],
-    [56.18, 43.75], // запад
-    [56.26, 43.77],
-  ];
 
   const handlePlacemarkClick = (e) => {
     e.stopPropagation();
@@ -126,11 +38,11 @@ export default function CoverageMap({
       mapRef.current
         .panTo(coords, {
           flying: true,
-          duration: 400,
+          duration: 500,
         })
         .then(() => {
           mapRef.current.setZoom(currentZoom + 1, {
-            duration: 300,
+            duration: 500,
           });
         });
     }
@@ -141,18 +53,6 @@ export default function CoverageMap({
       console.log(response.data);
       setOffices([...response.data]);
     });
-  }, []);
-
-  useEffect(() => {
-    axi
-      .post("/map/all_cells", {
-        left_top: mapBounds[0],
-        right_top: mapBounds[1],
-      })
-      .then((response) => {
-        setCells([...response.data]);
-        console.log(response.data);
-      });
   }, []);
 
   useEffect(() => {
@@ -176,26 +76,6 @@ export default function CoverageMap({
     } catch (error) {
       console.error("Error fetching comments:", error);
     }
-  };
-
-  const getMapBounds = (mapRef: React.RefObject<any>) => {
-    if (!mapRef.current) return null;
-
-    const map = mapRef.current;
-    const bounds = map.getBounds();
-
-    if (!bounds) return null;
-
-    return [
-      [bounds[0][0], bounds[0][1]], // Юго-западная точка (southWest)
-      [bounds[1][0], bounds[1][1]], // Северо-восточная точка (northEast)
-    ];
-  };
-
-  const handleBoundsChange = () => {
-    const bounds = getMapBounds(mapRef);
-    console.log(bounds);
-    setMapBounds(bounds);
   };
 
   const handleSubmitComment = async (e) => {
@@ -247,21 +127,9 @@ export default function CoverageMap({
 
   return (
     <div className="flex h-[calc(100vh-68px)] overflow-hidden">
-      <div className="w-[444px] bg-white flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10 overflow-scroll">
-        <ul className="filter-tabs flex">
-          <li className="flex-1">
-            <button
-              onClick={() => setActiveTab("offices")}
-              className={`w-full h-[9vh] px-4 py-2 transition-colors ${
-                activeTab === "offices"
-                  ? "bg-[#3fcbff] text-black font-semibold"
-                  : "bg-gray-100 text-black font-semibold hover:bg-gray-200"
-              }`}
-            >
-              Офисы продаж
-            </button>
-          </li>
-          <li className="flex-1">
+      <div className="w-1/3 bg-white flex flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
+        <div className="flex flex-col p-4 h-1/3">
+          <div className="flex space-x-30 text-xl font-medium justify-center">
             <button
               onClick={() => setActiveTab("coverage")}
               className={`pb-1 border-b-2 transition-colors duration-200 ${
@@ -316,179 +184,18 @@ export default function CoverageMap({
         <div className="flex-1 bg-black text-white p-4 overflow-y-auto custom-scrollbar">
           {activeTab === "offices" && <Offices />}
           {activeTab === "coverage" && <CoverageRoaming />}
-            {searchQuery && (
-              <button
-                className="clear absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
-                onClick={() => setSearchQuery("")}
-              ></button>
-            )}
-          </div>
-        </div>
-
-        {activeTab === "offices" ? (
-          <div className="filter-results-container with-desktop-vertical-scrollbar"></div>
-        ) : (
-          <div className="coverage-filter"></div>
-        )}
-
-        <div className="flex-1 bg-black text-white p-4 flex flex-col" style={{ height: 'calc(100vh - 68px - 32px)' }}>
-          <div className="flex-1 overflow-y-auto">
-            {activeTab === "coverage" ? (
-              <>
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-bold">Офисы T2</h2>
-                  <button className="text-sm flex items-center gap-1">
-                    Услуги
-                    <span className="text-xl">🧾</span>
-                  </button>
-                </div>
-
-                <ul className="space-y-4">
-                  {[...Array(7)].map((_, index) => (
-                    <li key={index} className="flex justify-between items-center">
-                      <div className="flex items-start gap-3">
-                        <span className={`text-2xl ${index === 0 ? "text-[#d50069]" : "text-white"}`}>
-                          📍
-                        </span>
-                        <div>
-                          <p className="font-bold">ул. Бекантура, 1</p>
-                          <p className="text-sm text-gray-400">
-                            пн-пт 8:00-18:00 сб-вс 10:00-18:00
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 text-sm text-gray-400">
-                        💬 199
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="mt-6 flex justify-center">
-                  <button className="text-sm flex items-center gap-2 text-white">
-                    <span className="text-xl">⚙️</span> Фильтр
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div>
-                <h2 className="text-xl font-bold mb-4">Роуминг</h2>
-                <p className="text-sm text-gray-400">
-                  Здесь может быть список стран, тарифов или другие данные о роуминге.
-                </p>
-              </div>
-            )}
-            
-            {selectedOffice && (
-              <div className="p-4 bg-black shadow-lg rounded-lg mt-4 relative">
-                <button 
-                  onClick={() => setSelectedOffice(null)}
-                  className="absolute top-2 right-2 text-white hover:text-gray-500"
-                  aria-label="Закрыть отзывы"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-                
-                <h2 className="text-xl font-semibold mb-4 text-white">Комментарии</h2>
-                {!setShowCommentForm && (
-                  <button
-                    onClick={() => setShowCommentForm(true)}
-                    className="mb-4 bg-[#3fcbff] text-white px-4 py-2 rounded-md hover:bg-[#35b5e6]"
-                  >
-                    Оставить отзыв
-                  </button>
-                )}
-      <div className="max-h-[50vh] overflow-y-auto">
-        <div className="space-y-4">
-          {comments.length > 0 ? (
-            comments.map(comment => (
-              <div key={comment.id} className="border-b border-gray-700 pb-4">
-                <div className="flex items-center gap-3">
-                  <div>
-                    <h3 className="font-medium text-white">
-                      {comment.author.username}
-                    </h3>
-                    <StarRating 
-                      rating={comment.rating} 
-                      starColor="#3fcbff"
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-                <p className="text-white mt-2 ml-11">{comment.text}</p>
-              </div>
-            ))
-          ) : (
-            <p className="text-gray-500">Пока нет отзывов. Будьте первым!</p>
-          )}
-        </div>
-      </div>
-                {setShowCommentForm && (
-                  <form onSubmit={handleSubmitComment} className="mt-6">
-                    <div className="mb-4">
-                      <label className="block text-white mb-2">Ваш комментарий</label>
-                      <textarea
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-white"
-                        rows={3}
-                        value={newComment.text}
-                        onChange={(e) =>
-                          setNewComment({ ...newComment, text: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-white mb-2">Ваша оценка</label>
-                      <AddStarRating 
-                        value={newComment.rating}
-                        onChange={(rating) =>
-                          setNewComment({ ...newComment, rating })
-                        }
-                      />
-                    </div>
-                    <div className="flex justify-between">
-                      <button
-                        type="button"
-                        onClick={() => setShowCommentForm(false)}
-                        className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
-                      >
-                        Отмена
-                      </button>
-                      <button
-                        type="submit"
-                        className="bg-[#3fcbff] text-white px-4 py-2 rounded-md hover:bg-[#35b5e6]"
-                      >
-                        Отправить отзыв
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            )}
-          </div>
         </div>
       </div>
       <div className="flex-1 h-[calc(100vh-68px)] z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
-            instanceRef={(ref) => {
-              if (ref && !mapRef.current) {
-                mapRef.current = ref;
-                const bounds = ref.getBounds();
-                if (bounds) {
-                  setMapBounds(bounds);
-                }
-              }
-            }}
+            instanceRef={mapRef}
             defaultState={{
               center: [56.19, 44.0],
               zoom: 10,
             }}
             width="100%"
             height="100%"
-            onBoundsChange={handleBoundsChange}
           >
             <Clusterer
               options={{
@@ -522,58 +229,10 @@ export default function CoverageMap({
                 />
               ))}
             </Clusterer>
-
-            {cells.map((cell) => {
-              console.log(cell);
-              return (
-                <Placemark
-                  key={cell.id}
-                  geometry={[cell.latitude, cell.longitude]}
-                  properties={{
-                    balloonContent: createBalloonContent(cell),
-                  }}
-                  options={{
-                    iconLayout: "default#image",
-                    iconImageHref: "/images/pointerIcon.svg",
-                    iconImageSize: [40, 40],
-                    iconImageOffset: [-20, -40],
-                    balloonShadow: true,
-                    balloonOffset: [0, 0],
-                    balloonAutoPan: true,
-                    balloonCloseButton: true,
-                    balloonPanelMaxMapArea: 0,
-                  }}
-                  modules={["geoObject.addon.balloon", "geoObject.addon.hint"]}
-                />
-              );
-            })}
-            <Placemark
-              geometry={[56.19, 44.0]}
-              options={{
-                iconLayout: "default#image",
-                iconImageHref: "/images/tvTower.svg",
-                iconImageSize: [30, 30],
-                iconImageOffset: [-15, -15],
-
-                balloonShadow: true,
-                balloonOffset: [0, 0],
-                balloonAutoPan: true,
-                balloonCloseButton: true,
-                balloonPanelMaxMapArea: 0,
-              }}
-            />
-            <Polygon
-              geometry={getUnifiedCoverageArea(coverageCenters, 4000)}
-              options={{
-                fillColor: "#FF349559",
-                strokeColor: "#FF3495",
-                strokeWidth: 2,
-                strokeOpacity: 0.5,
-              }}
-            />
           </Map>
         </YMaps>
       </div>
     </div>
   );
 }
+  
