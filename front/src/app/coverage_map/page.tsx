@@ -2,12 +2,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { YMaps, Map, Placemark, Clusterer } from "@pbe/react-yandex-maps";
 import axi from "@/utils/api";
-import StarRating from "../components/star_rating/star_rating";
 
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
 }) {
   const [activeTab, setActiveTab] = useState<"offices" | "coverage">("offices");
+  const [show4g, setShow4g] = useState(true);
+  const [show3g, setShow3g] = useState(true);
+  const [show2g, setShow2g] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isBalloonOpen, setIsBalloonOpen] = useState(false);
   const [offices, setOffices] = useState([]);
@@ -69,7 +71,7 @@ export default function CoverageMap({
       setSelectedOffice(officeId);
       setNewComment((prev) => ({ ...prev, officeId }));
     } catch (error) {
-      console.error("Error fetching comments:", error);
+      console.error("Error fetching comments:", error.response?.data);
     }
   };
 
@@ -93,114 +95,32 @@ export default function CoverageMap({
   };
 
   const createBalloonContent = (office) => {
-    const createBalloonContent = (office) => {
-      const dayTranslation = {
-        MONDAY: "Пн",
-        TUESDAY: "Вт",
-        WEDNESDAY: "Ср",
-        THURSDAY: "Чт",
-        FRIDAY: "Пт",
-        SATURDAY: "Сб",
-        SUNDAY: "Вс",
-      };
-    
-      const groupSchedules = (schedules) => {
-        const grouped = [];
-    
-        schedules.forEach((schedule) => {
-          const existingGroup = grouped.find(
-            (group) =>
-              group.openTime === schedule.openTime &&
-              group.closeTime === schedule.closeTime
-          );
-    
-          if (existingGroup) {
-            existingGroup.days.push(dayTranslation[schedule.day]);
-          } else {
-            grouped.push({
-              days: [dayTranslation[schedule.day]],
-              openTime: schedule.openTime,
-              closeTime: schedule.closeTime,
-            });
-          }
-        });
-    
-        return grouped;
-      };
-    
-      const groupedSchedules = groupSchedules(office.daySchedules);
-    
-      const workHours = groupedSchedules
-        .map((group) => {
-          const daysRange =
-            group.days.length > 1
-              ? `${group.days[0]}-${group.days[group.days.length - 1]}`
-              : group.days[0];
-    
-          return `${daysRange} ${group.openTime} - ${group.closeTime}`;
-        })
-        .join("\n");
-    
-      // Если office.rating не является числом, установите значение по умолчанию
-      const rating = office.rating || 0; // Если рейтинг не указан, ставим 0
-    
-      return (
-        <div
-          style={{
-            width: "350px",
-            height: "200px",
-            borderRadius: "8px",
-            padding: "16px",
-            backgroundColor: "white",
-            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
-          }}
-        >
-          <div style={{ fontSize: "14px" }}>Адрес офиса</div>
-          <div style={{ fontWeight: "bold", fontSize: "16px" }}>
-            {office.address}
-          </div>
-          <div style={{ marginTop: "10px" }}>
-            <div style={{ fontSize: "14px", color: "black" }}>Режим работы</div>
-            <div style={{ fontSize: "14px", color: "#B0B0B0" }}>
-              {workHours || "Неуказан"}
-            </div>
-          </div>
-    
-          <div style={{ marginTop: "10px", display: "flex", alignItems: "center" }}>
-            <div style={{ fontSize: "14px", marginRight: "10px" }}>Рейтинг:</div>
-            <div style={{ display: "flex", alignItems: "center" }}>
-              {/* Компонент звезд */}
-              <div style={{ marginRight: "5px" }}>
-                <StarRating rating={rating} starColor="#FFD700" />{" "}
-                {/* Используем компонент StarRating */}
-              </div>
-              {/* Числовой рейтинг */}
-              <div style={{ fontSize: "14px" }}>{rating}</div>
-            </div>
-          </div>
-    
-          <button
-            onClick={() =>
-              window.dispatchEvent(
-                new CustomEvent("showComments", { detail: office.id })
-              )
-            }
-            style={{
-              marginTop: "auto",
-              background: "#3fcbff",
-              border: "none",
-              padding: "8px 16px",
-              borderRadius: "4px",
-              color: "white",
-              cursor: "pointer",
-            }}
-          >
-            Показать комментарии
-          </button>
+    return `
+      <div style="width: 350px; height: 130px; border-radius: 16px; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+        <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">${
+          office.address
+        }</div>
+        <div style="display: flex; margin-bottom: 8px;">
+          <span style="font-size: 14px; color: #666;">Часы работы:</span>
+          <span style="font-size: 14px; margin-left: 8px;">${
+            office.working_hours || "9:00 - 18:00"
+          }</span>
         </div>
-      );
-    };
-    
+        <div style="display: flex; margin-bottom: 8px;">
+          <span style="font-size: 14px; color: #666;">Телефон:</span>
+          <span style="font-size: 14px; margin-left: 8px;">${
+            office.phone || "+7 (XXX) XXX-XX-XX"
+          }</span>
+        </div>
+        <button onclick="window.dispatchEvent(new CustomEvent('showComments', { detail: ${
+          office.id
+        } }))" 
+          style="margin-top: auto; background: #3fcbff; border: none; padding: 8px 16px; border-radius: 4px; color: white; cursor: pointer; align-self: flex-start;">
+          Показать комментарии
+        </button>
+      </div>
+    `;
+  };
 
   return (
     <div className="flex h-[calc(100vh-68px)] overflow-hidden">
@@ -254,12 +174,12 @@ export default function CoverageMap({
                 className="clear absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
                 onClick={() => setSearchQuery("")}
               >
-                ×
               </button>
             )}
           </div>
         </div>
 
+        {/* Tab Content */}
         {activeTab === "offices" ? (
           <div className="filter-results-container with-desktop-vertical-scrollbar"></div>
         ) : (
