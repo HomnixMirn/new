@@ -1,6 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { YMaps, Map, Placemark } from "@pbe/react-yandex-maps";
+import axi from "@/utils/api";
 
 export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_карт" }) {
   const [activeTab, setActiveTab] = useState<"offices" | "coverage">("offices");
@@ -8,6 +9,12 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
   const [show3g, setShow3g] = useState(true);
   const [show2g, setShow2g] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    axi.get('/map/all_office').then(response => {
+      console.log(response.data);
+    });
+  }, []);
 
   return (
     <div className="flex h-screen">
