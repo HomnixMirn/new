@@ -19,6 +19,7 @@ export default function CoverageMap({
   const [isBalloonOpen, setIsBalloonOpen] = useState(false);
   const [offices, setOffices] = useState([]);
   const [comments, setComments] = useState([]);
+  const [cells , setCells] = useState([])
   const [newComment, setNewComment] = useState({
     text: "",
     rating: 5,
@@ -55,6 +56,13 @@ export default function CoverageMap({
       console.log(response.data);
       setOffices([...response.data]);
     });
+  }, []);
+
+  useEffect(()=> {
+    axi.get('/map/all_cells').then((response) => {
+      setCells([...response.data])
+      console.log(response.data)
+    })
   }, []);
 
   useEffect(() => {
@@ -394,6 +402,35 @@ export default function CoverageMap({
                 />
               ))}
             </Clusterer>
+
+            {cells.map((cell) => {
+              console.log(cell)
+              return (
+                <Placemark
+                  key={cell.id}
+                  geometry={[cell.latitude, cell.longitude]}
+                  properties={{
+                    balloonContent: createBalloonContent(cell),
+                  }}
+                  options={{
+                    iconLayout: "default#image",
+                    iconImageHref: "/images/pointerIcon.svg",
+                    iconImageSize: [40, 40],
+                    iconImageOffset: [-20, -40],
+                    balloonShadow: true,
+                    balloonOffset: [0, 0],
+                    balloonAutoPan: true,
+                    balloonCloseButton: true,
+                    balloonPanelMaxMapArea: 0,
+                  }}
+                  
+                  modules={["geoObject.addon.balloon", "geoObject.addon.hint"]}
+                />
+              )
+            }
+              
+            )
+            }
           </Map>
         </YMaps>
       </div>
