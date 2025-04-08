@@ -18,9 +18,6 @@ export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
 }) {
   const [activeTab, setActiveTab] = useState<"offices" | "coverage">("offices");
-  const [show4g, setShow4g] = useState(true);
-  const [show3g, setShow3g] = useState(true);
-  const [show2g, setShow2g] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isBalloonOpen, setIsBalloonOpen] = useState(false);
   const [offices, setOffices] = useState([]);
@@ -33,7 +30,7 @@ export default function CoverageMap({
   });
   const [selectedOffice, setSelectedOffice] = useState(null);
   const mapRef = useRef(null);
-  const [mapBounds, setMapBounds] = useState(null);
+  const [mapBounds, setMapBounds] = useState([]);
 
   const getConvexHull = (points) => {
     const sorted = points.sort((a, b) =>
@@ -86,30 +83,6 @@ export default function CoverageMap({
     return coords;
   };
 
-  const getUnifiedCoverageArea = (centers, radius) => {
-    let allPoints = [];
-    centers.forEach((center) => {
-      const polygon = generatePolygonCoords(center, radius);
-      allPoints.push(...polygon);
-    });
-
-    const convexHull = getConvexHull(allPoints);
-    return [convexHull];
-  };
-  const coverageCenters = [
-    [56.345, 43.85], // северо-запад
-    [56.33, 44.0],
-    [56.31, 44.15], // северо-восток
-    [56.25, 44.25], // восток
-    [56.18, 44.28],
-    [56.11, 44.23], // юго-восток
-    [56.07, 44.1], // юг
-    [56.06, 43.95], // юго-запад
-    [56.1, 43.8],
-    [56.18, 43.75], // запад
-    [56.26, 43.77],
-  ];
-
   const handlePlacemarkClick = (e) => {
     e.stopPropagation();
     setIsBalloonOpen(true);
@@ -141,16 +114,15 @@ export default function CoverageMap({
   }, []);
 
   useEffect(() => {
-    axi
-      .post("/map/all_cells", {
-        left_top: mapBounds[0],
-        right_top: mapBounds[1],
-      })
-      .then((response) => {
-        setCells([...response.data]);
-        console.log(response.data);
-      });
-  }, []);
+    const data = {
+      left_bottom: mapBounds[0],
+      right_top: mapBounds[1],
+    };
+    axi.post("/map/all_cells", data).then((response) => {
+      setCells(response.data);
+      console.log(response.data);
+    });
+  }, [mapBounds]);
 
   useEffect(() => {
     const handleShowComments = (e) => {
@@ -177,8 +149,8 @@ export default function CoverageMap({
 
   const getMapBounds = (mapRef: React.RefObject<any>) => {
     if (!mapRef.current) return null;
-
     const map = mapRef.current;
+    console.log(map);
     const bounds = map.getBounds();
 
     if (!bounds) return null;
@@ -192,7 +164,9 @@ export default function CoverageMap({
   const handleBoundsChange = () => {
     const bounds = getMapBounds(mapRef);
     console.log(bounds);
-    setMapBounds(bounds);
+    if (bounds) {
+      setMapBounds(bounds);
+    }
   };
 
   const handleSubmitComment = async (e) => {
@@ -470,12 +444,9 @@ export default function CoverageMap({
         <YMaps query={{ apikey: apiKey }}>
           <Map
             instanceRef={(ref) => {
-              if (ref && !mapRef.current) {
+              console.log(ref);
+              if (ref) {
                 mapRef.current = ref;
-                const bounds = ref.getBounds();
-                if (bounds) {
-                  setMapBounds(bounds);
-                }
               }
             }}
             defaultState={{
@@ -492,6 +463,9 @@ export default function CoverageMap({
                 groupByCoordinates: false,
                 clusterDisableClickZoom: true,
                 clusterOpenBalloonOnClick: false,
+                zIndex: 1000,
+                iconColor: "#000000",
+                iconSize: [40, 40],
               }}
               onClick={handleClusterClick}
             >
@@ -520,53 +494,22 @@ export default function CoverageMap({
             </Clusterer>
 
             {cells.map((cell) => {
-              console.log(cell);
+              const cellCoords = [cell.latitude, cell.longitude];
+              const radius = 4000;
+
               return (
-                <Placemark
-                  key={cell.id}
-                  geometry={[cell.latitude, cell.longitude]}
-                  properties={{
-                    balloonContent: createBalloonContent(cell),
-                  }}
+                <Circle
+                  key={cell.id || `${cell.latitude}-${cell.longitude}`}
+                  geometry={[[cell.latitude, cell.longitude], 4000]}
                   options={{
-                    iconLayout: "default#image",
-                    iconImageHref: "/images/pointerIcon.svg",
-                    iconImageSize: [40, 40],
-                    iconImageOffset: [-20, -40],
-                    balloonShadow: true,
-                    balloonOffset: [0, 0],
-                    balloonAutoPan: true,
-                    balloonCloseButton: true,
-                    balloonPanelMaxMapArea: 0,
+                    fillColor: "#FF3495", // можно чуть менее насыщенный цвет
+                    fillOpacity: 0.02, // снизили прозрачность
+                    strokeWidth: 0,
+                    zIndex: 0, // все на одном уровне
                   }}
-                  modules={["geoObject.addon.balloon", "geoObject.addon.hint"]}
                 />
               );
             })}
-            <Placemark
-              geometry={[56.19, 44.0]}
-              options={{
-                iconLayout: "default#image",
-                iconImageHref: "/images/tvTower.svg",
-                iconImageSize: [30, 30],
-                iconImageOffset: [-15, -15],
-
-                balloonShadow: true,
-                balloonOffset: [0, 0],
-                balloonAutoPan: true,
-                balloonCloseButton: true,
-                balloonPanelMaxMapArea: 0,
-              }}
-            />
-            <Polygon
-              geometry={getUnifiedCoverageArea(coverageCenters, 4000)}
-              options={{
-                fillColor: "#FF349559",
-                strokeColor: "#FF3495",
-                strokeWidth: 2,
-                strokeOpacity: 0.5,
-              }}
-            />
           </Map>
         </YMaps>
       </div>
