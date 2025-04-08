@@ -5,7 +5,7 @@ import SolidButton from "@/app/components/buttons/solid_button/page";
 
 export default function Profile() {
   return (
-    <div className="bg-white flex flex-col h-screen">
+    <div className="bg-white flex flex-col h-[calc(100vh-68px)] overflow-hidden">
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-[14vh]"></div>
       <div className="flex-1 p-6">
         <div className="flex flex-row items-center gap-6 ml-6">
