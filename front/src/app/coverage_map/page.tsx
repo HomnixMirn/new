@@ -1,6 +1,13 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { YMaps, Map, Placemark, Clusterer } from "@pbe/react-yandex-maps";
+import {
+  YMaps,
+  Map,
+  Placemark,
+  Clusterer,
+  Circle,
+  Polygon,
+} from "@pbe/react-yandex-maps";
 import axi from "@/utils/api";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,6 +26,7 @@ export default function CoverageMap({
   const [isBalloonOpen, setIsBalloonOpen] = useState(false);
   const [offices, setOffices] = useState([]);
   const [comments, setComments] = useState([]);
+  const [cells, setCells] = useState([]);
   const [newComment, setNewComment] = useState({
     text: "",
     rating: 5,
@@ -26,6 +34,82 @@ export default function CoverageMap({
   });
   const [selectedOffice, setSelectedOffice] = useState(null);
   const mapRef = useRef(null);
+  const [mapBounds, setMapBounds] = useState(null);
+
+  const getConvexHull = (points) => {
+    const sorted = points.sort((a, b) =>
+      a[1] === b[1] ? a[0] - b[0] : a[1] - b[1]
+    );
+
+    const cross = (o, a, b) =>
+      (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+
+    const lower = [];
+    for (let p of sorted) {
+      while (
+        lower.length >= 2 &&
+        cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0
+      ) {
+        lower.pop();
+      }
+      lower.push(p);
+    }
+
+    const upper = [];
+    for (let i = sorted.length - 1; i >= 0; i--) {
+      let p = sorted[i];
+      while (
+        upper.length >= 2 &&
+        cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0
+      ) {
+        upper.pop();
+      }
+      upper.push(p);
+    }
+
+    upper.pop();
+    lower.pop();
+    return [...lower, ...upper];
+  };
+
+  const generatePolygonCoords = (center, radius, sides = 12) => {
+    const [lat, lon] = center;
+    const coords = [];
+
+    for (let i = 0; i < sides; i++) {
+      const angle = (2 * Math.PI * i) / sides;
+      const dx = (radius / 111000) * Math.cos(angle); // 1° lat ~ 111km
+      const dy =
+        (radius / (111000 * Math.cos(lat * (Math.PI / 180)))) * Math.sin(angle); // longitude compensation
+      coords.push([lat + dx, lon + dy]);
+    }
+
+    return coords;
+  };
+
+  const getUnifiedCoverageArea = (centers, radius) => {
+    let allPoints = [];
+    centers.forEach((center) => {
+      const polygon = generatePolygonCoords(center, radius);
+      allPoints.push(...polygon);
+    });
+
+    const convexHull = getConvexHull(allPoints);
+    return [convexHull];
+  };
+  const coverageCenters = [
+    [56.345, 43.85], // северо-запад
+    [56.33, 44.0],
+    [56.31, 44.15], // северо-восток
+    [56.25, 44.25], // восток
+    [56.18, 44.28],
+    [56.11, 44.23], // юго-восток
+    [56.07, 44.1], // юг
+    [56.06, 43.95], // юго-запад
+    [56.1, 43.8],
+    [56.18, 43.75], // запад
+    [56.26, 43.77],
+  ];
 
   const handlePlacemarkClick = (e) => {
     e.stopPropagation();
@@ -40,11 +124,11 @@ export default function CoverageMap({
       mapRef.current
         .panTo(coords, {
           flying: true,
-          duration: 500,
+          duration: 400,
         })
         .then(() => {
           mapRef.current.setZoom(currentZoom + 1, {
-            duration: 500,
+            duration: 300,
           });
         });
     }
@@ -55,6 +139,18 @@ export default function CoverageMap({
       console.log(response.data);
       setOffices([...response.data]);
     });
+  }, []);
+
+  useEffect(() => {
+    axi
+      .post("/map/all_cells", {
+        left_top: mapBounds[0],
+        right_top: mapBounds[1],
+      })
+      .then((response) => {
+        setCells([...response.data]);
+        console.log(response.data);
+      });
   }, []);
 
   useEffect(() => {
@@ -78,6 +174,26 @@ export default function CoverageMap({
     } catch (error) {
       console.error("Error fetching comments:", error.response?.data);
     }
+  };
+
+  const getMapBounds = (mapRef: React.RefObject<any>) => {
+    if (!mapRef.current) return null;
+
+    const map = mapRef.current;
+    const bounds = map.getBounds();
+
+    if (!bounds) return null;
+
+    return [
+      [bounds[0][0], bounds[0][1]], // Юго-западная точка (southWest)
+      [bounds[1][0], bounds[1][1]], // Северо-восточная точка (northEast)
+    ];
+  };
+
+  const handleBoundsChange = () => {
+    const bounds = getMapBounds(mapRef);
+    console.log(bounds);
+    setMapBounds(bounds);
   };
 
   const handleSubmitComment = async (e) => {
@@ -182,8 +298,7 @@ export default function CoverageMap({
               <button
                 className="clear absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
                 onClick={() => setSearchQuery("")}
-              >
-              </button>
+              ></button>
             )}
           </div>
         </div>
@@ -296,7 +411,9 @@ export default function CoverageMap({
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-white"
                         rows={3}
                         value={newComment.text}
-                        onChange={(e) => setNewComment({...newComment, text: e.target.value})}
+                        onChange={(e) =>
+                          setNewComment({ ...newComment, text: e.target.value })
+                        }
                         required
                       />
                     </div>
@@ -304,7 +421,9 @@ export default function CoverageMap({
                       <label className="block text-white mb-2">Ваша оценка</label>
                       <AddStarRating 
                         value={newComment.rating}
-                        onChange={(rating) => setNewComment({...newComment, rating})}
+                        onChange={(rating) =>
+                          setNewComment({ ...newComment, rating })
+                        }
                       />
                     </div>
                     <div className="flex justify-between">
@@ -332,13 +451,22 @@ export default function CoverageMap({
       <div className="flex-1 h-[calc(100vh-68px)] z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
-            instanceRef={mapRef}
+            instanceRef={(ref) => {
+              if (ref && !mapRef.current) {
+                mapRef.current = ref;
+                const bounds = ref.getBounds();
+                if (bounds) {
+                  setMapBounds(bounds);
+                }
+              }
+            }}
             defaultState={{
               center: [56.19, 44.0],
               zoom: 10,
             }}
             width="100%"
             height="100%"
+            onBoundsChange={handleBoundsChange}
           >
             <Clusterer
               options={{
@@ -372,6 +500,55 @@ export default function CoverageMap({
                 />
               ))}
             </Clusterer>
+
+            {cells.map((cell) => {
+              console.log(cell);
+              return (
+                <Placemark
+                  key={cell.id}
+                  geometry={[cell.latitude, cell.longitude]}
+                  properties={{
+                    balloonContent: createBalloonContent(cell),
+                  }}
+                  options={{
+                    iconLayout: "default#image",
+                    iconImageHref: "/images/pointerIcon.svg",
+                    iconImageSize: [40, 40],
+                    iconImageOffset: [-20, -40],
+                    balloonShadow: true,
+                    balloonOffset: [0, 0],
+                    balloonAutoPan: true,
+                    balloonCloseButton: true,
+                    balloonPanelMaxMapArea: 0,
+                  }}
+                  modules={["geoObject.addon.balloon", "geoObject.addon.hint"]}
+                />
+              );
+            })}
+            <Placemark
+              geometry={[56.19, 44.0]}
+              options={{
+                iconLayout: "default#image",
+                iconImageHref: "/images/tvTower.svg",
+                iconImageSize: [30, 30],
+                iconImageOffset: [-15, -15],
+
+                balloonShadow: true,
+                balloonOffset: [0, 0],
+                balloonAutoPan: true,
+                balloonCloseButton: true,
+                balloonPanelMaxMapArea: 0,
+              }}
+            />
+            <Polygon
+              geometry={getUnifiedCoverageArea(coverageCenters, 4000)}
+              options={{
+                fillColor: "#FF349559",
+                strokeColor: "#FF3495",
+                strokeWidth: 2,
+                strokeOpacity: 0.5,
+              }}
+            />
           </Map>
         </YMaps>
       </div>
