@@ -84,7 +84,7 @@ export default function Header() {
               className="flex flex-col items-center text-[#898989] hover:text-white"
               href="/catalog"
             >
-              каталог
+              Каталог
               {pathname === "/catalog" && (
                 <div className="relative w-[200%] h-0.5 bg-white"></div>
               )}

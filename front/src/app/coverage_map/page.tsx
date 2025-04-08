@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { YMaps, Map, Placemark, Clusterer } from "@pbe/react-yandex-maps";
 import axi from "@/utils/api";
 
@@ -20,12 +20,30 @@ export default function CoverageMap({
     officeId: null,
   });
   const [selectedOffice, setSelectedOffice] = useState(null);
+  const mapRef = useRef(null);
 
-  const handlePlacemarkClick = () => {
+  const handlePlacemarkClick = (e) => {
+    e.stopPropagation();
     setIsBalloonOpen(true);
   };
 
-  const handleClusterClick = () => {};
+  const handleClusterClick = (e) => {
+    const coords = e.get("target").geometry.getCoordinates();
+    const currentZoom = mapRef.current?.getZoom();
+
+    if (mapRef.current) {
+      mapRef.current
+        .panTo(coords, {
+          flying: true,
+          duration: 500,
+        })
+        .then(() => {
+          mapRef.current.setZoom(currentZoom + 1, {
+            duration: 500,
+          });
+        });
+    }
+  };
 
   useEffect(() => {
     axi.get("/map/all_office").then((response) => {
@@ -164,76 +182,9 @@ export default function CoverageMap({
 
         {/* Tab Content */}
         {activeTab === "offices" ? (
-          <div className="filter-results-container with-desktop-vertical-scrollbar">
-            <div className="results-general">
-              <div className="single-check">
-                <input id="id20" className="checkbox" type="checkbox" />
-                <label htmlFor="id20" className="checkbox-label">
-                  Только работающие сейчас
-                </label>
-              </div>
-              <div className="multi-check">
-                <div className="slide-holder">
-                  <a className="opener opener-small">
-                    Подобрать офис по видам услуг
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
+          <div className="filter-results-container with-desktop-vertical-scrollbar"></div>
         ) : (
-          <div className="coverage-filter">
-            <div className="h4 text-lg font-semibold mb-4">Виды сетей</div>
-            <ul className="form-list space-y-4">
-              <li className="4g flex items-start">
-                <input
-                  id="show4g"
-                  className="checkbox mt-1"
-                  type="checkbox"
-                  checked={show4g}
-                  onChange={(e) => setShow4g(e.target.checked)}
-                />
-                <label htmlFor="show4g" className="checkbox-label ml-2">
-                  <span className="network font-medium text-blue-600">4G</span>
-                  <div className="description text-sm text-gray-600 mt-1">
-                    Очень быстрый интернет, видео в высоком качестве.
-                  </div>
-                </label>
-              </li>
-              <li className="3g flex items-start mt-4">
-                <input
-                  id="show3g"
-                  className="checkbox mt-1"
-                  type="checkbox"
-                  checked={show3g}
-                  onChange={(e) => setShow3g(e.target.checked)}
-                />
-                <label htmlFor="show3g" className="checkbox-label ml-2">
-                  <span className="network font-medium text-green-600">3G</span>
-                  <div className="description text-sm text-gray-600 mt-1">
-                    Разговоры и интернет без ограничений, музыка и видео.
-                  </div>
-                </label>
-              </li>
-              <li className="2g flex items-start mt-4">
-                <input
-                  id="show2g"
-                  className="checkbox mt-1"
-                  type="checkbox"
-                  checked={show2g}
-                  onChange={(e) => setShow2g(e.target.checked)}
-                />
-                <label htmlFor="show2g" className="checkbox-label ml-2">
-                  <span className="network font-medium text-yellow-600">
-                    2G
-                  </span>
-                  <div className="description text-sm text-gray-600 mt-1">
-                    Телефонная связь, интернет для новостей и социальных сетей.
-                  </div>
-                </label>
-              </li>
-            </ul>
-          </div>
+          <div className="coverage-filter"></div>
         )}
 
         {selectedOffice && (
@@ -315,6 +266,7 @@ export default function CoverageMap({
       <div className="flex-1 h-[calc(100vh-68px)] z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
+            instanceRef={mapRef}
             defaultState={{
               center: [56.19, 44.0],
               zoom: 10,
@@ -327,8 +279,9 @@ export default function CoverageMap({
                 preset: "islands#blackClusterIcons",
                 groupByCoordinates: false,
                 clusterDisableClickZoom: true,
-                clusterOpenBalloonOnClick: true,
+                clusterOpenBalloonOnClick: false,
               }}
+              onClick={handleClusterClick}
             >
               {offices.map((office) => (
                 <Placemark
@@ -343,7 +296,7 @@ export default function CoverageMap({
                     iconImageSize: [40, 40],
                     iconImageOffset: [-20, -40],
                     balloonShadow: true,
-                    balloonOffset: [0, -40],
+                    balloonOffset: [0, 0],
                     balloonAutoPan: true,
                     balloonCloseButton: true,
                     balloonPanelMaxMapArea: 0,
