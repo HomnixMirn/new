@@ -2,11 +2,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { YMaps, Map, Placemark, Clusterer } from "@pbe/react-yandex-maps";
 import axi from "@/utils/api";
-<<<<<<< HEAD
 import Image from "next/image";
 import Link from "next/link";
-=======
->>>>>>> 0abda341c73ee984229c35ea867235076e7e5564
 
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
