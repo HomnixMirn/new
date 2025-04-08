@@ -60,13 +60,6 @@ export default function SectionHero() {
 
         <div className="w-full lg:w-1/2 mt-8 lg:mt-0 order-2 lg:order-none">
           <div className="relative w-full h-64 sm:h-80 md:h-96 rounded-xl overflow-hidden shadow-2xl">
-            <Image
-              src="/image/heroImage.jpg"
-              alt="Обмен услугами"
-              fill
-              className="object-cover"
-              priority
-            />
           </div>
         </div>
       </div>

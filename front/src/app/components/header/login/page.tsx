@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import { API_URL } from "@/index";
 import axi from "@/utils/api";
 import { useUser } from "@/hooks/user-context";
 import HollowButton from "@components/buttons/hollow_button/page";
@@ -10,6 +9,7 @@ interface LoginFormProps {
   onClose: () => void;
   onLoginSuccess: () => void;
   onRegisterOpen: () => void;
+  onLogout: () => void;
 }
 
 export default function LoginForm({
@@ -31,7 +31,7 @@ export default function LoginForm({
     setError(null);
 
     try {
-      const response = await axi.post(`${API_URL}auth/login`, {
+      const response = await axi.post(`auth/login`, {
         login,
         password,
       });
