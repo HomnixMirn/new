@@ -64,10 +64,10 @@ def get_comments(request: Request):
 @api_view(["POST"])
 def get_cells(request: Request):
     if request.method == 'POST':
-        left_top = request.POST['left_top']
-        right_bottom = request.POST['right_bottom']
+        left_bottom = request.POST['left_bottom']
+        right_top = request.POST['right_top']
         
-        cell = cells.objects.filters(Q(latitude__gte=left_top['latitude']) & Q(latitude__lte=right_bottom['latitude']) & Q(longitude__gte=left_top['longitude']) & Q(longitude__lte=right_bottom['longitude']))
+        cell = cells.objects.filter(Q(latitude__gte=left_bottom[0]) & Q(latitude__lte=right_top[0]) & Q(longitude__gte=left_bottom[1]) & Q(longitude__lte=right_top[1]))
         data = CellsSerializer(cell, many=True).data
         return Response(data, status=status.HTTP_200_OK)
     else:
