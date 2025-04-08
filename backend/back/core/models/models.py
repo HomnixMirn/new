@@ -38,6 +38,7 @@ class Office(models.Model):
     externalLocationId = models.CharField(max_length=50, null=True, blank=True)
     email = models.CharField(max_length=50, null=True, blank=True)
     showcaseId = models.CharField(max_length=50, null=True, blank=True)
+    comments = models.ManyToManyField('comments')
     
     def __str__(self):
         return self.name
@@ -62,6 +63,13 @@ class site(models.Model):
     shopDomainPilot = models.BooleanField()
     defaultLanguage = models.CharField(max_length=50)
         
+        
+class comments(models.Model):
+    author = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    rating = models.IntegerField()
+    text = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+    
 
 class authorizedToken(Token):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
