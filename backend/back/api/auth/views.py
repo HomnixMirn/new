@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.db.models import Q
 from rest_framework.request import Request
 from core.models.models import *
-from core.utils.validators import validate_email
+from core.utils.validators import validate_email,phone_number_validator
 from rest_framework.decorators import api_view
 
 
@@ -76,15 +76,18 @@ def register(request:Request):
             password = data['password']
             email = data['email']
             password2 = data['password2']
+            phone = data['phone']
             if password == password2:
                 if User.objects.filter(Q(username=login) | Q(email=email)).exists():
                     return Response('Такой пользователь уже существует',status=status.HTTP_406_NOT_ACCEPTABLE)
                 else:
                     if not validate_email(email):
                         return Response('Некорректный email',status=status.HTTP_406_NOT_ACCEPTABLE)
+                    if not phone_number_validator(phone):
+                        return Response('Некорректный номер телефона',status=status.HTTP_406_NOT_ACCEPTABLE)
                     user = User.objects.create_user(login, email, password)
                     try :
-                        profile = Profile.objects.create(user=user)
+                        profile = Profile.objects.create(user=user,phone = phone)
                         
                     except:
                         user.delete()
