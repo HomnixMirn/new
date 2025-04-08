@@ -113,7 +113,7 @@ export default function Header() {
             ) : (
               <SolidButton
                 onClick={() => setIsLoginOpen(true)}
-                color="gradient"
+                color="gradien"
                 label="Авторизоваться"
               />
             )}
