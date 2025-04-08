@@ -81,6 +81,8 @@ def register(request:Request):
                 if User.objects.filter(Q(username=login) | Q(email=email)).exists():
                     return Response('Такой пользователь уже существует',status=status.HTTP_406_NOT_ACCEPTABLE)
                 else:
+                    if Profile.objects.filter(phone = phone).exists():
+                        return Response('Такой номер телефона уже существует',status=status.HTTP_406_NOT_ACCEPTABLE)
                     if not validate_email(email):
                         return Response('Некорректный email',status=status.HTTP_406_NOT_ACCEPTABLE)
                     if not phone_number_validator(phone):
