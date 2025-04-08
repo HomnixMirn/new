@@ -1,9 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { YMaps, Map, Placemark } from "@pbe/react-yandex-maps";
+import { YMaps, Map, Placemark, Clusterer } from "@pbe/react-yandex-maps";
 import axi from "@/utils/api";
 
-export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_карт" }) {
+export default function CoverageMap({
+  apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
+}) {
   const [activeTab, setActiveTab] = useState<"offices" | "coverage">("offices");
   const [show4g, setShow4g] = useState(true);
   const [show3g, setShow3g] = useState(true);
@@ -16,6 +18,8 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
     setIsBalloonOpen(true);
   };
 
+  const handleClusterClick = () => {};
+
   useEffect(() => {
     axi.get("/map/all_office").then((response) => {
       console.log(response.data);
@@ -25,7 +29,7 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
 
   const createBalloonContent = (office) => {
     return `
-      <div style="width: 350px; height: 130px; border-radius: 8px; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+      <div style="width: 350px; height: 130px; border-radius: 16px; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
         <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">${
           office.address
         }</div>
@@ -41,9 +45,6 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
             office.phone || "+7 (XXX) XXX-XX-XX"
           }</span>
         </div>
-        <button style="margin-top: auto; background: #3fcbff; border: none; padding: 8px 16px; border-radius: 4px; color: white; cursor: pointer; align-self: flex-start;">
-          Подробнее
-        </button>
       </div>
     `;
   };
@@ -83,7 +84,6 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
               className="my-position-icon absolute left-3 cursor-pointer"
               title="Определить мое местоположение"
             />
-
             <input
               id="addressQuery"
               className="bg-white text-gray-800 w-full pl-10 pr-12 py-3 
@@ -192,28 +192,37 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
             width="100%"
             height="100%"
           >
-            {offices.map((office) => (
-              <Placemark
-                key={office.id}
-                geometry={[office.latitude, office.longitude]}
-                properties={{
-                  balloonContent: createBalloonContent(office),
-                }}
-                options={{
-                  iconLayout: "default#image",
-                  iconImageHref: "/images/pointerIcon.svg",
-                  iconImageSize: [40, 40],
-                  iconImageOffset: [-20, -40],
-                  balloonShadow: true,
-                  balloonOffset: [0, -40],
-                  balloonAutoPan: true,
-                  balloonCloseButton: true,
-                  balloonPanelMaxMapArea: 0,
-                }}
-                onClick={handlePlacemarkClick}
-                modules={["geoObject.addon.balloon", "geoObject.addon.hint"]}
-              />
-            ))}
+            <Clusterer
+              options={{
+                preset: "islands#blackClusterIcons",
+                groupByCoordinates: false,
+                clusterDisableClickZoom: true,
+                clusterOpenBalloonOnClick: true,
+              }}
+            >
+              {offices.map((office) => (
+                <Placemark
+                  key={office.id}
+                  geometry={[office.latitude, office.longitude]}
+                  properties={{
+                    balloonContent: createBalloonContent(office),
+                  }}
+                  options={{
+                    iconLayout: "default#image",
+                    iconImageHref: "/images/pointerIcon.svg",
+                    iconImageSize: [40, 40],
+                    iconImageOffset: [-20, -40],
+                    balloonShadow: true,
+                    balloonOffset: [0, -40],
+                    balloonAutoPan: true,
+                    balloonCloseButton: true,
+                    balloonPanelMaxMapArea: 0,
+                  }}
+                  onClick={handlePlacemarkClick}
+                  modules={["geoObject.addon.balloon", "geoObject.addon.hint"]}
+                />
+              ))}
+            </Clusterer>
           </Map>
         </YMaps>
       </div>
