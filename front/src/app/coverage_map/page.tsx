@@ -10,7 +10,7 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
   const [show2g, setShow2g] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isBalloonOpen, setIsBalloonOpen] = useState(false);
-
+  const [offices , setOfiices] = useState([])
   const handlePlacemarkClick = () => {
     setIsBalloonOpen(true);
   };
@@ -18,8 +18,10 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
   useEffect(() => {
     axi.get('/map/all_office').then(response => {
       console.log(response.data);
+      setOfiices([...response.data])
     });
   }, []);
+  console.log(offices)
 
   return (
     <div className="flex h-screen">
@@ -165,11 +167,12 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
             width="100%"
             height="100%"
           >
-            <Placemark
-              geometry={[56.19, 44.0]}
+            {offices.map((office) => (
+              <Placemark
+              geometry={[office.latitude, office.longitude]}
               properties={{
-                balloonContent: "Москва, Красная площадь",
-                balloonContentHeader: "Информация о точке",
+                balloonContent: "хз",
+                balloonContentHeader: office.address,
               }}
               options={{
                 iconLayout: "default#image",
@@ -182,6 +185,9 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
               onClick={handlePlacemarkClick}
               modules={["geoObject.addon.balloon"]}
             />
+              
+            ))}
+            
           </Map>
         </YMaps>
       </div>
