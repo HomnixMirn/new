@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import AddStarRating from "../components/star_rating/add_star_rating";
 import StarRating from "../components/star_rating/star_rating";
+import { useUser } from "@/hooks/user-context";
 
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
@@ -132,7 +133,7 @@ export default function CoverageMap({
 
   return (
     <div className="flex h-[calc(100vh-68px)] overflow-hidden">
-      <div className="w-[444px] bg-white flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
+      <div className="w-[444px] bg-white flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10 overflow-scroll">
         <ul className="filter-tabs flex">
           <li className="flex-1">
             <button
@@ -193,103 +194,106 @@ export default function CoverageMap({
           <div className="coverage-filter"></div>
         )}
 
-        <div className="flex-1 bg-black text-white p-4 overflow-auto">
-          {activeTab === "coverage" ? (
-            <>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Офисы T2</h2>
-                <button className="text-sm flex items-center gap-1">
-                  Услуги
-                  <span className="text-xl">🧾</span>
-                </button>
-              </div>
-
-              <ul className="space-y-4">
-                {[...Array(7)].map((_, index) => (
-                  <li key={index} className="flex justify-between items-center">
-                    <div className="flex items-start gap-3">
-                      <span
-                        className={`text-2xl ${
-                          index === 0 ? "text-[#d50069]" : "text-white"
-                        }`}
-                      >
-                        📍
-                      </span>
-                      <div>
-                        <p className="font-bold">ул. Бекантура, 1</p>
-                        <p className="text-sm text-gray-400">
-                          пн-пт 8:00-18:00 сб-вс 10:00-18:00
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 text-sm text-gray-400">
-                      💬 199
-                    </div>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-6 flex justify-center">
-                <button className="text-sm flex items-center gap-2 text-white">
-                  <span className="text-xl">⚙️</span> Фильтр
-                </button>
-              </div>
-            </>
-          ) : (
-            <div>
-            </div>
-          )}
-          
-          {selectedOffice && (
-            <div className="p-4 bg-white shadow-lg rounded-lg mt-4 relative">
-              <button 
-                onClick={() => setSelectedOffice(null)}
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-                aria-label="Закрыть отзывы"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              
-              <h2 className="text-xl font-semibold mb-4">Комментарии</h2>
-              
-              {!setShowCommentForm && (
-                <button
-                  onClick={() => setShowCommentForm(true)}
-                  className="mb-4 bg-[#3fcbff] text-white px-4 py-2 rounded-md hover:bg-[#35b5e6]"
-                >
-                  Оставить отзыв
-                </button>
-              )}
-              <div className="max-h-[60vh] overflow-y-auto pr-2">
-                <div className="space-y-4">
-                  {comments.length > 0 ? (
-                    comments.map(comment => (
-                      <div key={comment.id} className="border-b border-gray-200 pb-4">
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-medium">{comment.author.username}</h3>
-                          <StarRating 
-                            rating={comment.rating} 
-                            starColor="#000000"
-                          />                
-                        </div>
-                        <p className="text-gray-600 mt-1">{comment.text}</p>
-                        <p className="text-sm text-gray-400 mt-2">
-                          {new Date(comment.created_at).toLocaleString()}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500">Пока нет отзывов. Будьте первым!</p>
-                  )}
+        <div className="flex-1 bg-black text-white p-4 flex flex-col" style={{ height: 'calc(100vh - 68px - 32px)' }}>
+          <div className="flex-1 overflow-y-auto">
+            {activeTab === "coverage" ? (
+              <>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold">Офисы T2</h2>
+                  <button className="text-sm flex items-center gap-1">
+                    Услуги
+                    <span className="text-xl">🧾</span>
+                  </button>
                 </div>
+
+                <ul className="space-y-4">
+                  {[...Array(7)].map((_, index) => (
+                    <li key={index} className="flex justify-between items-center">
+                      <div className="flex items-start gap-3">
+                        <span className={`text-2xl ${index === 0 ? "text-[#d50069]" : "text-white"}`}>
+                          📍
+                        </span>
+                        <div>
+                          <p className="font-bold">ул. Бекантура, 1</p>
+                          <p className="text-sm text-gray-400">
+                            пн-пт 8:00-18:00 сб-вс 10:00-18:00
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 text-sm text-gray-400">
+                        💬 199
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-6 flex justify-center">
+                  <button className="text-sm flex items-center gap-2 text-white">
+                    <span className="text-xl">⚙️</span> Фильтр
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div>
+                <h2 className="text-xl font-bold mb-4">Роуминг</h2>
+                <p className="text-sm text-gray-400">
+                  Здесь может быть список стран, тарифов или другие данные о роуминге.
+                </p>
+              </div>
+            )}
+            
+            {selectedOffice && (
+              <div className="p-4 bg-black shadow-lg rounded-lg mt-4 relative">
+                <button 
+                  onClick={() => setSelectedOffice(null)}
+                  className="absolute top-2 right-2 text-white hover:text-gray-500"
+                  aria-label="Закрыть отзывы"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                
+                <h2 className="text-xl font-semibold mb-4 text-white">Комментарии</h2>
+                {!setShowCommentForm && (
+                  <button
+                    onClick={() => setShowCommentForm(true)}
+                    className="mb-4 bg-[#3fcbff] text-white px-4 py-2 rounded-md hover:bg-[#35b5e6]"
+                  >
+                    Оставить отзыв
+                  </button>
+                )}
+      <div className="max-h-[50vh] overflow-y-auto">
+        <div className="space-y-4">
+          {comments.length > 0 ? (
+            comments.map(comment => (
+              <div key={comment.id} className="border-b border-gray-700 pb-4">
+                <div className="flex items-center gap-3">
+                  <div>
+                    <h3 className="font-medium text-white">
+                      {comment.author.username}
+                    </h3>
+                    <StarRating 
+                      rating={comment.rating} 
+                      starColor="#3fcbff"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                <p className="text-white mt-2 ml-11">{comment.text}</p>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500">Пока нет отзывов. Будьте первым!</p>
+          )}
+        </div>
+      </div>
                 {setShowCommentForm && (
                   <form onSubmit={handleSubmitComment} className="mt-6">
                     <div className="mb-4">
-                      <label className="block text-gray-700 mb-2">Ваш комментарий</label>
+                      <label className="block text-white mb-2">Ваш комментарий</label>
                       <textarea
-                        className="w-full bg-black px-3 py-2 border border-gray-300 rounded-md text-white"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-white"
                         rows={3}
                         value={newComment.text}
                         onChange={(e) => setNewComment({...newComment, text: e.target.value})}
@@ -297,7 +301,7 @@ export default function CoverageMap({
                       />
                     </div>
                     <div className="mb-4">
-                      <label className="block text-gray-700 mb-2">Ваша оценка</label>
+                      <label className="block text-white mb-2">Ваша оценка</label>
                       <AddStarRating 
                         value={newComment.rating}
                         onChange={(rating) => setNewComment({...newComment, rating})}
@@ -321,11 +325,10 @@ export default function CoverageMap({
                   </form>
                 )}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
-
       <div className="flex-1 h-[calc(100vh-68px)] z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
