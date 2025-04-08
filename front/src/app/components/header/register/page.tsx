@@ -1,10 +1,41 @@
 "use client";
 import React, { useState } from "react";
-import { API_URL } from "@/index";
 import axi from "@/utils/api";
 import { useUser } from "@/hooks/user-context";
 import HollowButton from "@components/buttons/hollow_button/page";
 import { useNotificationManager } from "@/hooks/notification-context";
+
+const formatPhoneNumber = (value: string) => {
+  const phoneNumber = value.replace(/\D/g, "");
+
+  if (phoneNumber.length === 0) {
+    return value;
+  }
+
+  if (phoneNumber.length <= 1) {
+    return `+${phoneNumber}`;
+  } else if (phoneNumber.length <= 4) {
+    return `+${phoneNumber.slice(0, 1)} (${phoneNumber.slice(1)}`;
+  } else if (phoneNumber.length <= 7) {
+    return `+${phoneNumber.slice(0, 1)} (${phoneNumber.slice(
+      1,
+      4
+    )}) ${phoneNumber.slice(4)}`;
+  } else if (phoneNumber.length <= 9) {
+    return `+${phoneNumber.slice(0, 1)} (${phoneNumber.slice(
+      1,
+      4
+    )}) ${phoneNumber.slice(4, 7)}-${phoneNumber.slice(7)}`;
+  } else {
+    return `+${phoneNumber.slice(0, 1)} (${phoneNumber.slice(
+      1,
+      4
+    )}) ${phoneNumber.slice(4, 7)}-${phoneNumber.slice(
+      7,
+      9
+    )}-${phoneNumber.slice(9, 11)}`;
+  }
+};
 
 interface RegisterFormProps {
   onClose: () => void;
@@ -19,6 +50,7 @@ export default function RegisterForm({
 }: RegisterFormProps) {
   const [login, setLogin] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +58,11 @@ export default function RegisterForm({
 
   const { fetchUser } = useUser();
   const { addNotification } = useNotificationManager();
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedPhone = formatPhoneNumber(e.target.value);
+    setPhone(formattedPhone);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,9 +74,10 @@ export default function RegisterForm({
         throw new Error("Пароли не совпадают");
       }
 
-      const response = await axi.post(`${API_URL}auth/register`, {
+      const response = await axi.post(`auth/register`, {
         login,
         email,
+        phone,
         password,
         password2: confirmPassword,
       });
@@ -114,6 +152,20 @@ export default function RegisterForm({
               required
               disabled={isLoading}
               autoComplete="email"
+            />
+          </div>
+
+          <div className="mb-4">
+            <input
+              type="tel"
+              className="w-full p-2 border-2 border-white rounded bg-transparent placeholder:text-white"
+              placeholder="Введите номер телефона"
+              value={phone}
+              onChange={handlePhoneChange}
+              required
+              disabled={isLoading}
+              autoComplete="tel"
+              pattern="\+7\s\(\d{3}\)\s\d{3}-\d{2}-\d{2}"
             />
           </div>
 
