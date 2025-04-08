@@ -142,6 +142,10 @@ export default function CoverageMap({
   }, []);
 
   useEffect(() => {
+    if (!mapBounds || !mapBounds[0] || !mapBounds[1]) {
+      console.error("mapBounds is not properly initialized");
+      return;
+    }
     axi
       .post("/map/all_cells", {
         left_top: mapBounds[0],
@@ -157,9 +161,7 @@ export default function CoverageMap({
     const handleShowComments = (e) => {
       fetchComments(e.detail);
     };
-
     window.addEventListener("showComments", handleShowComments);
-
     return () => {
       window.removeEventListener("showComments", handleShowComments);
     };
@@ -217,27 +219,23 @@ export default function CoverageMap({
 
   const createBalloonContent = (office) => {
     return `
-      <div style="width: 350px; height: 130px; border-radius: 16px; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-        <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">${
+      <div border-radius: 20px; style="width: 350px; height: 150px; display:flex; flex-direction:column; background:white;">
+        <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">
+        <h1>Адрес офиса</h1>
+        ${
           office.address
         }</div>
-        <div style="display: flex; margin-bottom: 8px;">
-          <span style="font-size: 14px; color: #666;">Часы работы:</span>
-          <span style="font-size: 14px; margin-left: 8px;">${
+        <div style="display: flex; flex-direction: column; margin-bottom: 8px;">
+          <h1 style="font-size: 14px; color: black">Режим работы:</h1>
+          <span style="font-size: 14px; color: #B0B0B0">${
             office.working_hours || "9:00 - 18:00"
-          }</span>
-        </div>
-        <div style="display: flex; margin-bottom: 8px;">
-          <span style="font-size: 14px; color: #666;">Телефон:</span>
-          <span style="font-size: 14px; margin-left: 8px;">${
-            office.phone || "+7 (XXX) XXX-XX-XX"
           }</span>
         </div>
         <button onclick="window.dispatchEvent(new CustomEvent('showComments', { detail: ${
           office.id
         } }))" 
           style="margin-top: auto; background: #3fcbff; border: none; padding: 8px 16px; border-radius: 4px; color: white; cursor: pointer; align-self: flex-start;">
-          Показать комментарии
+          ${office.reting}
         </button>
       </div>
     `;
@@ -248,7 +246,7 @@ export default function CoverageMap({
   }
 
   return (
-    <div className="flex h-[calc(100vh-68px)] overflow-hidden">
+    <div className="flex h-[calc(100vh-68px)]">
       <div className="w-[444px] bg-white flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10 overflow-scroll">
         <ul className="filter-tabs flex">
           <li className="flex-1">
@@ -276,32 +274,43 @@ export default function CoverageMap({
             </button>
           </li>
         </ul>
-        <div className="filter-search relative bg-[#3fcbff] p-4 ">
-          <div className="flex items-center relative">
-            <span
-              className="my-position-icon absolute left-3 cursor-pointer"
-              title="Определить мое местоположение"
-            />
-            <input
-              id="addressQuery"
-              className="bg-white text-gray-800 w-full pl-10 pr-12 py-3 
-            border-2 border-[#448EA9] 
-            focus:outline-none focus:border-2 focus:border-black
-            placeholder:text-gray-400"
-              type="text"
-              placeholder="город, адрес или метро"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              autoComplete="off"
-            />
-            {searchQuery && (
-              <button
-                className="clear absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
-                onClick={() => setSearchQuery("")}
-              ></button>
-            )}
+          <div className="filter-search relative bg-[#ffffff] p-4">
+            <div className="flex items-center relative">
+              <span
+                className="my-position-icon absolute left-3 cursor-pointer z-10"
+                title="Определить мое местоположение"
+              />
+              <div className="relative flex-grow">
+                <input
+                  id="addressQuery"
+                  className="bg-white text-gray-800 w-full pl-10 pr-10 py-3 
+                  border-2 border-[#000000] 
+                  focus:outline-none focus:border-2 focus:border-black
+                  placeholder:text-gray-400 rounded-[10px]"
+                  type="text"
+                  placeholder="город, адрес или метро"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  autoComplete="off"
+                />
+                <Image 
+                  src="/images/icons/Icon.svg" 
+                  alt="Search" 
+                  width={20} 
+                  height={20}
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2"
+                />
+              </div>
+              {searchQuery && (
+                <button
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
+                  onClick={() => setSearchQuery("")}
+                >
+                  ×
+                </button>
+              )}
+            </div>
           </div>
-        </div>
 
         {activeTab === "offices" ? (
           <div className="filter-results-container with-desktop-vertical-scrollbar"></div>
@@ -329,7 +338,7 @@ export default function CoverageMap({
                           📍
                         </span>
                         <div>
-                          <p className="font-bold">ул. Бекантура, 1</p>
+                        <p className="font-bold text-base">${office.address}</p>
                           <p className="text-sm text-gray-400">
                             пн-пт 8:00-18:00 сб-вс 10:00-18:00
                           </p>
@@ -378,31 +387,31 @@ export default function CoverageMap({
                     Оставить отзыв
                   </button>
                 )}
-      <div className="max-h-[50vh] overflow-y-auto">
-        <div className="space-y-4">
-          {comments.length > 0 ? (
-            comments.map(comment => (
-              <div key={comment.id} className="border-b border-gray-700 pb-4">
-                <div className="flex items-center gap-3">
-                  <div>
-                    <h3 className="font-medium text-white">
-                      {comment.author.username}
-                    </h3>
-                    <StarRating 
-                      rating={comment.rating} 
-                      starColor="#3fcbff"
-                      className="mt-1"
-                    />
+                  <div className="max-h-[50vh] overflow-y-auto">
+                    <div className="space-y-4">
+                      {comments.length > 0 ? (
+                        comments.map(comment => (
+                          <div key={comment.id} className="border-b border-gray-700 pb-4">
+                            <div className="flex items-center gap-3">
+                              <div>
+                                <h3 className="font-medium text-white">
+                                  {comment.author.user.username}
+                                </h3>
+                                <StarRating 
+                                  rating={comment.rating} 
+                                  starColor="#3fcbff"
+                                  className="mt-1"
+                                />
+                              </div>
+                            </div>
+                            <p className="text-white mt-2 ml-11">{comment.text}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-500">Пока нет отзывов. Будьте первым!</p>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <p className="text-white mt-2 ml-11">{comment.text}</p>
-              </div>
-            ))
-          ) : (
-            <p className="text-gray-500">Пока нет отзывов. Будьте первым!</p>
-          )}
-        </div>
-      </div>
                 {setShowCommentForm && (
                   <form onSubmit={handleSubmitComment} className="mt-6">
                     <div className="mb-4">
@@ -451,6 +460,7 @@ export default function CoverageMap({
       <div className="flex-1 h-[calc(100vh-68px)] z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
+           
             instanceRef={(ref) => {
               if (ref && !mapRef.current) {
                 mapRef.current = ref;
@@ -487,10 +497,7 @@ export default function CoverageMap({
                   options={{
                     iconLayout: "default#image",
                     iconImageHref: "/images/pointerIcon.svg",
-                    iconImageSize: [40, 40],
-                    iconImageOffset: [-20, -40],
                     balloonShadow: true,
-                    balloonOffset: [0, 0],
                     balloonAutoPan: true,
                     balloonCloseButton: true,
                     balloonPanelMaxMapArea: 0,
@@ -508,45 +515,33 @@ export default function CoverageMap({
                   key={cell.id}
                   geometry={[cell.latitude, cell.longitude]}
                   properties={{
-                    balloonContent: createBalloonContent(cell),
+                    balloonContent: `
+                      <div class="custom-balloon">
+                        <h3>${cell.name}</h3>
+                        <p>Адрес: ${cell.address}</p>
+                        <div class="stats">
+                          <span>Мощность: ${cell.power} dBm</span>
+                          <span>Пользователи: ${cell.users}</span>
+                        </div>
+                      </div>
+                    `,
+                    balloonContentHeader: `Ячейка ${cell.id}`,
                   }}
                   options={{
-                    iconLayout: "default#image",
-                    iconImageHref: "/images/pointerIcon.svg",
-                    iconImageSize: [40, 40],
-                    iconImageOffset: [-20, -40],
-                    balloonShadow: true,
-                    balloonOffset: [0, 0],
-                    balloonAutoPan: true,
+                    balloonLayout: "default#imageWithContent",
                     balloonCloseButton: true,
-                    balloonPanelMaxMapArea: 0,
+                    balloonAutoPan: true,
                   }}
-                  modules={["geoObject.addon.balloon", "geoObject.addon.hint"]}
+                  modules={["geoObject.addon.balloon"]}
                 />
               );
             })}
-            <Placemark
-              geometry={[56.19, 44.0]}
-              options={{
-                iconLayout: "default#image",
-                iconImageHref: "/images/tvTower.svg",
-                iconImageSize: [30, 30],
-                iconImageOffset: [-15, -15],
 
-                balloonShadow: true,
-                balloonOffset: [0, 0],
-                balloonAutoPan: true,
-                balloonCloseButton: true,
-                balloonPanelMaxMapArea: 0,
-              }}
-            />
             <Polygon
               geometry={getUnifiedCoverageArea(coverageCenters, 4000)}
               options={{
                 fillColor: "#FF349559",
                 strokeColor: "#FF3495",
-                strokeWidth: 2,
-                strokeOpacity: 0.5,
               }}
             />
           </Map>
