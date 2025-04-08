@@ -12,7 +12,7 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <div className="w-[444px] bg-white shadow-lgflex flex-col map-filter blue-style">
+      <div className="w-[444px] bg-white flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
         <ul className="filter-tabs flex">
           <li className="flex-1">
             <button
@@ -39,7 +39,7 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
             </button>
           </li>
         </ul>
-        <div className="filter-search relative bg-[#3fcbff] p-4 rounded">
+        <div className="filter-search relative bg-[#3fcbff] p-4 ">
           <div className="flex items-center relative">
             <span
               className="my-position-icon absolute left-3 cursor-pointer"
@@ -48,14 +48,16 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
 
             <input
               id="addressQuery"
-              className="bg-white text-field text-gray-800 w-full pl-10 pr-12 py-3 rounded-lg border-none focus:ring-2 focus:ring-[#3fcbff] placeholder:text-gray-400"
+              className="bg-white text-gray-800 w-full pl-10 pr-12 py-3 
+            border-2 border-[#448EA9] 
+            focus:outline-none focus:border-2 focus:border-black
+            placeholder:text-gray-400"
               type="text"
               placeholder="город, адрес или метро"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               autoComplete="off"
             />
-
             {searchQuery && (
               <button
                 className="clear absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
@@ -143,7 +145,7 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
       </div>
 
       {/* Карта */}
-      <div className="flex-1">
+      <div className="flex-1 z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
             defaultState={{
@@ -157,6 +159,12 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
               geometry={[56.19, 44.0]}
               properties={{
                 balloonContent: "Москва, Красная площадь",
+              }}
+              options={{
+                iconLayout: "default#image",
+                iconImageHref: "/images/pointer.svg", // Укажите путь к вашему изображению
+                iconImageSize: [40, 40], // Размеры изображения
+                iconImageOffset: [-20, -40], // Смещение, чтобы центр изображения совпадал с точкой
               }}
             />
           </Map>
