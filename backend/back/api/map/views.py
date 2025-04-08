@@ -61,10 +61,13 @@ def get_comments(request: Request):
     else:
         return Response('Метод не поддерживается',status=status.HTTP_405_METHOD_NOT_ALLOWED) 
     
-@api_view(["GET"])
+@api_view(["POST"])
 def get_cells(request: Request):
-    if request.method == 'GET':
-        cell = cells.objects.all()
+    if request.method == 'POST':
+        left_top = request.POST['left_top']
+        right_bottom = request.POST['right_bottom']
+        
+        cell = cells.objects.filters(Q(latitude__gte=left_top['latitude']) & Q(latitude__lte=right_bottom['latitude']) & Q(longitude__gte=left_top['longitude']) & Q(longitude__lte=right_bottom['longitude']))
         data = CellsSerializer(cell, many=True).data
         return Response(data, status=status.HTTP_200_OK)
     else:
