@@ -39,3 +39,12 @@ body {
 .animate-slideIn {
   animation: slideIn 3s ease-out;
 }
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 0;
+}
+
+.custom-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

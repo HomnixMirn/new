@@ -54,7 +54,12 @@ def get_comments(request: Request):
         try:
             office = Office.objects.get(id=request.GET['id'])    
             comments = office.comments.all()
-            data = commentsSerializer(comments, many=True).data       
+            if 'search' in request.GET:
+                comments = comments.filter(address__iregix=request.GET['search'])
+            if 'services' in request.GET:
+                for service in request.GET['services'].split(','):
+                    comments = comments.filter(services__name__iregix=service)
+            data = commentsSerializer(comments, many=True).data        
             return Response(data, status=status.HTTP_200_OK)
         except:
             return Response('Произошла ошибка при получении комментариев', status=status.HTTP_404_NOT_FOUND)
