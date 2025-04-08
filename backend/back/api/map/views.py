@@ -8,6 +8,7 @@ from core.models.models import *
 from core.utils.validators import validate_email
 from rest_framework.decorators import api_view
 from core.utils.serializers import OfficeSerializer,commentsSerializer,CellsSerializer
+from core.utils.auth_decor import token_required
 
 # import json
 # url = 'D:/pusto/перенос/python/Thonny/Thony/2025/new/backend/parser/ceils.json'
@@ -32,6 +33,7 @@ def all_office(request: Request):
     
 
 @api_view(['POST'])
+@token_required
 def add_comment(request: Request):
     if request.method == 'POST':
         data = request.data
@@ -42,7 +44,7 @@ def add_comment(request: Request):
             office.comments.add(newComment)
             return Response('Комментарий добавлен', status=status.HTTP_200_OK)
         except :
-            return Response('Произошла ошибка при добавлении комментария', status=status.HTTP_404_NOT_FOUND)
+            return Response('Произошла ошибка при добавлении комментария', status=status.HTTP_406_NOT_ACCEPTABLE)
     else:
         return Response('Метод не поддерживается',status=status.HTTP_405_METHOD_NOT_ALLOWED)
     
