@@ -7,7 +7,18 @@ from rest_framework.request import Request
 from core.models.models import *
 from core.utils.validators import validate_email
 from rest_framework.decorators import api_view
-from core.utils.serializers import OfficeSerializer,commentsSerializer
+from core.utils.serializers import OfficeSerializer,commentsSerializer,CellsSerializer
+
+# import json
+# url = 'D:/pusto/перенос/python/Thonny/Thony/2025/new/backend/parser/ceils.json'
+# with open(url, 'r', encoding='utf-8') as f:
+#     pars = json.load(f)
+    
+# cells.objects.all().delete()
+# for i in pars['Enbs']:
+#     for sector in i['Sectors']:
+#         cells.objects.create(latitude = sector['Latitude'], longitude = sector['Longitude'], type = "4G")
+#         print("Создана ячейка")
 
 
 @api_view(['GET'])
@@ -47,3 +58,12 @@ def get_comments(request: Request):
             return Response('Произошла ошибка при получении комментариев', status=status.HTTP_404_NOT_FOUND)
     else:
         return Response('Метод не поддерживается',status=status.HTTP_405_METHOD_NOT_ALLOWED) 
+    
+@api_view(["GET"])
+def get_cells(request: Request):
+    if request.method == 'GET':
+        cell = cells.objects.all()
+        data = CellsSerializer(cell, many=True).data
+        return Response(data, status=status.HTTP_200_OK)
+    else:
+        return Response('Метод не поддерживается',status=status.HTTP_405_METHOD_NOT_ALLOWED)

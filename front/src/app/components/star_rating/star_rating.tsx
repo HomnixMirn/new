@@ -42,10 +42,10 @@ const StarRating = ({ rating, starColor }) => {
               ...fullStarStyle,
               clipPath:
                 index < fullStars
-                  ? "none" // Полная звезда, не обрезаем
+                  ? "none"
                   : index === fullStars
-                  ? `inset(0 ${100 - partialStar * 100}% 0 0)` // Частичная звезда, обрезаем справа
-                  : "inset(0 100% 0 0)", // Пустая звезда, полностью обрезаем
+                  ? `inset(0 ${100 - partialStar * 100}% 0 0)`
+                  : "inset(0 100% 0 0)",
             }}
           ></div>
         </div>
