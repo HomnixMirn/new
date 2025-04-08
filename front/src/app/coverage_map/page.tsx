@@ -10,21 +10,46 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
   const [show2g, setShow2g] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isBalloonOpen, setIsBalloonOpen] = useState(false);
-  const [offices , setOfiices] = useState([])
+  const [offices, setOffices] = useState([]);
+
   const handlePlacemarkClick = () => {
     setIsBalloonOpen(true);
   };
 
   useEffect(() => {
-    axi.get('/map/all_office').then(response => {
+    axi.get("/map/all_office").then((response) => {
       console.log(response.data);
-      setOfiices([...response.data])
+      setOffices([...response.data]);
     });
   }, []);
-  console.log(offices)
+
+  const createBalloonContent = (office) => {
+    return `
+      <div style="width: 350px; height: 130px; border-radius: 8px; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+        <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">${
+          office.address
+        }</div>
+        <div style="display: flex; margin-bottom: 8px;">
+          <span style="font-size: 14px; color: #666;">Часы работы:</span>
+          <span style="font-size: 14px; margin-left: 8px;">${
+            office.working_hours || "9:00 - 18:00"
+          }</span>
+        </div>
+        <div style="display: flex; margin-bottom: 8px;">
+          <span style="font-size: 14px; color: #666;">Телефон:</span>
+          <span style="font-size: 14px; margin-left: 8px;">${
+            office.phone || "+7 (XXX) XXX-XX-XX"
+          }</span>
+        </div>
+        <button style="margin-top: auto; background: #3fcbff; border: none; padding: 8px 16px; border-radius: 4px; color: white; cursor: pointer; align-self: flex-start;">
+          Подробнее
+        </button>
+      </div>
+    `;
+  };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-[calc(100vh-68px)] overflow-hidden">
       <div className="w-[444px] bg-white flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
         <ul className="filter-tabs flex">
           <li className="flex-1">
@@ -157,7 +182,7 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
         )}
       </div>
 
-      <div className="flex-1 z-0">
+      <div className="flex-1 h-[calc(100vh-68px)] z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
             defaultState={{
@@ -169,25 +194,26 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
           >
             {offices.map((office) => (
               <Placemark
-              geometry={[office.latitude, office.longitude]}
-              properties={{
-                balloonContent: "хз",
-                balloonContentHeader: office.address,
-              }}
-              options={{
-                iconLayout: "default#image",
-                iconImageHref: "/images/pointer.svg",
-                iconImageSize: [40, 40],
-                iconImageOffset: [-20, -40],
-                openBalloonOnClick: true,
-                hideBalloonOnClick: false,
-              }}
-              onClick={handlePlacemarkClick}
-              modules={["geoObject.addon.balloon"]}
-            />
-              
+                key={office.id}
+                geometry={[office.latitude, office.longitude]}
+                properties={{
+                  balloonContent: createBalloonContent(office),
+                }}
+                options={{
+                  iconLayout: "default#image",
+                  iconImageHref: "/images/pointerIcon.svg",
+                  iconImageSize: [40, 40],
+                  iconImageOffset: [-20, -40],
+                  balloonShadow: true,
+                  balloonOffset: [0, -40],
+                  balloonAutoPan: true,
+                  balloonCloseButton: true,
+                  balloonPanelMaxMapArea: 0,
+                }}
+                onClick={handlePlacemarkClick}
+                modules={["geoObject.addon.balloon", "geoObject.addon.hint"]}
+              />
             ))}
-            
           </Map>
         </YMaps>
       </div>
