@@ -1,0 +1,2 @@
+API = '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'
+API_GPT = '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'

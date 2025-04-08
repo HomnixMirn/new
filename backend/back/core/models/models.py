@@ -6,6 +6,7 @@ from rest_framework.authtoken.models import Token
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    icon = models.ImageField(null=True, blank=True, upload_to='profile_icons/')
     
     def __str__(self):
         return self.user.username
