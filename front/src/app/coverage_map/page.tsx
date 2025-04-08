@@ -180,6 +180,17 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
             </ul>
           </div>
         )}
+        {(
+          <div>
+            <h1>Коментарии</h1>
+            <div>
+                
+              <div>
+
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 h-[calc(100vh-68px)] z-0">
