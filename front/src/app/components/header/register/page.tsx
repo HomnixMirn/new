@@ -19,6 +19,7 @@ export default function RegisterForm({
 }: RegisterFormProps) {
   const [login, setLogin] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -114,6 +115,19 @@ export default function RegisterForm({
               required
               disabled={isLoading}
               autoComplete="email"
+            />
+          </div>
+
+          <div className="mb-4">
+            <input
+              type="tel"
+              className="w-full p-2 border-2 border-white rounded bg-transparent placeholder:text-white"
+              placeholder="Введите номер телефона"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              required
+              disabled={isLoading}
+              autoComplete="tel"
             />
           </div>
 

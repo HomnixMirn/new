@@ -8,10 +8,14 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
   const [show3g, setShow3g] = useState(true);
   const [show2g, setShow2g] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isBalloonOpen, setIsBalloonOpen] = useState(false);
+
+  const handlePlacemarkClick = () => {
+    setIsBalloonOpen(true);
+  };
 
   return (
     <div className="flex h-screen">
-      {/* Sidebar */}
       <div className="w-[444px] bg-white flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
         <ul className="filter-tabs flex">
           <li className="flex-1">
@@ -144,7 +148,6 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
         )}
       </div>
 
-      {/* Карта */}
       <div className="flex-1 z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
@@ -159,13 +162,18 @@ export default function CoverageMap({ apiKey = "ваш_ключ_яндекс_к�
               geometry={[56.19, 44.0]}
               properties={{
                 balloonContent: "Москва, Красная площадь",
+                balloonContentHeader: "Информация о точке",
               }}
               options={{
                 iconLayout: "default#image",
-                iconImageHref: "/images/pointer.svg", // Укажите путь к вашему изображению
-                iconImageSize: [40, 40], // Размеры изображения
-                iconImageOffset: [-20, -40], // Смещение, чтобы центр изображения совпадал с точкой
+                iconImageHref: "/images/pointer.svg",
+                iconImageSize: [40, 40],
+                iconImageOffset: [-20, -40],
+                openBalloonOnClick: true,
+                hideBalloonOnClick: false,
               }}
+              onClick={handlePlacemarkClick}
+              modules={["geoObject.addon.balloon"]}
             />
           </Map>
         </YMaps>
