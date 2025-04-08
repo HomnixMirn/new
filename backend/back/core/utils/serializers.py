@@ -35,6 +35,35 @@ class OfficeSerializer(serializers.ModelSerializer):
     sites = siteSerializer(many=True)
     services = serviceSerializer(many=True)
     daySchedules = dayScheduleSerializer(many=True)
+    souring = serializers.SerializerMethodField()
+    
+    def get_souring(self,obj):
+        translate = {
+            "MONDAY":'ПН',
+            "TUESDAY":"ВТ",
+            "WEDNESDAY":"СР",
+            "THURSDAY":"ЧТ",
+            "FRIDAY":"ПТ",
+            "SATURDAY":"СБ",
+            "SUNDAY":"ВС"
+            
+        }
+        if obj.daySchedules:
+            lastStart = ''
+            lastEnd= ''
+            dayStart =''
+            rasp = []
+            for i in obj.daySchedules.all():
+                if lastStart =='':
+                    lastStart,lastEnd = i.openTime,i.closeTime
+                    dayStart = i.day
+                elif lastEnd == i.closeTime and lastStart ==i.openTime:
+                    continue
+                else:
+                    rasp.append(f'{translate[dayStart]} - {translate[i.day]}: {lastStart} - {lastEnd}')
+                    lastStart,lastEnd = i.openTime,i.closeTime
+            rasp.append(f'{translate[dayStart]} - {translate[obj.daySchedules.all().last().day]}: {lastStart} - {lastEnd}')
+            return '\n'.join(rasp)
     class Meta:
         model = Office
         fields = '__all__'
