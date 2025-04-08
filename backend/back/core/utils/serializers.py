@@ -89,3 +89,9 @@ class OfficeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Office
         fields = '__all__'
+
+
+class CellsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = cells
+        fields = '__all__'

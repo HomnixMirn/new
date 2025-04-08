@@ -2,6 +2,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { YMaps, Map, Placemark, Clusterer } from "@pbe/react-yandex-maps";
 import axi from "@/utils/api";
+<<<<<<< HEAD
+import Image from "next/image";
+import Link from "next/link";
+=======
+>>>>>>> 0abda341c73ee984229c35ea867235076e7e5564
 
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
@@ -186,80 +191,57 @@ export default function CoverageMap({
           <div className="coverage-filter"></div>
         )}
 
-        {selectedOffice && (
-          <div className="p-4 bg-white shadow-lg rounded-lg mt-4">
-            <h2 className="text-xl font-semibold mb-4">Комментарии</h2>
-
-            <form onSubmit={handleSubmitComment} className="mb-6">
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-2">
-                  Ваш комментарий
-                </label>
-                <textarea
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  rows={3}
-                  value={newComment.text}
-                  onChange={(e) =>
-                    setNewComment({ ...newComment, text: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-2">Рейтинг</label>
-                <select
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  value={newComment.rating}
-                  onChange={(e) =>
-                    setNewComment({
-                      ...newComment,
-                      rating: parseInt(e.target.value),
-                    })
-                  }
-                >
-                  {[5, 4, 3, 2, 1].map((num) => (
-                    <option key={num} value={num}>
-                      {num} звезд{num !== 1 ? "ы" : "а"}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <button
-                type="submit"
-                className="bg-[#3fcbff] text-white px-4 py-2 rounded-md hover:bg-[#35b5e6]"
-              >
-                Отправить
+      <div className="flex-1 bg-black text-white p-4 overflow-auto">
+        {activeTab === "coverage" ? (
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Офисы T2</h2>
+              <button className="text-sm flex items-center gap-1">
+                Услуги
+                <span className="text-xl">🧾</span>
               </button>
-            </form>
-
-            <div className="space-y-4">
-              {comments.length > 0 ? (
-                comments.map((comment) => (
-                  <div
-                    key={comment.id}
-                    className="border-b border-gray-200 pb-4"
-                  >
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-medium">{comment.author.username}</h3>
-                      <div className="text-yellow-500">
-                        {"★".repeat(comment.rating)}
-                        {"☆".repeat(5 - comment.rating)}
-                      </div>
-                    </div>
-                    <p className="text-gray-600 mt-1">{comment.text}</p>
-                    <p className="text-sm text-gray-400 mt-2">
-                      {new Date(comment.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500">
-                  Пока нет комментариев. Будьте первым!
-                </p>
-              )}
             </div>
+
+            <ul className="space-y-4">
+              {[...Array(7)].map((_, index) => (
+                <li key={index} className="flex justify-between items-center">
+                  <div className="flex items-start gap-3">
+                    <span
+                      className={`text-2xl ${
+                        index === 0 ? "text-[#d50069]" : "text-white"
+                      }`}
+                    >
+                      📍
+                    </span>
+                    <div>
+                      <p className="font-bold">ул. Бекантура, 1</p>
+                      <p className="text-sm text-gray-400">
+                        пн-пт 8:00-18:00 сб-вс 10:00-18:00
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 text-sm text-gray-400">
+                    💬 199
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-6 flex justify-center">
+              <button className="text-sm flex items-center gap-2 text-white">
+                <span className="text-xl">⚙️</span> Фильтр
+              </button>
+            </div>
+          </>
+        ) : (
+          <div>
+            <h2 className="text-xl font-bold mb-4">Роуминг</h2>
+            <p className="text-sm text-gray-400">
+              Здесь может быть список стран, тарифов или другие данные о роуминге.
+            </p>
           </div>
         )}
+      </div>
       </div>
 
       <div className="flex-1 h-[calc(100vh-68px)] z-0">

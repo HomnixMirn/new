@@ -70,6 +70,13 @@ class comments(models.Model):
     text = models.TextField()
     date = models.DateTimeField(auto_now_add=True)
     
+    
+class cells(models.Model):
+    types = (('2G','2G'),('3G','3G'),('4G','4G'))
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+    type = models.CharField(max_length=50)
+    
 
 class authorizedToken(Token):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
