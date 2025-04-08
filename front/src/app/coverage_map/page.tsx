@@ -6,7 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import AddStarRating from "../components/star_rating/add_star_rating";
 import StarRating from "../components/star_rating/star_rating";
-import { API_URL } from "@/index";
 
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
@@ -26,6 +25,7 @@ export default function CoverageMap({
   });
   const [selectedOffice, setSelectedOffice] = useState(null);
   const mapRef = useRef(null);
+  const [mapBounds, setMapBounds] = useState(null);
 
   const handlePlacemarkClick = (e) => {
     e.stopPropagation();
@@ -40,11 +40,11 @@ export default function CoverageMap({
       mapRef.current
         .panTo(coords, {
           flying: true,
-          duration: 500,
+          duration: 400,
         })
         .then(() => {
           mapRef.current.setZoom(currentZoom + 1, {
-            duration: 500,
+            duration: 300,
           });
         });
     }
@@ -78,6 +78,25 @@ export default function CoverageMap({
     } catch (error) {
       console.error("Error fetching comments:", error.response?.data);
     }
+  };
+
+  const getMapBounds = (mapRef: React.RefObject<any>) => {
+    if (!mapRef.current) return null;
+
+    const map = mapRef.current;
+    const bounds = map.getBounds();
+
+    if (!bounds) return null;
+
+    return [
+      [bounds[0][0], bounds[0][1]], // Юго-западная точка (southWest)
+      [bounds[1][0], bounds[1][1]], // Северо-восточная точка (northEast)
+    ];
+  };
+
+  const handleBoundsChange = () => {
+    const bounds = getMapBounds(mapRef);
+    setMapBounds(bounds);
   };
 
   const handleSubmitComment = async (e) => {
@@ -354,13 +373,22 @@ export default function CoverageMap({
       <div className="flex-1 h-[calc(100vh-68px)] z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
-            instanceRef={mapRef}
+            instanceRef={(ref) => {
+              if (ref && !mapRef.current) {
+                mapRef.current = ref;
+                const bounds = ref.getBounds();
+                if (bounds) {
+                  setMapBounds(bounds);
+                }
+              }
+            }}
             defaultState={{
               center: [56.19, 44.0],
               zoom: 10,
             }}
             width="100%"
             height="100%"
+            onBoundsChange={handleBoundsChange}
           >
             <Clusterer
               options={{
