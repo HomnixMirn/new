@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import AddStarRating from "../components/star_rating/add_star_rating";
 import StarRating from "../components/star_rating/star_rating";
+import { API_URL } from "@/index";
 
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
@@ -181,8 +182,7 @@ export default function CoverageMap({
               <button
                 className="clear absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
                 onClick={() => setSearchQuery("")}
-              >
-              </button>
+              ></button>
             )}
           </div>
         </div>
@@ -236,24 +236,34 @@ export default function CoverageMap({
               </div>
             </>
           ) : (
-            <div>
-            </div>
+            <div></div>
           )}
-          
+
           {selectedOffice && (
             <div className="p-4 bg-white shadow-lg rounded-lg mt-4 relative">
-              <button 
+              <button
                 onClick={() => setSelectedOffice(null)}
                 className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
                 aria-label="Закрыть отзывы"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
-              
+
               <h2 className="text-xl font-semibold mb-4">Комментарии</h2>
-              
+
               {!setShowCommentForm && (
                 <button
                   onClick={() => setShowCommentForm(true)}
@@ -265,14 +275,19 @@ export default function CoverageMap({
               <div className="max-h-[60vh] overflow-y-auto pr-2">
                 <div className="space-y-4">
                   {comments.length > 0 ? (
-                    comments.map(comment => (
-                      <div key={comment.id} className="border-b border-gray-200 pb-4">
+                    comments.map((comment) => (
+                      <div
+                        key={comment.id}
+                        className="border-b border-gray-200 pb-4"
+                      >
                         <div className="flex justify-between items-start">
-                          <h3 className="font-medium">{comment.author.username}</h3>
-                          <StarRating 
-                            rating={comment.rating} 
+                          <h3 className="font-medium">
+                            {comment.author.username}
+                          </h3>
+                          <StarRating
+                            rating={comment.rating}
                             starColor="#000000"
-                          />                
+                          />
                         </div>
                         <p className="text-gray-600 mt-1">{comment.text}</p>
                         <p className="text-sm text-gray-400 mt-2">
@@ -281,26 +296,36 @@ export default function CoverageMap({
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-500">Пока нет отзывов. Будьте первым!</p>
+                    <p className="text-gray-500">
+                      Пока нет отзывов. Будьте первым!
+                    </p>
                   )}
                 </div>
                 {setShowCommentForm && (
                   <form onSubmit={handleSubmitComment} className="mt-6">
                     <div className="mb-4">
-                      <label className="block text-gray-700 mb-2">Ваш комментарий</label>
+                      <label className="block text-gray-700 mb-2">
+                        Ваш комментарий
+                      </label>
                       <textarea
                         className="w-full bg-black px-3 py-2 border border-gray-300 rounded-md text-white"
                         rows={3}
                         value={newComment.text}
-                        onChange={(e) => setNewComment({...newComment, text: e.target.value})}
+                        onChange={(e) =>
+                          setNewComment({ ...newComment, text: e.target.value })
+                        }
                         required
                       />
                     </div>
                     <div className="mb-4">
-                      <label className="block text-gray-700 mb-2">Ваша оценка</label>
-                      <AddStarRating 
+                      <label className="block text-gray-700 mb-2">
+                        Ваша оценка
+                      </label>
+                      <AddStarRating
                         value={newComment.rating}
-                        onChange={(rating) => setNewComment({...newComment, rating})}
+                        onChange={(rating) =>
+                          setNewComment({ ...newComment, rating })
+                        }
                       />
                     </div>
                     <div className="flex justify-between">
