@@ -20,13 +20,11 @@ export default function Profile() {
             />
           </div>
 
-          {/* Данные пользователя */}
-          <div className="flex-grow">
-            <h1 className="text-2xl font-bold text-gray-800">John Doe</h1>
+          <div className="flex-grow ">
+            <h1 className="text-2xl font-bold text-gray-800 mb-1">John Doe</h1>
             <p className="text-gray-600">john.doe@example.com</p>
           </div>
 
-          {/* Кнопка Edit */}
           <div className="flex-shrink-0">
             <SolidButton
               onClick={() => {
