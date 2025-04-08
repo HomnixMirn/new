@@ -79,24 +79,14 @@ export default function Header() {
                 <div className="relative w-[200%] h-0.5 bg-white"></div>
               )}
             </Link>
-
             <Link
-              className="flex flex-col items-center text-[#898989] hover:text-white"
-              href="/catalog"
-            >
-              Каталог
-              {pathname === "/catalog" && (
-                <div className="relative w-[200%] h-0.5 bg-white"></div>
-              )}
-            </Link>
-            <a
               href="https://t.me/shadow7xbot?start=u_129&utm_campaign=115371697&utm_content=16641918526|clid|15984713945027182591&utm_term=бесплатный%20телеграм%20бот&yclid=15984713945027182"
               target="_blank"
               rel="noopener noreferrer"
               className="flex flex-col items-center text-[#898989] hover:text-white"
             >
               Наш бот
-            </a>
+            </Link>
             <Link
               className="flex flex-col items-center text-[#898989] hover:text-white"
               href="/coverage_map"
