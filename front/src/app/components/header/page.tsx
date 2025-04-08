@@ -68,10 +68,10 @@ export default function Header() {
             </Link>
             <Link
               className="flex flex-col items-center text-[#898989] hover:text-blue-500 "
-              href="/map"
+              href="/coverage_map"
             >
               Карта
-              {pathname === "/map" && (
+              {pathname === "/coverage_map" && (
                 <div className="relative w-[200%] h-0.5 bg-blue-500"></div>
               )}
             </Link>
