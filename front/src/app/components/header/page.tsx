@@ -90,9 +90,9 @@ export default function Header() {
             >
               Наш бот
             </a>
-            <Link className="flex flex-col items-center text-[#898989] hover:text-white" href="/map">
+            <Link className="flex flex-col items-center text-[#898989] hover:text-white" href="/coverage_map">
               Карта
-              {pathname === "/map" && <div className="relative w-[200%] h-0.5 bg-white"></div>}
+              {pathname === "/coverage_map" && <div className="relative w-[200%] h-0.5 bg-white"></div>}
             </Link>
 
             {isLoggedIn && (
