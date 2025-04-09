@@ -13,6 +13,7 @@ import Image from "next/image";
 import Link from "next/link";
 import AddStarRating from "../components/star_rating/add_star_rating";
 import StarRating from "../components/star_rating/star_rating";
+import * as turf from "@turf/turf";
 
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
@@ -25,6 +26,7 @@ export default function CoverageMap({
   const [cells, setCells] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [services, setServices] = useState([]);
+  const [mergedCoverage, setMergedCoverage] = useState<any>(null);
   const [newComment, setNewComment] = useState({
     text: "",
     rating: 5,
@@ -163,10 +165,48 @@ export default function CoverageMap({
       right_top: mapBounds[1],
     };
     axi.post("/map/all_cells", data).then((response) => {
-      setCells(response.data);
-      console.log(response.data);
+      const cells = response.data;
+      generateMergedCoverage([...cells]);
     });
   }, [mapBounds]);
+
+  const generateMergedCoverage = (cells) => {
+    if (cells.length === 0) {
+      setMergedCoverage(null);
+      return;
+    }
+
+    try {
+      const polygons = cells.map((cell) => {
+        const center = [cell.longitude, cell.latitude];
+        return turf.circle(center, 4000, { steps: 64, units: "meters" });
+      });
+
+      const combined = turf.combine(turf.featureCollection(polygons));
+      const merged = combined.features[0];
+
+      if (!merged) return;
+
+      const processCoordinates = (coords) => {
+        return coords.map((ring) => ring.map(([lng, lat]) => [lat, lng]));
+      };
+
+      let processedCoords;
+      const coordinates = turf.getCoords(merged);
+
+      if (merged.geometry.type === "MultiPolygon") {
+        processedCoords = coordinates.map((polygon) =>
+          processCoordinates(polygon)
+        );
+      } else {
+        processedCoords = [processCoordinates(coordinates)];
+      }
+      console.log(processedCoords);
+      setMergedCoverage(processedCoords);
+    } catch (error) {
+      console.error("Error merging coverage:", error);
+    }
+  };
 
   useEffect(() => {
     const handleShowComments = (e) => {
@@ -300,78 +340,8 @@ export default function CoverageMap({
   };
 
   function Offices() {
-    const [filters, setFilters] = useState({
-      worksAfter20: false,
-      worksOnWeekends: false,
-      worksNow: false,
-    });
-  
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  
-    const handleFilterChange = (filterName) => {
-      setFilters((prevFilters) => ({
-        ...prevFilters,
-        [filterName]: !prevFilters[filterName],
-      }));
-    };
-  
-    const parseTime = (timeStr) => {
-      if (!timeStr) return { hours: 0, minutes: 0 };
-      const [hours, minutes] = timeStr.split(':').map(Number);
-      return { hours, minutes };
-    };
-  
-    const filterOffices = () => {
-      const today = new Date();
-      const currentDayIndex = today.getDay(); 
-      const currentHours = today.getHours();
-      const currentMinutes = today.getMinutes();
-  
-      return offices.filter((office) => {
-        if (!office.working_hours || office.working_hours.length < 7) {
-          return false;
-        }
-  
-
-        let worksAfter20 = false;
-        let worksOnWeekends = false;
-        let isOpenNow = false;
-  
-        for (let i = 0; i < 7; i++) {
-          const workingHours = office.working_hours[i];
-          if (!workingHours) continue;
-  
-          const [openTime, closeTime] = workingHours.split('-');
-          const open = parseTime(openTime);
-          const close = parseTime(closeTime);
-  
-          // Проверяем работу после 20:00 в любой день
-          if (close.hours > 20 || (close.hours === 20 && close.minutes > 0)) {
-            worksAfter20 = true;
-          }
-  
-          // Проверяем работу в выходные (0 - воскресенье, 6 - суббота)
-          if ((i === 0 || i === 7) && workingHours !== "выходной") {
-            worksOnWeekends = true;
-          }
-  
-          // Проверяем работу сейчас
-          if (i === currentDayIndex) {
-            const currentTotalMinutes = currentHours * 60 + currentMinutes;
-            const openTotalMinutes = open.hours * 60 + open.minutes;
-            const closeTotalMinutes = close.hours * 60 + close.minutes;
-  
-            isOpenNow = currentTotalMinutes >= openTotalMinutes && 
-                        currentTotalMinutes <= closeTotalMinutes;
-          }
-        }
-  
-        return (
-          (!filters.worksAfter20 || worksAfter20) &&
-          (!filters.worksOnWeekends || worksOnWeekends) &&
-          (!filters.worksNow || isOpenNow)
-        );
-      });
+    const handleApplyServices = (selectedServices: Record<string, boolean>) => {
+      console.log("Применены фильтры:", selectedServices);
     };
 
     return (
@@ -501,36 +471,17 @@ export default function CoverageMap({
             <label className="flex items-center w-2/3 justify-center">
               <input
                 type="checkbox"
+                // checked={showOffices}
                 onChange={() => setShowTower(!showOffices)}
                 className="w-5 h-5 accent-[#d50069] mr-2 rounded"
               />
               Отобразить вышки на карте
             </label>
-            <label className="flex items-center w-2/3 justify-center">
-              <input
-                type="checkbox"
-                className="w-5 h-5 accent-[#d50069] mr-2 rounded"
-              />
-              Работают после 20:00
-            </label>
-            <label className="flex items-center w-2/3 justify-center">
-              <input
-                type="checkbox"
-                className="w-5 h-5 accent-[#d50069] mr-2 rounded"
-              />
-              Работают по выходным
-            </label>
-            <label className="flex items-center w-2/3 justify-center">
-              <input
-                type="checkbox"
-                className="w-5 h-5 accent-[#d50069] mr-2 rounded"
-              />
-              Только работающие сейчас
-            </label>
           </div>
         </div>
         <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
           {activeTab === "offices" && <Offices />}
+          {/* {activeTab === "coverage" && <CoverageRoaming />} */}
         </div>
       </div>
       <div className="flex-1 h-[calc(100vh-68px)] z-0">
@@ -586,20 +537,19 @@ export default function CoverageMap({
               ))}
             </Clusterer>
 
-            {cells.map((cell) => {
-              return (
-                <Circle
-                  key={cell.id || `${cell.latitude}-${cell.longitude}`}
-                  geometry={[[cell.latitude, cell.longitude], 4000]}
-                  options={{
-                    fillColor: "#FF3495",
-                    fillOpacity: 0.5,
-                    strokeWidth: 0,
-                    zIndex: 0,
-                  }}
-                />
-              );
-            })}
+            {mergedCoverage?.map((polygonCoords, index) => (
+              <Polygon
+                key={index}
+                geometry={polygonCoords}
+                options={{
+                  fillColor: "#3fcbff",
+                  fillOpacity: 0.15,
+                  strokeColor: "#3fcbff",
+                  strokeWidth: 1,
+                  strokeOpacity: 0.6,
+                }}
+              />
+            ))}
           </Map>
         </YMaps>
       </div>
