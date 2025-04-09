@@ -18,7 +18,7 @@ const HollowButton: React.FC<HollowButtonProps> = ({ onClick, label }) => {
     {label}
   </span>
 
-  <span className="absolute inset-0 bg-white scale-x-0 group-hover:scale-x-100 origin-left duration-300 ease-in-out z-0" />
+  <span className="absolute inset-0 bg-[#FF3495] scale-x-0 group-hover:scale-x-100 origin-left duration-300 ease-in-out z-0" />
 </button>
   );
 };

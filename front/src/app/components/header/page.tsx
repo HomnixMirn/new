@@ -23,14 +23,23 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
+    setIsLoggedIn(!!user);
+  }, [user]);
+
+  useEffect(() => {
     fetchUser().catch((error) => {
       console.error("Ошибка загрузки пользователя:", error);
     });
   }, []);
 
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = async () => {
     setIsLoginOpen(false);
-    fetchUser();
+    try {
+      await fetchUser();
+      setIsLoggedIn(true); 
+    } catch (error) {
+      console.error("Ошибка загрузки пользователя:", error);
+    }
   };
 
   const handleRegisterSuccess = () => {
@@ -55,6 +64,7 @@ export default function Header() {
       window.location.href = "/";
     }
   };
+  
 
   return (
     <>
