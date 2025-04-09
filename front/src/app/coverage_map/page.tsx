@@ -469,120 +469,110 @@ export default function CoverageMap({
   return (
     <div className="flex h-[calc(100vh-68px)] overflow-hidden">
       <div className="w-1/4 bg-white flex flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
-        <div className="flex flex-col p-4 h-1/3">
-          <div className="flex space-x-20 text-xl font-medium justify-center">
-          
-          <button
-          onClick={() => setActiveTab(showComments ? "offices" : "comments")}
-          className={`pb-1 border-b-2 transition-colors duration-200 ${
-            activeTab === "comments"
-              ? "border-[#E6007E] text-black"
-              : "border-transparent text-black hover:text-[#E6007E]"
-          }`}
-        >
-          {showComments ? "" : "Карта покрытия"}
-        </button>
-        
-          {!showComments && (
-            
-            <button
-              onClick={handleBackToOffices}
-              className={`pb-1 border-b-2 transition-colors duration-200 ${
-                activeTab === "offices"
-                  ? "border-[#E6007E] text-black"
-                  : "border-transparent text-black hover:text-[#E6007E]"
-              }`}
-            >
-              Офисы
-            </button>
-          )}
-            
-          </div>
+      <div className={`flex flex-col p-4 ${showComments ? "h-auto" : "h-1/3"}`}>
+  {/* Заголовки табов */}
+  <div className="flex space-x-20 text-xl font-medium justify-center">
+    <button
+      onClick={() => setActiveTab(showComments ? "offices" : "comments")}
+      className={`pb-1 border-b-2 transition-colors duration-200 ${
+        activeTab === "comments"
+          ? "border-[#E6007E] text-black"
+          : "border-transparent text-black hover:text-[#E6007E]"
+      }`}
+    >
+      {showComments ? "" : "Карта покрытия"}
+    </button>
+    
+    {!showComments && (
+      <button
+        onClick={handleBackToOffices}
+        className={`pb-1 border-b-2 transition-colors duration-200 ${
+          activeTab === "offices"
+            ? "border-[#E6007E] text-black"
+            : "border-transparent text-black hover:text-[#E6007E]"
+        }`}
+      >
+        Офисы
+      </button>
+    )}
+  </div>
 
-          <div className="mt-4 relative flex justify-center">
-            <input
-              type="text"
-              placeholder="Что хочешь найти?"
-              value={search}
-              onChange={(e) =>{
-                setSearch(e.target.value);
-              }}
-              className="w-5/6 border border-gray-300 rounded-md p-2 pl-4 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#d50069]"
-            />
-            <div className="absolute right-[13%] top-1/2 transform -translate-y-1/2 pointer-events-none">
-              <Image
-                src="/images/Icons/Icon.svg"
-                alt="Поиск"
-                width={20}
-                height={20}
-                className=""
-              />
-            </div>
-          </div>
-
-          <div className="mt-3 text-sm text-black ml-8 space-y-3">
-            {activeTab === "coverage" ? (
-              <>
-                <label className="flex items-center w-2/3">
-                  <input
-                    type="checkbox"
-                    checked={showTower}
-                    onChange={() => setShowTower(!showTower)}
-                    className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
-                  />
-                  Показать вышки на карте
-                </label>
-                <label className="flex items-center w-2/3">
-                  <input
-                    type="checkbox"
-                    // checked={showRatings}
-                    onChange={() => setShowRatings(!showRatings)}
-                    className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
-                  />
-                  Показать оценки связи от клиентов
-                </label>
-              </>
-            ) : (
-              <>
-                <label className="flex items-center w-2/3">
-                  <input
-                    type="checkbox"
-                    checked={services.includes("Работают после 20:00")}
-                    onChange={(e) => {
-                      console.log(e)
-                      handleCheckService(e,"Работают после 20:00")
-                      
-                    }}
-                    className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
-                  />
-                  Работают после 20:00
-                </label>
-                <label className="flex items-center w-2/3">
-                  <input
-                    type="checkbox"
-                    checked={services.includes("Работают по выходным")}
-                    onChange={(e) => {
-                      console.log(e)
-                      handleCheckService(e,"Работают по выходным")
-                      
-                    }}
-                    className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
-                  />
-                  Работают по выходным
-                </label>
-                <label className="flex items-center w-2/3">
-                  <input
-                    type="checkbox"
-                    checked={filters.worksNow}
-                    onChange={() => handleFilterChange("worksNow")}
-                    className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
-                  />
-                  Сейчас работают
-                </label>
-              </>
-            )}
-          </div>
+  {/* Показывать поиск и фильтры только если !showComments */}
+  {!showComments && (
+    <>
+      <div className="mt-4 relative flex justify-center">
+        <input
+          type="text"
+          placeholder="Что хочешь найти?"
+          className="w-5/6 border border-gray-300 rounded-md p-2 pl-4 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#d50069]"
+        />
+        <div className="absolute right-[13%] top-1/2 transform -translate-y-1/2 pointer-events-none">
+          <Image
+            src="/images/Icons/Icon.svg"
+            alt="Поиск"
+            width={20}
+            height={20}
+          />
         </div>
+      </div>
+
+      <div className="mt-3 text-sm text-black ml-8 space-y-3">
+        {activeTab === "coverage" ? (
+          <>
+            <label className="flex items-center w-2/3">
+              <input
+                type="checkbox"
+                checked={showTower}
+                onChange={() => setShowTower(!showTower)}
+                className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
+              />
+              Показать вышки на карте
+            </label>
+            <label className="flex items-center w-2/3">
+              <input
+                type="checkbox"
+                checked={showRatings}
+                onChange={() => setShowRatings(!showRatings)}
+                className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
+              />
+              Показать оценки связи от клиентов
+            </label>
+          </>
+        ) : (
+          <>
+            <label className="flex items-center w-2/3">
+              <input
+                type="checkbox"
+                checked={services.includes("Работают после 20:00")}
+                onChange={(e) => handleCheckService(e, "Работают после 20:00")}
+                className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
+              />
+              Работают после 20:00
+            </label>
+            <label className="flex items-center w-2/3">
+              <input
+                type="checkbox"
+                checked={services.includes("Работают по выходным")}
+                onChange={(e) => handleCheckService(e, "Работают по выходным")}
+                className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
+              />
+              Работают по выходным
+            </label>
+            <label className="flex items-center w-2/3">
+              <input
+                type="checkbox"
+                checked={filters.worksNow}
+                onChange={() => handleFilterChange("worksNow")}
+                className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
+              />
+              Сейчас работают
+            </label>
+          </>
+        )}
+      </div>
+    </>
+  )}
+</div>
 
 
 
