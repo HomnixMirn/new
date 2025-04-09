@@ -60,7 +60,7 @@ export default function Header() {
     <>
       <header className="bg-black w-full h-[68px] content-center">
         <div className="flex flex-row justify-around items-center">
-          <Link className="text-[45px] w-[30%]" href="/">
+          <Link className="text-[45px] w-[50px]" href="/">
             <Image
               src={"/images/t2_avatar/avatar/T2_Avatar_Primary.png"}
               alt={"Logo"}

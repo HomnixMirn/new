@@ -9,6 +9,7 @@ import CoverageRoaming from "../slide_cover/page";
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
 }) {
+  const [cells, setCells] = useState([]);// надо будет пофиксить
   const [activeTab, setActiveTab] = useState<"offices" | "coverage">("offices");
   const [searchQuery, setSearchQuery] = useState("");
   const [isBalloonOpen, setIsBalloonOpen] = useState(false);
@@ -503,6 +504,8 @@ export default function CoverageMap({
             <Polygon
               geometry={getUnifiedCoverageArea(coverageCenters, 4000)}
               options={{
+                strokeWidth: 2,
+                strokeOpacity: 0.5,
                 fillColor: "#FF349559",
                 strokeColor: "#FF3495",
               }}
