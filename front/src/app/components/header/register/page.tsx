@@ -5,6 +5,8 @@ import { useUser } from "@/hooks/user-context";
 import HollowButton from "@components/buttons/hollow_button/page";
 import { useNotificationManager } from "@/hooks/notification-context";
 import Image from "next/image";
+import CloseButton from "@/app/components/buttons/close_button/page";
+
 const formatPhoneNumber = (value: string) => {
   const phoneNumber = value.replace(/\D/g, "");
 
@@ -123,120 +125,117 @@ export default function RegisterForm({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div className="bg-opacity-90 bg-white backdrop-blur-sm border-2 border-white rounded-lg shadow-lg p-6 w-[650px] h-[450px] relative">
-      <button 
-        onClick={onClose}
-        className="absolute top-4 right-4 text-crow text-2xl hover:text-gray-300 transition-colors"
-        aria-label="Закрыть"
-      >
-        &times;
-      </button>
+      <div className="bg-opacity-90 bg-white backdrop-blur-sm border-2 border-white rounded-lg shadow-lg p-6 w-[650px] h-[450px] relative">
+        <div className="flex items-start justify-between">
+          <h1 className="text-3xl font-bold text-black">Регистрация</h1>
+        </div>
 
-      <div className="flex items-start justify-between">
-        <h1 className="text-3xl font-bold text-black">Регистрация</h1>
-      </div>
+        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
 
-      {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-      
-      <form onSubmit={handleSubmit} className="flex items-center gap-8 h-[calc(100%-50px)]">
-        <div className="flex flex-col justify-between h-full w-1/2">
-          <div>
-            <p className="text-[#aaa] ml-[8px] mb-2">Введите данные для регистрации</p>
-            
-            <div className="mb-2">
-              <input
-                type="text"
-                className="w-full h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
-                placeholder="Логин"
-                value={login}
-                onChange={(e) => setLogin(e.target.value)}
-                required
-                disabled={isLoading}
-                autoComplete="username"
-              />
+        <form
+          onSubmit={handleSubmit}
+          className="flex items-center gap-8 h-[calc(100%-50px)]"
+        >
+          <div className="flex flex-col justify-between h-full w-1/2">
+            <div>
+              <p className="text-[#aaa] ml-[8px] mb-2">
+                Введите данные для регистрации
+              </p>
+
+              <div className="mb-2">
+                <input
+                  type="text"
+                  className="w-full h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
+                  placeholder="Логин"
+                  value={login}
+                  onChange={(e) => setLogin(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  autoComplete="username"
+                />
+              </div>
+
+              <div className="mb-2">
+                <input
+                  type="email"
+                  className="w-full h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  autoComplete="email"
+                />
+              </div>
+
+              <div className="mb-2">
+                <input
+                  type="tel"
+                  className="w-full h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
+                  placeholder="Телефон"
+                  value={phone}
+                  onChange={handlePhoneChange}
+                  required
+                  disabled={isLoading}
+                  autoComplete="tel"
+                  pattern="\+7\s\(\d{3}\)\s\d{3}-\d{2}-\d{2}"
+                />
+              </div>
+
+              <div className="mb-2">
+                <input
+                  type="password"
+                  className="w-full h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
+                  placeholder="Пароль"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  autoComplete="new-password"
+                />
+              </div>
+
+              <div className="mb-4">
+                <input
+                  type="password"
+                  className="w-full h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
+                  placeholder="Повторите пароль"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  autoComplete="new-password"
+                />
+              </div>
             </div>
 
-            <div className="mb-2">
-              <input
-                type="email"
-                className="w-full h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isLoading}
-                autoComplete="email"
+            <div className="flex flex-col items-center gap-2">
+              <HollowButton
+                type="submit"
+                label={isLoading ? "Регистрация..." : "Зарегистрироваться"}
               />
-            </div>
-
-            <div className="mb-2">
-              <input
-                type="tel"
-                className="w-full h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
-                placeholder="Телефон"
-                value={phone}
-                onChange={handlePhoneChange}
-                required
+              <button
+                type="button"
+                onClick={onLoginOpen}
+                className="text-black hover:underline cursor-pointer text-sm"
                 disabled={isLoading}
-                autoComplete="tel"               
-                pattern="\+7\s\(\d{3}\)\s\d{3}-\d{2}-\d{2}"
-              />
-            </div>
-
-            <div className="mb-2">
-              <input
-                type="password"
-                className="w-full h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
-                placeholder="Пароль"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={isLoading}
-                autoComplete="new-password"
-              />
-            </div>
-
-            <div className="mb-4">
-              <input
-                type="password"
-                className="w-full h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
-                placeholder="Повторите пароль"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                disabled={isLoading}
-                autoComplete="new-password"
-              />
+              >
+                Уже есть аккаунт? Войти
+              </button>
             </div>
           </div>
 
-          <div className="flex flex-col items-center gap-2">
-            <HollowButton
-              type="submit"
-              label={isLoading ? "Регистрация..." : "Зарегистрироваться"}
+          <div className="relative">
+            <Image
+              width={360}
+              height={360}
+              src="/images/auth.svg"
+              alt="Authentication"
             />
-            <button
-              type="button"
-              onClick={onLoginOpen}
-              className="text-black hover:underline cursor-pointer text-sm"
-              disabled={isLoading}
-            >
-              Уже есть аккаунт? Войти
-            </button>
+            <CloseButton onClick={onClose} />
           </div>
-        </div>
-
-        <div className="w-1/2 flex justify-center">
-          <Image 
-            width={360}
-            height={360}
-            src="/images/icons/register.png"
-            alt="Authentication"
-            className="h-full object-contain"
-          />
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
-  </div>
   );
 }
