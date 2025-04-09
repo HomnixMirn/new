@@ -1,10 +1,18 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { YMaps, Map, Placemark, Clusterer } from "@pbe/react-yandex-maps";
+import {
+  YMaps,
+  Map,
+  Placemark,
+  Clusterer,
+  Circle,
+  Polygon,
+} from "@pbe/react-yandex-maps";
 import axi from "@/utils/api";
 import Image from "next/image";
-import Offices from "../slide_office/page";
-import CoverageRoaming from "../slide_cover/page";
+import Link from "next/link";
+import AddStarRating from "../components/star_rating/add_star_rating";
+import StarRating from "../components/star_rating/star_rating";
 
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
@@ -14,6 +22,7 @@ export default function CoverageMap({
   const [isBalloonOpen, setIsBalloonOpen] = useState(false);
   const [offices, setOffices] = useState([]);
   const [comments, setComments] = useState([]);
+  const [cells, setCells] = useState([]);
   const [newComment, setNewComment] = useState({
     text: "",
     rating: 5,
@@ -87,11 +96,11 @@ export default function CoverageMap({
       mapRef.current
         .panTo(coords, {
           flying: true,
-          duration: 500,
+          duration: 400,
         })
         .then(() => {
           mapRef.current.setZoom(currentZoom + 1, {
-            duration: 500,
+            duration: 300,
           });
         });
     }
@@ -105,26 +114,23 @@ export default function CoverageMap({
   }, []);
 
   useEffect(() => {
-    if (!mapBounds || !mapBounds[0] || !mapBounds[1]) {
-      console.error("mapBounds is not properly initialized");
-      return;
-    }
-    axi
-      .post("/map/all_cells", {
-        left_top: mapBounds[0],
-        right_top: mapBounds[1],
-      })
-      .then((response) => {
-        setCells([...response.data]);
-        console.log(response.data);
-      });
-  }, []);
+    const data = {
+      left_bottom: mapBounds[0],
+      right_top: mapBounds[1],
+    };
+    axi.post("/map/all_cells", data).then((response) => {
+      setCells(response.data);
+      console.log(response.data);
+    });
+  }, [mapBounds]);
 
   useEffect(() => {
     const handleShowComments = (e) => {
       fetchComments(e.detail);
     };
+
     window.addEventListener("showComments", handleShowComments);
+
     return () => {
       window.removeEventListener("showComments", handleShowComments);
     };
@@ -137,7 +143,7 @@ export default function CoverageMap({
       setSelectedOffice(officeId);
       setNewComment((prev) => ({ ...prev, officeId }));
     } catch (error) {
-      console.error("Error fetching comments:", error);
+      console.error("Error fetching comments:", error.response?.data);
     }
   };
 
@@ -184,31 +190,39 @@ export default function CoverageMap({
 
   const createBalloonContent = (office) => {
     return `
-      <div border-radius: 20px; style="width: 350px; height: 150px; display:flex; flex-direction:column; background:white;">
-        <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">
-        <h1>Адрес офиса</h1>
-        ${
+      <div style="width: 350px; height: 130px; border-radius: 16px; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+        <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">${
           office.address
         }</div>
-        <div style="display: flex; flex-direction: column; margin-bottom: 8px;">
-          <h1 style="font-size: 14px; color: black">Режим работы:</h1>
-          <span style="font-size: 14px; color: #B0B0B0">${
+        <div style="display: flex; margin-bottom: 8px;">
+          <span style="font-size: 14px; color: #666;">Часы работы:</span>
+          <span style="font-size: 14px; margin-left: 8px;">${
             office.working_hours || "9:00 - 18:00"
+          }</span>
+        </div>
+        <div style="display: flex; margin-bottom: 8px;">
+          <span style="font-size: 14px; color: #666;">Телефон:</span>
+          <span style="font-size: 14px; margin-left: 8px;">${
+            office.phone || "+7 (XXX) XXX-XX-XX"
           }</span>
         </div>
         <button onclick="window.dispatchEvent(new CustomEvent('showComments', { detail: ${
           office.id
         } }))" 
           style="margin-top: auto; background: #3fcbff; border: none; padding: 8px 16px; border-radius: 4px; color: white; cursor: pointer; align-self: flex-start;">
-          ${office.reting}
+          Показать комментарии
         </button>
       </div>
     `;
   };
 
+  function setShowCommentForm(arg0: boolean): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
-    <div className="flex h-[calc(100vh-68px)]">
-      <div className="w-[444px] bg-white flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10 overflow-scroll">
+    <div className="flex h-[calc(100vh-68px)] overflow-hidden">
+      <div className="w-[444px] bg-white flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
         <ul className="filter-tabs flex">
           <li className="flex-1">
             <button
@@ -225,53 +239,42 @@ export default function CoverageMap({
           <li className="flex-1">
             <button
               onClick={() => setActiveTab("coverage")}
-              className={`pb-1 border-b-2 transition-colors duration-200 ${
+              className={`w-full h-[9vh] px-4 py-2 transition-colors ${
                 activeTab === "coverage"
-                  ? "border-[#E6007E] text-black"
-                  : "border-transparent text-black hover:text-[#E6007E]"
+                  ? "bg-[#3fcbff] text-black font-semibold"
+                  : "bg-gray-100 text-black font-semibold hover:bg-gray-200"
               }`}
             >
               Карта покрытия
             </button>
           </li>
         </ul>
-          <div className="filter-search relative bg-[#ffffff] p-4">
-            <div className="flex items-center relative">
-              <span
-                className="my-position-icon absolute left-3 cursor-pointer z-10"
-                title="Определить мое местоположение"
-              />
-              <div className="relative flex-grow">
-                <input
-                  id="addressQuery"
-                  className="bg-white text-gray-800 w-full pl-10 pr-10 py-3 
-                  border-2 border-[#000000] 
-                  focus:outline-none focus:border-2 focus:border-black
-                  placeholder:text-gray-400 rounded-[10px]"
-                  type="text"
-                  placeholder="город, адрес или метро"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  autoComplete="off"
-                />
-                <Image 
-                  src="/images/icons/Icon.svg" 
-                  alt="Search" 
-                  width={20} 
-                  height={20}
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2"
-                />
-              </div>
-              {searchQuery && (
-                <button
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
-                  onClick={() => setSearchQuery("")}
-                >
-                  ×
-                </button>
-              )}
-            </div>
+        <div className="filter-search relative bg-[#3fcbff] p-4 ">
+          <div className="flex items-center relative">
+            <span
+              className="my-position-icon absolute left-3 cursor-pointer"
+              title="Определить мое местоположение"
+            />
+            <input
+              id="addressQuery"
+              className="bg-white text-gray-800 w-full pl-10 pr-12 py-3 
+            border-2 border-[#448EA9] 
+            focus:outline-none focus:border-2 focus:border-black
+            placeholder:text-gray-400"
+              type="text"
+              placeholder="город, адрес или метро"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoComplete="off"
+            />
+            {searchQuery && (
+              <button
+                className="clear absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
+                onClick={() => setSearchQuery("")}
+              ></button>
+            )}
           </div>
+        </div>
 
         {activeTab === "offices" ? (
           <div className="filter-results-container with-desktop-vertical-scrollbar"></div>
@@ -279,106 +282,122 @@ export default function CoverageMap({
           <div className="coverage-filter"></div>
         )}
 
-        <div className="flex-1 bg-black text-white p-4 flex flex-col" style={{ height: 'calc(100vh - 68px - 32px)' }}>
-          <div className="flex-1 overflow-y-auto">
-            {activeTab === "coverage" ? (
-              <>
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-bold">Офисы T2</h2>
-                  <button className="text-sm flex items-center gap-1">
-                    Услуги
-                    <span className="text-xl">🧾</span>
-                  </button>
-                </div>
-
-                <ul className="space-y-4">
-                  {[...Array(7)].map((_, index) => (
-                    <li key={index} className="flex justify-between items-center">
-                      <div className="flex items-start gap-3">
-                        <span className={`text-2xl ${index === 0 ? "text-[#d50069]" : "text-white"}`}>
-                          📍
-                        </span>
-                        <div>
-                        <p className="font-bold text-base">${office.address}</p>
-                          <p className="text-sm text-gray-400">
-                            пн-пт 8:00-18:00 сб-вс 10:00-18:00
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 text-sm text-gray-400">
-                        💬 199
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="mt-6 flex justify-center">
-                  <button className="text-sm flex items-center gap-2 text-white">
-                    <span className="text-xl">⚙️</span> Фильтр
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div>
-                <h2 className="text-xl font-bold mb-4">Роуминг</h2>
-                <p className="text-sm text-gray-400">
-                  Здесь может быть список стран, тарифов или другие данные о роуминге.
-                </p>
-              </div>
-            )}
-            
-            {selectedOffice && (
-              <div className="p-4 bg-black shadow-lg rounded-lg mt-4 relative">
-                <button 
-                  onClick={() => setSelectedOffice(null)}
-                  className="absolute top-2 right-2 text-white hover:text-gray-500"
-                  aria-label="Закрыть отзывы"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+        <div className="flex-1 bg-black text-white p-4 overflow-auto">
+          {activeTab === "coverage" ? (
+            <>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Офисы T2</h2>
+                <button className="text-sm flex items-center gap-1">
+                  Услуги
+                  <span className="text-xl">🧾</span>
                 </button>
-                
-                <h2 className="text-xl font-semibold mb-4 text-white">Комментарии</h2>
-                {!setShowCommentForm && (
-                  <button
-                    onClick={() => setShowCommentForm(true)}
-                    className="mb-4 bg-[#3fcbff] text-white px-4 py-2 rounded-md hover:bg-[#35b5e6]"
-                  >
-                    Оставить отзыв
-                  </button>
-                )}
-                  <div className="max-h-[50vh] overflow-y-auto">
-                    <div className="space-y-4">
-                      {comments.length > 0 ? (
-                        comments.map(comment => (
-                          <div key={comment.id} className="border-b border-gray-700 pb-4">
-                            <div className="flex items-center gap-3">
-                              <div>
-                                <h3 className="font-medium text-white">
-                                  {comment.author.user.username}
-                                </h3>
-                                <StarRating 
-                                  rating={comment.rating} 
-                                  starColor="#3fcbff"
-                                  className="mt-1"
-                                />
-                              </div>
-                            </div>
-                            <p className="text-white mt-2 ml-11">{comment.text}</p>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-gray-500">Пока нет отзывов. Будьте первым!</p>
-                      )}
+              </div>
+
+              <ul className="space-y-4">
+                {[...Array(7)].map((_, index) => (
+                  <li key={index} className="flex justify-between items-center">
+                    <div className="flex items-start gap-3">
+                      <span
+                        className={`text-2xl ${
+                          index === 0 ? "text-[#d50069]" : "text-white"
+                        }`}
+                      >
+                        📍
+                      </span>
+                      <div>
+                        <p className="font-bold">ул. Бекантура, 1</p>
+                        <p className="text-sm text-gray-400">
+                          пн-пт 8:00-18:00 сб-вс 10:00-18:00
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                    <div className="flex items-center gap-1 text-sm text-gray-400">
+                      💬 199
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-6 flex justify-center">
+                <button className="text-sm flex items-center gap-2 text-white">
+                  <span className="text-xl">⚙️</span> Фильтр
+                </button>
+              </div>
+            </>
+          ) : (
+            <div></div>
+          )}
+
+          {selectedOffice && (
+            <div className="p-4 bg-white shadow-lg rounded-lg mt-4 relative">
+              <button
+                onClick={() => setSelectedOffice(null)}
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                aria-label="Закрыть отзывы"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+
+              <h2 className="text-xl font-semibold mb-4">Комментарии</h2>
+
+              {!setShowCommentForm && (
+                <button
+                  onClick={() => setShowCommentForm(true)}
+                  className="mb-4 bg-[#3fcbff] text-white px-4 py-2 rounded-md hover:bg-[#35b5e6]"
+                >
+                  Оставить отзыв
+                </button>
+              )}
+              <div className="max-h-[60vh] overflow-y-auto pr-2">
+                <div className="space-y-4">
+                  {comments.length > 0 ? (
+                    comments.map((comment) => (
+                      <div
+                        key={comment.id}
+                        className="border-b border-gray-200 pb-4"
+                      >
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-medium">
+                            {comment.author.username}
+                          </h3>
+                          <StarRating
+                            rating={comment.rating}
+                            starColor="#000000"
+                          />
+                        </div>
+                        <p className="text-gray-600 mt-1">{comment.text}</p>
+                        <p className="text-sm text-gray-400 mt-2">
+                          {new Date(comment.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500">
+                      Пока нет отзывов. Будьте первым!
+                    </p>
+                  )}
+                </div>
                 {setShowCommentForm && (
                   <form onSubmit={handleSubmitComment} className="mt-6">
                     <div className="mb-4">
-                      <label className="block text-white mb-2">Ваш комментарий</label>
+                      <label className="block text-gray-700 mb-2">
+                        Ваш комментарий
+                      </label>
                       <textarea
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-white"
+                        className="w-full bg-black px-3 py-2 border border-gray-300 rounded-md text-white"
                         rows={3}
                         value={newComment.text}
                         onChange={(e) =>
@@ -388,8 +407,10 @@ export default function CoverageMap({
                       />
                     </div>
                     <div className="mb-4">
-                      <label className="block text-white mb-2">Ваша оценка</label>
-                      <AddStarRating 
+                      <label className="block text-gray-700 mb-2">
+                        Ваша оценка
+                      </label>
+                      <AddStarRating
                         value={newComment.rating}
                         onChange={(rating) =>
                           setNewComment({ ...newComment, rating })
@@ -414,21 +435,18 @@ export default function CoverageMap({
                   </form>
                 )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
+
       <div className="flex-1 h-[calc(100vh-68px)] z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
-           
             instanceRef={(ref) => {
-              if (ref && !mapRef.current) {
+              console.log(ref);
+              if (ref) {
                 mapRef.current = ref;
-                const bounds = ref.getBounds();
-                if (bounds) {
-                  setMapBounds(bounds);
-                }
               }
             }}
             defaultState={{
@@ -437,6 +455,7 @@ export default function CoverageMap({
             }}
             width="100%"
             height="100%"
+            onBoundsChange={handleBoundsChange}
           >
             <Clusterer
               options={{
@@ -460,7 +479,10 @@ export default function CoverageMap({
                   options={{
                     iconLayout: "default#image",
                     iconImageHref: "/images/pointerIcon.svg",
+                    iconImageSize: [40, 40],
+                    iconImageOffset: [-20, -40],
                     balloonShadow: true,
+                    balloonOffset: [0, 0],
                     balloonAutoPan: true,
                     balloonCloseButton: true,
                     balloonPanelMaxMapArea: 0,
@@ -472,41 +494,22 @@ export default function CoverageMap({
             </Clusterer>
 
             {cells.map((cell) => {
-              console.log(cell);
+              const cellCoords = [cell.latitude, cell.longitude];
+              const radius = 4000;
+
               return (
-                <Placemark
-                  key={cell.id}
-                  geometry={[cell.latitude, cell.longitude]}
-                  properties={{
-                    balloonContent: `
-                      <div class="custom-balloon">
-                        <h3>${cell.name}</h3>
-                        <p>Адрес: ${cell.address}</p>
-                        <div class="stats">
-                          <span>Мощность: ${cell.power} dBm</span>
-                          <span>Пользователи: ${cell.users}</span>
-                        </div>
-                      </div>
-                    `,
-                    balloonContentHeader: `Ячейка ${cell.id}`,
-                  }}
+                <Circle
+                  key={cell.id || `${cell.latitude}-${cell.longitude}`}
+                  geometry={[[cell.latitude, cell.longitude], 4000]}
                   options={{
-                    balloonLayout: "default#imageWithContent",
-                    balloonCloseButton: true,
-                    balloonAutoPan: true,
+                    fillColor: "#FF3495", // можно чуть менее насыщенный цвет
+                    fillOpacity: 0.5, // снизили прозрачность
+                    strokeWidth: 0,
+                    zIndex: 0, // все на одном уровне
                   }}
-                  modules={["geoObject.addon.balloon"]}
                 />
               );
             })}
-
-            <Polygon
-              geometry={getUnifiedCoverageArea(coverageCenters, 4000)}
-              options={{
-                fillColor: "#FF349559",
-                strokeColor: "#FF3495",
-              }}
-            />
           </Map>
         </YMaps>
       </div>
