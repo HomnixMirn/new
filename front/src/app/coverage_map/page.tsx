@@ -13,6 +13,7 @@ import Image from "next/image";
 import Link from "next/link";
 import AddStarRating from "../components/star_rating/add_star_rating";
 import StarRating from "../components/star_rating/star_rating";
+import * as turf from "@turf/turf";
 
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
@@ -25,6 +26,7 @@ export default function CoverageMap({
   const [cells, setCells] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [services, setServices] = useState([]);
+  const [mergedCoverage, setMergedCoverage] = useState<any>(null);
   const [newComment, setNewComment] = useState({
     text: "",
     rating: 5,
@@ -129,10 +131,46 @@ export default function CoverageMap({
       right_top: mapBounds[1],
     };
     axi.post("/map/all_cells", data).then((response) => {
-      setCells(response.data);
-      console.log(response.data);
+      const cells = response.data;
+      generateMergedCoverage([...cells]);
     });
   }, [mapBounds]);
+
+  const generateMergedCoverage = (cells) => {
+    if (cells.length === 0) {
+      setMergedCoverage(null);
+      return;
+    }
+  
+    try {
+      // 1. Создаем все полигоны
+      const polygons = cells.map((cell) => {
+        const center = [cell.longitude, cell.latitude]; // Важно: [lng, lat]
+        return turf.circle(center, 4000, { steps: 64, units: "meters" });
+      });
+  
+      // 2. Объединяем все полигоны за один вызов
+      const combined = turf.combine(turf.featureCollection(polygons));
+      
+      // 3. Извлекаем объединенную геометрию
+      const merged = combined.features[0];
+      
+      if (!merged) {
+        console.warn("No merged geometry found");
+        return;
+      }
+  
+      // 4. Преобразуем координаты для Яндекс.Карт
+      const coordinates = turf.getCoords(merged);
+      
+      const processedCoords = coordinates.map((ring) => ring.map(([lng, lat]) => [lat, lng]));  
+      console.log(processedCoords)
+      setMergedCoverage(processedCoords);
+    } catch (error) {
+      console.error("Error merging coverage:", error);
+    }
+  };
+
 
   useEffect(() => {
     const handleShowComments = (e) => {
@@ -442,26 +480,19 @@ export default function CoverageMap({
               ))}
             </Clusterer>
 
-            {cells.map((cell, index) => {
-              const polygonCoords = generatePolygonCoords(
-                [cell.latitude, cell.longitude],
-                1000
-              );
-
-              return (
-                <Polygon
-                  key={`polygon-${cell.id}`}
-                  geometry={[polygonCoords]}
-                  options={{
-                    fillColor: "#FF3495",
-                    fillOpacity: 0.3,
-                    strokeColor: "#FF3495",
-                    strokeWidth: 0,
-                    zIndex: 1000,
-                  }}
-                />
-              );
-            })}
+            
+            {mergedCoverage && (
+              <Polygon
+                geometry={mergedCoverage}
+                options={{
+                  fillColor: "#3fcbff",
+                  fillOpacity: 0.15,
+                  strokeColor: "#3fcbff",
+                  strokeWidth: 1,
+                  strokeOpacity: 0.6,
+                }}
+              />
+            )}
           </Map>
         </YMaps>
       </div>
