@@ -475,7 +475,6 @@ export default function CoverageMap({
             <Services />
           ) : (
             <>
-              return (
   <div className="flex flex-col">
     <div className="flex justify-between items-center mb-4">
       <h2 className="text-xl font-bold">Офисы T2</h2>
@@ -693,7 +692,7 @@ export default function CoverageMap({
                   }}
                   options={{
                     iconLayout: "default#image",
-                    iconImageHref: "/images/pointerIcon.svg",
+                    iconImageHref: "/images/Icons/pointerIcon.svg",
                     iconImageSize: [40, 40],
                     iconImageOffset: [-20, -40],
                     balloonShadow: true,
