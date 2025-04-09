@@ -136,7 +136,8 @@ export default function CoverageMap({
         const validatedOffices = response.data.map((office) => ({
           ...office,
           working_hours:
-            Array.isArray(office.working_hours) && office.working_hours.length === 7
+            Array.isArray(office.working_hours) &&
+            office.working_hours.length === 7
               ? office.working_hours
               : [
                   "9:00-18:00",
@@ -165,6 +166,10 @@ export default function CoverageMap({
       right_top: mapBounds[1],
     };
     axi.post("/map/all_cells", data).then((response) => {
+      if (!response.data || response.data.length === 0) {
+        return;
+      }
+      console.log("response.data", response.data);
       const cells = response.data;
       generateMergedCoverage([...cells]);
     });
@@ -345,69 +350,76 @@ export default function CoverageMap({
       const currentDay = now.getDay(); // 0 - Sunday, 1 - Monday, etc.
       const currentHour = now.getHours();
       const currentMinutes = now.getMinutes();
-  
+
       return offices.filter((office) => {
         // Search filter
-        if (searchQuery && !office.address.toLowerCase().includes(searchQuery.toLowerCase())) {
+        if (
+          searchQuery &&
+          !office.address.toLowerCase().includes(searchQuery.toLowerCase())
+        ) {
           return false;
         }
-  
+
         // Get working hours (default to 9:00-18:00 if not provided)
-        const workingHours = office.working_hours || Array(7).fill("9:00-18:00");
-  
+        const workingHours =
+          office.working_hours || Array(7).fill("9:00-18:00");
+
         // Works after 20:00 filter
         if (filters.worksAfter20) {
-          const hasLateHours = workingHours.some(hours => {
+          const hasLateHours = workingHours.some((hours) => {
             if (!hours || hours === "closed") return false;
-            const [_, closeTime] = hours.split('-');
+            const [_, closeTime] = hours.split("-");
             if (!closeTime) return false;
-            const [closeHour, closeMinute] = closeTime.split(':').map(Number);
+            const [closeHour, closeMinute] = closeTime.split(":").map(Number);
             return closeHour >= 20;
           });
           if (!hasLateHours) return false;
         }
-  
+
         // Works on weekends filter
         if (filters.worksOnWeekends) {
           const weekendDays = [0, 6]; // 0 - Sunday, 6 - Saturday
-          const isOpenWeekend = weekendDays.some(day => {
+          const isOpenWeekend = weekendDays.some((day) => {
             const hours = workingHours[day];
             return hours && hours !== "closed";
           });
           if (!isOpenWeekend) return false;
         }
-  
+
         // Works now filter
         if (filters.worksNow) {
           // Convert JavaScript day (0-6, Sun-Sat) to our array index (0-6, Mon-Sun)
           const adjustedDay = currentDay === 0 ? 6 : currentDay - 1;
           const todayHours = workingHours[adjustedDay];
-          
+
           if (!todayHours || todayHours === "closed") return false;
-          
-          const [openTime, closeTime] = todayHours.split('-');
+
+          const [openTime, closeTime] = todayHours.split("-");
           if (!openTime || !closeTime) return false;
-          
-          const [openHour, openMinute] = openTime.split(':').map(Number);
-          const [closeHour, closeMinute] = closeTime.split(':').map(Number);
-          
+
+          const [openHour, openMinute] = openTime.split(":").map(Number);
+          const [closeHour, closeMinute] = closeTime.split(":").map(Number);
+
           const currentTotalMinutes = currentHour * 60 + currentMinutes;
           const openTotalMinutes = openHour * 60 + (openMinute || 0);
           const closeTotalMinutes = closeHour * 60 + (closeMinute || 0);
-          
-          if (currentTotalMinutes < openTotalMinutes || currentTotalMinutes > closeTotalMinutes) {
+
+          if (
+            currentTotalMinutes < openTotalMinutes ||
+            currentTotalMinutes > closeTotalMinutes
+          ) {
             return false;
           }
         }
-  
+
         return true;
       });
     };
-  
+
     const handleApplyServices = (selectedServices: Record<string, boolean>) => {
       console.log("Применены фильтры:", selectedServices);
     };
-  
+
     return (
       <div className="flex flex-col">
         <div className="flex justify-between items-center mb-4">
@@ -419,7 +431,7 @@ export default function CoverageMap({
             Услуги
           </h2>
         </div>
-  
+
         <div className="flex flex-col space-y-2 mb-4">
           <label className="flex items-center w-2/3 justify-center">
             <input
@@ -449,14 +461,17 @@ export default function CoverageMap({
             Только работающие сейчас
           </label>
         </div>
-  
+
         <div className="flex-1 overflow-y-auto mt-2 space-y-8 pr-2 h-[400px] custom-scrollbar">
           {isDropdownOpen ? (
             <Services />
           ) : (
             <>
               {filterOffices().map((office, index) => (
-                <div key={office.id} className="flex justify-between items-center">
+                <div
+                  key={office.id}
+                  className="flex justify-between items-center"
+                >
                   <div className="flex items-start gap-3">
                     <Image
                       src="/images/Icons/point.svg"
@@ -466,7 +481,9 @@ export default function CoverageMap({
                     />
                     <div>
                       <div className="font-bold">{office.address}</div>
-                      <div className="text-sm text-gray-400">{office.souring}</div>
+                      <div className="text-sm text-gray-400">
+                        {office.souring}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1 text-sm text-white">
@@ -611,7 +628,7 @@ export default function CoverageMap({
                   strokeColor: "#3fcbff",
                   strokeWidth: 1,
                   strokeOpacity: 0.6,
-                  outline:false
+                  outline: false,
                 }}
               />
             ))}
