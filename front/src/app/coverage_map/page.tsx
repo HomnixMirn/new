@@ -49,7 +49,20 @@ export default function CoverageMap({
       ...prevFilters,
       [filterName]: !prevFilters[filterName],
     }));
+    
   };
+
+  
+
+  function servicesUpdateHandle(servic) {
+    if (services.includes(servic)) {
+      const index = services.indexOf(servic);
+      services.splice(index, 1);
+      console.log(services);
+    } else {
+      setServices([...services, servic]);
+    }
+  }
 
   const getConvexHull = (points) => {
     const sorted = points.sort((a, b) =>
@@ -125,39 +138,26 @@ export default function CoverageMap({
     }
   };
 
+  
   useEffect(() => {
-    const fetchOffices = async () => {
-      try {
-        const url = services.length
-          ? `/map/all_office?services=${services.join(",")}`
-          : "/map/all_office";
-        const response = await axi.get(url);
-
-        const validatedOffices = response.data.map((office) => ({
-          ...office,
-          working_hours:
-            Array.isArray(office.working_hours) && office.working_hours.length === 7
-              ? office.working_hours
-              : [
-                  "9:00-18:00",
-                  "9:00-18:00",
-                  "9:00-18:00",
-                  "9:00-18:00",
-                  "9:00-18:00",
-                  "9:00-18:00",
-                  "9:00-18:00",
-                ],
-        }));
-
-        setOffices(validatedOffices);
-      } catch (error) {
-        console.error("Ошибка загрузки офисов:", error);
-        setOffices([]);
-      }
-    };
-
-    fetchOffices();
-  }, [services]);
+    let query =''
+    if (filters.worksNow){
+      const time = new Date(); 
+      query += `filters=${time.getHours()}&`
+    }
+    if (services !== []){
+      query += 'services=' + services.map((service) => `${service}`).join(",");
+      axi.get("/map/all_office?"+query).then((response) => {
+        console.log(response.data);
+        setOffices([...response.data]);
+      });
+    }
+    else{
+    axi.get("/map/all_office"+query).then((response) => {
+      console.log(response.data);
+      setOffices([...response.data]);
+    });}
+  }, [services, filters]);
 
   useEffect(() => {
     const data = {
@@ -312,15 +312,7 @@ export default function CoverageMap({
       "Помогают с заменой SIM-карты другого региона",
     ];
 
-    function servicesUpdateHandle(servic) {
-      if (services.includes(servic)) {
-        const index = services.indexOf(servic);
-        services.splice(index, 1);
-        console.log(services);
-      } else {
-        setServices([...services, servic]);
-      }
-    }
+    
     return (
       <div className="flex flex-col gap-5">
         {AllServices.map((service) => (
@@ -425,8 +417,8 @@ export default function CoverageMap({
             <input
               type="checkbox"
               className="w-5 h-5 accent-[#d50069] mr-2 rounded"
-              checked={filters.worksAfter20}
-              onChange={() => handleFilterChange("worksAfter20")}
+              checked={services.includes("Работают после 20:00")}
+              onChange={() => servicesUpdateHandle("Работают после 20:00")}
             />
             Работают после 20:00
           </label>
@@ -434,8 +426,8 @@ export default function CoverageMap({
             <input
               type="checkbox"
               className="w-5 h-5 accent-[#d50069] mr-2 rounded"
-              checked={filters.worksOnWeekends}
-              onChange={() => handleFilterChange("worksOnWeekends")}
+              checked={services.includes("Работают по выходным")}
+              onChange={() => servicesUpdateHandle("Работают по выходным")}
             />
             Работают по выходным
           </label>
@@ -455,7 +447,7 @@ export default function CoverageMap({
             <Services />
           ) : (
             <>
-              {filterOffices().map((office, index) => (
+              {offices.map((office, index) => (
                 <div key={office.id} className="flex justify-between items-center">
                   <div className="flex items-start gap-3">
                     <Image

@@ -10,6 +10,8 @@ from rest_framework.decorators import api_view
 from core.utils.serializers import OfficeSerializer,commentsSerializer,CellsSerializer
 from core.utils.auth_decor import token_required
 import math
+from datetime import datetime
+
 
 # import json
 # url = 'D:/pusto/перенос/python/Thonny/Thony/2025/new/backend/parser/ceils.json'
@@ -29,11 +31,32 @@ def all_office(request: Request):
         print(request.GET)
         offices = Office.objects.all()
         if 'search' in request.GET:
-                offices = offices.filter(address__iregex=request.GET['search'])
+                offices = offices.filter(address__iregex=request.GET['search']).distinct()
         if 'services' in request.GET:
             for service in request.GET['services'].split(','):
-                offices = offices.filter(services__name__iregex=service)
-        data = OfficeSerializer(offices.distinct(), many=True).data
+                offices = offices.filter(services__name__iregex=service).distinct()
+        if 'filters' in request.GET:
+            translate ={
+                0:"MONDAy",
+                1:"Tuesday",
+                2:"Wednesday",
+                3:"Thursday",
+                4:"Friday",
+                5:"Saturday",
+                6:"Sunday"
+            }
+            time = request.GET['filters']+":00"
+            date = datetime.now().weekday()
+            print(date)
+            res =[]
+            for office in offices:
+                for day in office.daySchedules.all():
+                    if day.day == translate[date].upper():
+                        print( f' {int(''.join(time.split(":")))} , {int(''.join(day.closeTime.split(":")))} , {int(''.join(day.openTime.split(":"))) }')
+                        if int(''.join(time.split(":"))) < int(''.join(day.closeTime.split(":"))) and int(''.join(time.split(":"))) > int(''.join(day.openTime.split(":"))) :
+                            res.append(office)
+            offices = res
+        data = OfficeSerializer(offices, many=True).data
         return Response(data, status=status.HTTP_200_OK)
     else:
         return Response('Метод не поддерживается',status=status.HTTP_405_METHOD_NOT_ALLOWED)
