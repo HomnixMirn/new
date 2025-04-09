@@ -26,12 +26,14 @@ export default function CoverageMap({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [services, setServices] = useState([]);
   const [mergedCoverage, setMergedCoverage] = useState<any>(null);
+  const [search, setSearch] = useState("");
   
   // comment please dont delete
   const [activeTab, setActiveTab] = useState<"offices" | "coverage">("offices");
   const [showComments, setShowComments] = useState(false);
   const [selectedOfficeId, setSelectedOfficeId] = useState<number | null>(null);
   const [comments, setComments] = useState([]);
+  
   const [newComment, setNewComment] = useState({
       text: "",
       rating: 5,
@@ -152,19 +154,19 @@ export default function CoverageMap({
       const time = new Date(); 
       query += `filters=${time.getHours()}&`
     }
+    if (search !==''){
+      query += `search=${search}&`
+    }
     if (services !== []){
       query += 'services=' + services.map((service) => `${service}`).join(",");
-      axi.get("/map/all_office?"+query).then((response) => {
-        console.log(response.data);
-        setOffices([...response.data]);
-      });
+      
     }
-    else{
-    axi.get("/map/all_office"+query).then((response) => {
+    
+    axi.get("/map/all_office?"+query).then((response) => {
       console.log(response.data);
       setOffices([...response.data]);
-    });}
-  }, [services, filters]);
+    });
+  }, [services, filters, search]);
 
   useEffect(() => {
     const data = {
@@ -501,6 +503,10 @@ export default function CoverageMap({
             <input
               type="text"
               placeholder="Что хочешь найти?"
+              value={search}
+              onChange={(e) =>{
+                setSearch(e.target.value);
+              }}
               className="w-5/6 border border-gray-300 rounded-md p-2 pl-4 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#d50069]"
             />
             <div className="absolute right-[13%] top-1/2 transform -translate-y-1/2 pointer-events-none">
