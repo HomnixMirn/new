@@ -19,20 +19,26 @@ import * as turf from "@turf/turf";
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
 }) {
-  const [activeTab, setActiveTab] = useState<"offices" | "coverage">("offices");
   const [searchQuery, setSearchQuery] = useState("");
   const [isBalloonOpen, setIsBalloonOpen] = useState(false);
   const [offices, setOffices] = useState([]);
-  const [comments, setComments] = useState([]);
   const [cells, setCells] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [services, setServices] = useState([]);
   const [mergedCoverage, setMergedCoverage] = useState<any>(null);
+  
+  // comment please dont delete
+  const [activeTab, setActiveTab] = useState<"offices" | "coverage">("offices");
+  const [showComments, setShowComments] = useState(false);
+  const [selectedOfficeId, setSelectedOfficeId] = useState<number | null>(null);
+  const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState({
-    text: "",
-    rating: 5,
-    officeId: null,
+      text: "",
+      rating: 5,
+      officeId: null,
   });
+  // comment please dont delete
+  
   const [selectedOffice, setSelectedOffice] = useState(null);
   const mapRef = useRef(null);
   const [mapBounds, setMapBounds] = useState([]);
@@ -212,17 +218,28 @@ export default function CoverageMap({
     }
   };
 
-  useEffect(() => {
-    const handleShowComments = (e) => {
-      fetchComments(e.detail);
+    //comment please dont delete
+    useEffect(() => {
+      const handleShowComments = (e: CustomEvent) => {
+        setActiveTab("comments");
+        setShowComments(true);
+        setSelectedOfficeId(e.detail);
+        fetchComments(e.detail);
+      };
+    
+      window.addEventListener("showComments", handleShowComments as EventListener);
+      
+      return () => {
+        window.removeEventListener("showComments", handleShowComments as EventListener);
+      };
+    }, []);
+  
+    const handleBackToOffices = () => {
+      setActiveTab("offices");
+      setShowComments(false);
+      setSelectedOfficeId(null);
     };
-
-    window.addEventListener("showComments", handleShowComments);
-
-    return () => {
-      window.removeEventListener("showComments", handleShowComments);
-    };
-  }, []);
+    //comment please dont delete
 
   const fetchComments = async (officeId) => {
     try {
@@ -452,18 +469,22 @@ export default function CoverageMap({
       <div className="w-1/4 bg-white flex flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
         <div className="flex flex-col p-4 h-1/3">
           <div className="flex space-x-20 text-xl font-medium justify-center">
+          
+          <button
+          onClick={() => setActiveTab(showComments ? "offices" : "comments")}
+          className={`pb-1 border-b-2 transition-colors duration-200 ${
+            activeTab === "comments"
+              ? "border-[#E6007E] text-black"
+              : "border-transparent text-black hover:text-[#E6007E]"
+          }`}
+        >
+          {showComments ? "" : "Карта покрытия"}
+        </button>
+        
+          {!showComments && (
+            
             <button
-              onClick={() => setActiveTab("coverage")}
-              className={`pb-1 border-b-2 transition-colors duration-200 ${
-                activeTab === "coverage"
-                  ? "border-[#E6007E] text-black"
-                  : "border-transparent text-black hover:text-[#E6007E]"
-              }`}
-            >
-              Карта покрытия
-            </button>
-            <button
-              onClick={() => setActiveTab("offices")}
+              onClick={handleBackToOffices}
               className={`pb-1 border-b-2 transition-colors duration-200 ${
                 activeTab === "offices"
                   ? "border-[#E6007E] text-black"
@@ -472,6 +493,8 @@ export default function CoverageMap({
             >
               Офисы
             </button>
+          )}
+            
           </div>
 
           <div className="mt-4 relative flex justify-center">
@@ -554,10 +577,72 @@ export default function CoverageMap({
             )}
           </div>
         </div>
-        <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
-          <Offices />
-        </div>
-      </div>
+
+
+
+            <div className={`flex-1 ${showComments ? "bg-white" : "bg-black"} text-${showComments ? "black" : "white"} py-4 px-10 overflow-y-auto custom-scrollbar`}>
+              {activeTab === "offices" && <Offices />}
+              
+              {showComments && (
+                <div className="h-full">
+                  <div className="flex items-center mb-4 justify-between">
+                    <h2 className="text-xl font-bold">Комментарии</h2>
+                    <button 
+                      onClick={handleBackToOffices}
+                      className="text-black hover:text-[#E6007E] text-2xl mr-2"
+                    >
+                    → 
+                </button>
+                  
+                  </div>
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold mb-3">Добавить комментарий</h3>
+                    <form onSubmit={handleSubmitComment}>
+                      <textarea
+                        className="w-full p-2 border border-gray-300 rounded mb-2"
+                        rows={3}
+                        value={newComment.text}
+                        onChange={(e) => setNewComment({...newComment, text: e.target.value})}
+                        placeholder="Ваш комментарий"
+                      />
+                      <div className="flex items-center mb-4">
+                        <span className="mr-2">Оценка:</span>
+                        <AddStarRating
+                          value={newComment.rating}
+                          onChange={(rating) => {
+                            setNewComment(prev => ({
+                              ...prev,
+                              rating: rating || 0
+                            }));
+                          }}
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        className="bg-[#3fcbff] text-white px-4 py-2 rounded"
+                      >
+                        Отправить
+                      </button>
+                    </form>
+                  </div>
+                  {comments.length > 0 ? (
+                    comments.map(comment => (
+                      <div key={comment.id} className="mb-4 p-3 border-b border-gray-200">
+                        <div className="flex items-center mb-2">
+                          <StarRating rating={comment.rating} />
+                        </div>
+                        <p className="text-gray-800">{comment.text}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500">Нет комментариев</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          {/* commend please dont delet*/}
+
       <div className="flex-1 h-[calc(100vh-68px)] z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
@@ -628,6 +713,6 @@ export default function CoverageMap({
           </Map>
         </YMaps>
       </div>
-    </div>
+      </div>
   );
 }
