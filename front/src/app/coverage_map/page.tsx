@@ -504,6 +504,10 @@ export default function CoverageMap({
         <input
           type="text"
           placeholder="Что хочешь найти?"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value)
+          }}
           className="w-5/6 border border-gray-300 rounded-md p-2 pl-4 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#d50069]"
         />
         <div className="absolute right-[13%] top-1/2 transform -translate-y-1/2 pointer-events-none">
