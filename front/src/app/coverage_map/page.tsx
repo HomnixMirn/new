@@ -19,20 +19,28 @@ import * as turf from "@turf/turf";
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
 }) {
-  const [activeTab, setActiveTab] = useState<"offices" | "coverage">("offices");
   const [searchQuery, setSearchQuery] = useState("");
   const [isBalloonOpen, setIsBalloonOpen] = useState(false);
   const [offices, setOffices] = useState([]);
-  const [comments, setComments] = useState([]);
   const [cells, setCells] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [services, setServices] = useState([]);
   const [mergedCoverage, setMergedCoverage] = useState<any>(null);
+  const [search, setSearch] = useState("");
+
+  // comment please dont delete
+  const [activeTab, setActiveTab] = useState<"offices" | "coverage">("offices");
+  const [showComments, setShowComments] = useState(false);
+  const [selectedOfficeId, setSelectedOfficeId] = useState<number | null>(null);
+  const [comments, setComments] = useState([]);
+
   const [newComment, setNewComment] = useState({
     text: "",
     rating: 5,
     officeId: null,
   });
+  // comment please dont delete
+
   const [selectedOffice, setSelectedOffice] = useState(null);
   const mapRef = useRef(null);
   const [mapBounds, setMapBounds] = useState([]);
@@ -142,19 +150,18 @@ export default function CoverageMap({
       const time = new Date();
       query += `filters=${time.getHours()}&`;
     }
+    if (search !== "") {
+      query += `search=${search}&`;
+    }
     if (services !== []) {
       query += "services=" + services.map((service) => `${service}`).join(",");
-      axi.get("/map/all_office?" + query).then((response) => {
-        console.log(response.data);
-        setOffices([...response.data]);
-      });
-    } else {
-      axi.get("/map/all_office" + query).then((response) => {
-        console.log(response.data);
-        setOffices([...response.data]);
-      });
     }
-  }, [services, filters]);
+
+    axi.get("/map/all_office?" + query).then((response) => {
+      console.log(response.data);
+      setOffices([...response.data]);
+    });
+  }, [services, filters, search]);
 
   useEffect(() => {
     const data = {
@@ -208,17 +215,34 @@ export default function CoverageMap({
     }
   };
 
+  //comment please dont delete
   useEffect(() => {
-    const handleShowComments = (e) => {
+    const handleShowComments = (e: CustomEvent) => {
+      setActiveTab("comments");
+      setShowComments(true);
+      setSelectedOfficeId(e.detail);
       fetchComments(e.detail);
     };
 
-    window.addEventListener("showComments", handleShowComments);
+    window.addEventListener(
+      "showComments",
+      handleShowComments as EventListener
+    );
 
     return () => {
-      window.removeEventListener("showComments", handleShowComments);
+      window.removeEventListener(
+        "showComments",
+        handleShowComments as EventListener
+      );
     };
   }, []);
+
+  const handleBackToOffices = () => {
+    setActiveTab("offices");
+    setShowComments(false);
+    setSelectedOfficeId(null);
+  };
+  //comment please dont delete
 
   const fetchComments = async (officeId) => {
     try {
@@ -415,16 +439,14 @@ export default function CoverageMap({
             <Services
               services={services}
               onServiceToggle={servicesUpdateHandle}
+              setServices={setServices}
             />
           ) : (
             <>
               {offices.map((office, index) => (
                 <div
                   key={office.id}
-                  className="flex justify-between items-stretch gap-4 cursor-pointer"
-                  onClick={() =>
-                    handleOfficeClick(office.latitude, office.longitude)
-                  }
+                  className="flex justify-between items-stretch gap-4"
                 >
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     <Image
@@ -435,7 +457,9 @@ export default function CoverageMap({
                       className="mt-0.5 flex-shrink-0"
                     />
                     <div className="min-w-0 self-center">
-                      <div className="font-bold truncate">{office.address}</div>
+                      <div className="font-bold break-words">
+                        {office.address}
+                      </div>
                       <div className="text-sm text-gray-400 truncate">
                         {office.souring}
                       </div>
@@ -448,7 +472,6 @@ export default function CoverageMap({
                       width={20}
                       height={20}
                     />
-
                     <div>{office.manyComments}</div>
                   </div>
                 </div>
@@ -463,112 +486,196 @@ export default function CoverageMap({
   return (
     <div className="flex h-[calc(100vh-68px)] overflow-hidden">
       <div className="w-1/4 bg-white flex flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
-        <div className="flex flex-col p-4 h-1/3">
+        <div
+          className={`flex flex-col p-4 ${showComments ? "h-auto" : "h-1/3"}`}
+        >
+          {/* Заголовки табов */}
           <div className="flex space-x-20 text-xl font-medium justify-center">
             <button
-              onClick={() => setActiveTab("coverage")}
+              onClick={() =>
+                setActiveTab(showComments ? "offices" : "comments")
+              }
               className={`pb-1 border-b-2 transition-colors duration-200 ${
-                activeTab === "coverage"
+                activeTab === "comments"
                   ? "border-[#E6007E] text-black"
                   : "border-transparent text-black hover:text-[#E6007E]"
               }`}
             >
-              Карта покрытия
+              {showComments ? "" : "Карта покрытия"}
             </button>
-            <button
-              onClick={() => setActiveTab("offices")}
-              className={`pb-1 border-b-2 transition-colors duration-200 ${
-                activeTab === "offices"
-                  ? "border-[#E6007E] text-black"
-                  : "border-transparent text-black hover:text-[#E6007E]"
-              }`}
-            >
-              Офисы
-            </button>
-          </div>
 
-          <div className="mt-4 relative flex justify-center">
-            <input
-              type="text"
-              placeholder="Что хочешь найти?"
-              className="w-5/6 border border-gray-300 rounded-md p-2 pl-4 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#d50069]"
-            />
-            <div className="absolute right-[13%] top-1/2 transform -translate-y-1/2 pointer-events-none">
-              <Image
-                src="/images/Icons/Icon.svg"
-                alt="Поиск"
-                width={20}
-                height={20}
-                className=""
-              />
-            </div>
-          </div>
-
-          <div className="mt-3 text-sm text-black ml-8 space-y-3">
-            {activeTab === "coverage" ? (
-              <>
-                <label className="flex items-center w-2/3">
-                  <input
-                    type="checkbox"
-                    checked={showTower}
-                    onChange={() => setShowTower(!showTower)}
-                    className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
-                  />
-                  Показать вышки на карте
-                </label>
-                <label className="flex items-center w-2/3">
-                  <input
-                    type="checkbox"
-                    // checked={showRatings}
-                    onChange={() => setShowRatings(!showRatings)}
-                    className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
-                  />
-                  Показать оценки связи от клиентов
-                </label>
-              </>
-            ) : (
-              <>
-                <label className="flex items-center w-2/3">
-                  <input
-                    type="checkbox"
-                    checked={services.includes("Работают после 20:00")}
-                    onChange={(e) => {
-                      console.log(e);
-                      handleCheckService(e, "Работают после 20:00");
-                    }}
-                    className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
-                  />
-                  Работают после 20:00
-                </label>
-                <label className="flex items-center w-2/3">
-                  <input
-                    type="checkbox"
-                    checked={services.includes("Работают по выходным")}
-                    onChange={(e) => {
-                      console.log(e);
-                      handleCheckService(e, "Работают по выходным");
-                    }}
-                    className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
-                  />
-                  Работают по выходным
-                </label>
-                <label className="flex items-center w-2/3">
-                  <input
-                    type="checkbox"
-                    checked={filters.worksNow}
-                    onChange={() => handleFilterChange("worksNow")}
-                    className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
-                  />
-                  Сейчас работают
-                </label>
-              </>
+            {!showComments && (
+              <button
+                onClick={handleBackToOffices}
+                className={`pb-1 border-b-2 transition-colors duration-200 ${
+                  activeTab === "offices"
+                    ? "border-[#E6007E] text-black"
+                    : "border-transparent text-black hover:text-[#E6007E]"
+                }`}
+              >
+                Офисы
+              </button>
             )}
           </div>
+
+          {/* Показывать поиск и фильтры только если !showComments */}
+          {!showComments && (
+            <>
+              <div className="mt-4 relative flex justify-center">
+                <input
+                  type="text"
+                  placeholder="Что хочешь найти?"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                  }}
+                  className="w-5/6 border border-gray-300 rounded-md p-2 pl-4 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#d50069]"
+                />
+                <div className="absolute right-[13%] top-1/2 transform -translate-y-1/2 pointer-events-none">
+                  <Image
+                    src="/images/Icons/Icon.svg"
+                    alt="Поиск"
+                    width={20}
+                    height={20}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-3 text-sm text-black ml-8 space-y-3">
+                {activeTab === "coverage" ? (
+                  <>
+                    <label className="flex items-center w-2/3">
+                      <input
+                        type="checkbox"
+                        checked={showTower}
+                        onChange={() => setShowTower(!showTower)}
+                        className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
+                      />
+                      Показать вышки на карте
+                    </label>
+                    <label className="flex items-center w-2/3">
+                      <input
+                        type="checkbox"
+                        checked={showRatings}
+                        onChange={() => setShowRatings(!showRatings)}
+                        className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
+                      />
+                      Показать оценки связи от клиентов
+                    </label>
+                  </>
+                ) : (
+                  <>
+                    <label className="flex items-center w-2/3">
+                      <input
+                        type="checkbox"
+                        checked={services.includes("Работают после 20:00")}
+                        onChange={(e) =>
+                          handleCheckService(e, "Работают после 20:00")
+                        }
+                        className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
+                      />
+                      Работают после 20:00
+                    </label>
+                    <label className="flex items-center w-2/3">
+                      <input
+                        type="checkbox"
+                        checked={services.includes("Работают по выходным")}
+                        onChange={(e) =>
+                          handleCheckService(e, "Работают по выходным")
+                        }
+                        className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
+                      />
+                      Работают по выходным
+                    </label>
+                    <label className="flex items-center w-2/3">
+                      <input
+                        type="checkbox"
+                        checked={filters.worksNow}
+                        onChange={() => handleFilterChange("worksNow")}
+                        className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
+                      />
+                      Сейчас работают
+                    </label>
+                  </>
+                )}
+              </div>
+            </>
+          )}
         </div>
-        <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
-          <Offices />
+
+        <div
+          className={`flex-1 ${showComments ? "bg-white" : "bg-black"} text-${
+            showComments ? "black" : "white"
+          } py-4 px-10 overflow-y-auto custom-scrollbar`}
+        >
+          {activeTab === "offices" && <Offices />}
+
+          {showComments && (
+            <div className="h-full">
+              <div className="flex items-center mb-4 justify-between">
+                <h2 className="text-xl font-bold">Комментарии</h2>
+                <button
+                  onClick={handleBackToOffices}
+                  className="text-black hover:text-[#E6007E] text-2xl mr-2"
+                >
+                  →
+                </button>
+              </div>
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold mb-3">
+                  Добавить комментарий
+                </h3>
+                <form onSubmit={handleSubmitComment}>
+                  <textarea
+                    className="w-full p-2 border border-gray-300 rounded mb-2"
+                    rows={3}
+                    value={newComment.text}
+                    onChange={(e) =>
+                      setNewComment({ ...newComment, text: e.target.value })
+                    }
+                    placeholder="Ваш комментарий"
+                  />
+                  <div className="flex items-center mb-4">
+                    <span className="mr-2">Оценка:</span>
+                    <AddStarRating
+                      value={newComment.rating}
+                      onChange={(rating) => {
+                        setNewComment((prev) => ({
+                          ...prev,
+                          rating: rating || 0,
+                        }));
+                      }}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="bg-[#3fcbff] text-white px-4 py-2 rounded"
+                  >
+                    Отправить
+                  </button>
+                </form>
+              </div>
+              {comments.length > 0 ? (
+                comments.map((comment) => (
+                  <div
+                    key={comment.id}
+                    className="mb-4 p-3 border-b border-gray-200"
+                  >
+                    <div className="flex items-center mb-2">
+                      <StarRating rating={comment.rating} />
+                    </div>
+                    <p className="text-gray-800">{comment.text}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">Нет комментариев</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
+      {/* commend please dont delet*/}
+
       <div className="flex-1 h-[calc(100vh-68px)] z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
