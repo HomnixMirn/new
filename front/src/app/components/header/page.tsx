@@ -70,7 +70,7 @@ export default function Header() {
     <>
       <header className="bg-black w-full h-[68px] content-center">
         <div className="flex flex-row justify-around items-center">
-          <Link className="text-[45px] w-[50px]" href="/">
+          <Link className="text-[45px] w-[50px]" href="/coverage_map">
             <Image
               src={"/images/t2_avatar/avatar/T2_Avatar_Primary.png"}
               alt={"Logo"}
@@ -82,10 +82,10 @@ export default function Header() {
           <div className="flex w-[35%] content-evenly gap-[20px] flex-row items-center justify-between">
             <Link
               className="flex flex-col items-center text-[#898989] hover:text-white "
-              href="/"
+              href="/coverage_map"
             >
               Главная
-              {pathname === "/" && (
+              {pathname === "/coverage_map" && (
                 <div className="relative w-[200%] h-0.5 bg-white"></div>
               )}
             </Link>
@@ -96,15 +96,6 @@ export default function Header() {
               className="flex flex-col items-center text-[#898989] hover:text-white"
             >
               Наш бот
-            </Link>
-            <Link
-              className="flex flex-col items-center text-[#898989] hover:text-white"
-              href="/coverage_map"
-            >
-              Карта
-              {pathname === "/coverage_map" && (
-                <div className="relative w-[200%] h-0.5 bg-white"></div>
-              )}
             </Link>
 
             {isLoggedIn && (
