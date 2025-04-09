@@ -445,7 +445,7 @@ export default function CoverageMap({
             {cells.map((cell, index) => {
               const polygonCoords = generatePolygonCoords(
                 [cell.latitude, cell.longitude],
-                1000
+                4000
               );
 
               return (
