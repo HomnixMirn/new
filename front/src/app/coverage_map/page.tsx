@@ -315,45 +315,6 @@ export default function CoverageMap({
     }
   }
 
-  const Services = () => {
-    const AllServices = [
-      "Подключают eSIM",
-      "Подключают услуги «Ростелекома»",
-      "Продают устройства по акции «Обмен минут на смартфоны и гаджеты»",
-      "Подключают домашний интернет от t2",
-      "Принимают платежи наличными на кассе",
-      "Продают смартфоны в trade-in",
-      "Обслуживают корпоративных клиентов",
-      "Помогают с заменой SIM-карты другого региона",
-    ];
-
-     
-
-    
-    return (
-      <div className="flex flex-col gap-5">
-        {AllServices.map((service) => (
-          <div className="flex gap-5">
-            <input
-              type="checkbox"
-              
-              checked={services.includes(service)}
-              // onClick={() => servicesUpdateHandle(service)}
-              name=""
-              id={service}
-              onChange={(e) => {
-                console.log(e)
-                handleCheckService(e,service)
-                
-              }}
-            />
-            <p className="">{service}</p>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   function Offices() {
     const filterOffices = () => {
       const now = new Date();
@@ -433,14 +394,13 @@ export default function CoverageMap({
     return (
       <div className="flex flex-col">
         <div className="flex justify-between items-center mb-4">
-          {/* Modal Serveces */}
           <h2 className="text-xl font-bold">Офисы T2</h2>
-          <h2
-            className="text-xl font-bold cursor-pointer"
+          <div
+            className="text-base cursor-pointer"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             Услуги
-          </h2>
+          </div>
         </div>
         
 
@@ -453,30 +413,33 @@ export default function CoverageMap({
       ) : (
         <>
           {offices.map((office, index) => (
-                <div key={office.id} className="flex justify-between items-center">
-                  <div className="flex items-start gap-3">
-                    <Image
-                      src="/images/Icons/point.svg"
-                      alt="point"
-                      width={25}
-                      height={25}
-                    />
-                    <div>
-                      <div className="font-bold">{office.address}</div>
-                      <div className="text-sm text-gray-400">{office.souring}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 text-sm text-white">
-                    <Image
-                      src="/images/Icons/com.svg"
-                      alt="com"
-                      width={25}
-                      height={25}
-                    />
-                    <div>{office.manyComments}</div>
-                  </div>
+            <div key={office.id} className="flex justify-between items-stretch gap-4">
+              <div className="flex items-start gap-3 flex-1 min-w-0">
+                <Image
+                  src="/images/Icons/point.svg"
+                  alt="point"
+                  width={25}
+                  height={25}
+                  className="mt-0.5 flex-shrink-0"
+                />
+                <div className="min-w-0 self-center">
+                  <div className="font-bold truncate">{office.address}</div>
+                  <div className="text-sm text-gray-400 truncate">{office.souring}</div>
                 </div>
-              ))}
+              </div>
+              <div className="flex items-center gap-1 text-sm text-white flex-shrink-0">
+                
+                  <Image
+                    src="/images/Icons/com.svg"
+                    alt="com"
+                    width={20}
+                    height={20}
+                  />
+
+                <div>{office.manyComments}</div>
+              </div>
+            </div>
+          ))}
         </>
       )}
     </div>
@@ -529,7 +492,7 @@ export default function CoverageMap({
             </div>
           </div>
 
-          <div className="mt-3 text-sm text-gray-800 ml-8 space-y-3">
+          <div className="mt-3 text-sm text-black ml-8 space-y-3">
             {activeTab === "coverage" ? (
               <>
                 <label className="flex items-center w-2/3">

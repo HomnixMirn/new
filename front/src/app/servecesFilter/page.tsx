@@ -21,12 +21,12 @@ const Services: React.FC<ServicesProps> = ({ services, onServiceToggle }) => {
   return (
     <div className="flex flex-col gap-5">
       {AllServices.map((service, index) => (
-        <div key={index} className="flex gap-5 items-center">
+        <div key={index} className="flex gap-2 items-center">
           <input
             type="checkbox"
             checked={services.includes(service)}
             onChange={() => onServiceToggle(service)}
-            className="w-5 h-5 accent-[#d50069] rounded"
+            className="w-4 h-4 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
           />
           <p className="text-white">{service}</p>
         </div>
