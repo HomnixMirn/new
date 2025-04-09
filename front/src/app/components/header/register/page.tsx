@@ -130,8 +130,6 @@ export default function RegisterForm({
           <h1 className="text-3xl font-bold text-black">Регистрация</h1>
         </div>
 
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-
         <form
           onSubmit={handleSubmit}
           className="flex items-center gap-8 h-[calc(100%-50px)]"
@@ -229,8 +227,8 @@ export default function RegisterForm({
             <Image
               width={360}
               height={360}
-              src="/images/auth.svg"
-              alt="Authentication"
+              src="/images/reg.svg"
+              alt="Регистрация"
             />
             <CloseButton onClick={onClose} />
           </div>

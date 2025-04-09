@@ -14,7 +14,7 @@ export default function CloseButton({ onClick }: CloseButtonProps) {
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="absolute top-2 right-2 text-2xl transition-colors"
+      className="absolute top-3 right-3 text-2xl transition-colors"
       aria-label="Закрыть"
     >
       <Image

@@ -75,72 +75,68 @@ export default function LoginForm({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-opacity-90 bg-white backdrop-blur-sm border-2 border-white rounded-[16px] shadow-lg p-6 w-[650px] h-[450px] relative">
-        <div className="flex items-start justify-between">
-          <h1 className="text-3xl font-bold text-black">Вход</h1>
+    <div className="bg-black/50 fixed inset-0 flex items-center justify-center z-50">
+      <div className="bg-white rounded-[16px] w-[650px] h-[400px] p-5 box-border flex">
+        <div>
+          <p>Вход</p>
+          <form
+            onSubmit={handleSubmit}
+            className="flex items-center gap-8 h-[calc(100%-50px)]"
+          >
+            <div className="flex justify-center items-center h-full relative">
+              <div>
+                <p className="text-[#aaa] ml-[8px]">Введите логин и пароль</p>
+                <div className="mb-2">
+                  <input
+                    type="text"
+                    className="mt-[5px] w-[220px] h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
+                    placeholder="Введите номер телефона"
+                    value={login}
+                    onChange={(e) => setLogin(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    autoComplete="username"
+                  />
+                </div>
+                <div className="mb-4">
+                  <input
+                    type="password"
+                    className="w-[220px] h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
+                    placeholder="Пароль"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={isLoading}
+                    autoComplete="current-password"
+                  />
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                  <HollowButton
+                    type="submit"
+                    label={isLoading ? "Вход..." : "Войти"}
+                  />
+                  <button
+                    type="button"
+                    onClick={onRegisterOpen}
+                    className="text-black hover:underline cursor-pointer text-sm"
+                    disabled={isLoading}
+                  >
+                    Уже есть аккаунт? Войти
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
         </div>
-
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-
-        <form
-          onSubmit={handleSubmit}
-          className="flex items-center gap-8 h-[calc(100%-50px)]"
-        >
-          <div className="flex justify-center items-center h-full relative">
-            <div>
-              <p className="text-[#aaa] ml-[8px]">Введите логин и пароль</p>
-              <div className="mb-2">
-                <input
-                  type="text"
-                  className="mt-[5px] w-[220px] h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
-                  placeholder="Введите номер телефона"
-                  value={login}
-                  onChange={(e) => setLogin(e.target.value)}
-                  required
-                  disabled={isLoading}
-                  autoComplete="username"
-                />
-              </div>
-              <div className="mb-4">
-                <input
-                  type="password"
-                  className="w-[220px] h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
-                  placeholder="Пароль"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={isLoading}
-                  autoComplete="current-password"
-                />
-              </div>
-            </div>
-
-            <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-2">
-              <HollowButton
-                type="submit"
-                label={isLoading ? "Вход..." : "Войти"}
-              />
-              <button
-                type="button"
-                onClick={onRegisterOpen}
-                className="text-black hover:underline cursor-pointer text-sm"
-                disabled={isLoading}
-              >
-                Регистрация
-              </button>
-            </div>
-          </div>
-          <div className="relative">
-            <Image
-              width={360}
-              height={360}
-              src="/images/auth.svg"
-              alt="Authentication"
-            />
-            <CloseButton onClick={onClose} />
-          </div>
-        </form>
+        <div className="relative top-0 right-0">
+          <Image
+            width={360}
+            height={360}
+            src="/images/auth.svg"
+            alt="Авторизация"
+          />
+          <CloseButton onClick={onClose} />
+        </div>
       </div>
     </div>
   );
