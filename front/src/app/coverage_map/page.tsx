@@ -396,7 +396,7 @@ export default function CoverageMap({
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Офисы T2</h2>
           <div
-            className="text-base cursor-pointer"
+            className="text-base cursor-pointer hover:text-[#E6007E]"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             Услуги
