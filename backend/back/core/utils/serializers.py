@@ -59,7 +59,7 @@ class OfficeSerializer(serializers.ModelSerializer):
             return 0
         
         
-    def get_souring(self,obj):
+    def get_souring(self,obj:Office):
         translate = {
             "MONDAY":'ПН',
             "TUESDAY":"ВТ",
@@ -82,8 +82,15 @@ class OfficeSerializer(serializers.ModelSerializer):
                 elif lastEnd == i.closeTime and lastStart ==i.openTime:
                     continue
                 else:
-                    rasp.append(f'{translate[dayStart]} - {translate[i.day]}: {lastStart} - {lastEnd}')
-                    lastStart,lastEnd = i.openTime,i.closeTime
+                    day = list(translate.values())
+
+                    indexDay = list(translate.keys()).index(i.day)
+                    rasp.append(f'{translate[dayStart]} - {day[indexDay-1]}: {lastStart} - {lastEnd}')
+                    if i.openTime and i.closeTime:
+                        lastStart,lastEnd = i.openTime,i.closeTime
+                    else :
+                        lastStart,lastEnd = "Не работаем", "Не работаем"
+                    dayStart = i.day
             rasp.append(f'{translate[dayStart]} - {translate[obj.daySchedules.all().last().day]}: {lastStart} - {lastEnd}')
             return '\n'.join(rasp)
     class Meta:

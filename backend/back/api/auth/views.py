@@ -58,6 +58,8 @@ from rest_framework.decorators import api_view
 #     del i['id']
 #     newOffice = Office.objects.create(**i)
 #     for j in days:
+#         if newOffice.daySchedules.filter(day=j.day).exists():
+#             continue
 #         newOffice.daySchedules.add(j)
 #     for k in services:
 #         newOffice.services.add(k)

@@ -23,8 +23,8 @@ export default function CoverageMap({
   const [offices, setOffices] = useState([]);
   const [comments, setComments] = useState([]);
   const [cells, setCells] = useState([]);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [services , setServices] = useState([])
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [services, setServices] = useState([]);
   const [newComment, setNewComment] = useState({
     text: "",
     rating: 5,
@@ -109,18 +109,18 @@ export default function CoverageMap({
   };
 
   useEffect(() => {
-    if (services !== []){
+    if (services !== []) {
       const query = services.map((service) => `${service}`).join(",");
-      axi.get("/map/all_office?services="+query).then((response) => {
+      axi.get("/map/all_office?services=" + query).then((response) => {
+        console.log(response.data);
+        setOffices([...response.data]);
+      });
+    } else {
+      axi.get("/map/all_office").then((response) => {
         console.log(response.data);
         setOffices([...response.data]);
       });
     }
-    else{
-    axi.get("/map/all_office").then((response) => {
-      console.log(response.data);
-      setOffices([...response.data]);
-    });}
   }, [services]);
 
   useEffect(() => {
@@ -173,7 +173,7 @@ export default function CoverageMap({
 
   const handleBoundsChange = () => {
     const bounds = getMapBounds(mapRef);
-    console.log(bounds);
+    console.log("Current bounds:", bounds[0], bounds[1]);
     if (bounds) {
       setMapBounds(bounds);
     }
@@ -230,9 +230,8 @@ export default function CoverageMap({
     throw new Error("Function not implemented.");
   }
 
-  const Services = () =>{
-    
-    const AllServices =[
+  const Services = () => {
+    const AllServices = [
       "Подключают eSIM",
       "Подключают услуги «Ростелекома»",
       "Продают устройства по акции «Обмен минут на смартфоны и гаджеты»",
@@ -240,81 +239,91 @@ export default function CoverageMap({
       "Принимают платежи наличными на кассе",
       "Продают смартфоны в trade-in",
       "Обслуживают корпоративных клиентов",
-      "Помогают с заменой SIM-карты другого региона"
-    ]
+      "Помогают с заменой SIM-карты другого региона",
+    ];
 
-    function servicesUpdateHandle(servic){
-      if (services.includes(servic)){
+    function servicesUpdateHandle(servic) {
+      if (services.includes(servic)) {
         const index = services.indexOf(servic);
         services.splice(index, 1);
-        console.log(services)
-      }
-      else {
-        setServices([...services, servic])
+        console.log(services);
+      } else {
+        setServices([...services, servic]);
       }
     }
-    return(
+    return (
       <div className="flex flex-col gap-5">
-        
-        
-            {AllServices.map((service) =>(
-              <div className="flex gap-5">
-                <input type="checkbox" checked={services.includes(service)} onClick={() => servicesUpdateHandle(service)} name=""  id="" />
-                <p className="">{ service}</p>
-              </div>
-            ))}
-          
-        
-  
-  
+        {AllServices.map((service) => (
+          <div className="flex gap-5">
+            <input
+              type="checkbox"
+              checked={services.includes(service)}
+              onClick={() => servicesUpdateHandle(service)}
+              name=""
+              id=""
+            />
+            <p className="">{service}</p>
+          </div>
+        ))}
       </div>
-    )
-  }
+    );
+  };
   function Offices() {
     const handleApplyServices = (selectedServices: Record<string, boolean>) => {
       console.log("Применены фильтры:", selectedServices);
           
     };
-  
+
     return (
       <div className="flex flex-col">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Офисы T2</h2>
-          <h2 className="text-xl font-bold" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>Услуги</h2>
-          
+          <h2
+            className="text-xl font-bold"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          >
+            Услуги
+          </h2>
+
           {/* onApply={handleApplyServices}  */}
         </div>
         <div className="flex-1 overflow-y-auto mt-2 space-y-8 pr-2 h-[400px] custom-scrollbar">
-        {isDropdownOpen ? <Services/>:<>
-        
-        {offices.map((office, index) => (
-            <div key={office.id} className="flex justify-between items-center">
-              <div className="flex items-start gap-3">
-                <Image
-                  src="/images/Icons/point.svg"
-                  alt="point"
-                  width={25}
-                  height={25}
-                />
-                <div>
-                  <div className="font-bold">{office.address}</div>
-                  <div className="text-sm text-gray-400">
-                    {office.souring}
+          {isDropdownOpen ? (
+            <Services />
+          ) : (
+            <>
+              {offices.map((office, index) => (
+                <div
+                  key={office.id}
+                  className="flex justify-between items-center"
+                >
+                  <div className="flex items-start gap-3">
+                    <Image
+                      src="/images/Icons/point.svg"
+                      alt="point"
+                      width={25}
+                      height={25}
+                    />
+                    <div>
+                      <div className="font-bold">{office.address}</div>
+                      <div className="text-sm text-gray-400">
+                        {office.souring}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 text-sm text-white">
+                    <Image
+                      src="/images/Icons/com.svg"
+                      alt="com"
+                      width={25}
+                      height={25}
+                    />
+                    <div>{office.manyComments}</div>
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-1 text-sm text-white">
-                <Image
-                  src="/images/Icons/com.svg"
-                  alt="com"
-                  width={25}
-                  height={25}
-                />
-                <div>{office.manyComments}</div>
-              </div>
-            </div>
-          ))} </>   
-        }
+              ))}{" "}
+            </>
+          )}
         </div>
       </div>
     );
@@ -323,52 +332,52 @@ export default function CoverageMap({
   return (
     <div className="flex h-[calc(100vh-68px)] overflow-hidden">
       <div className="w-1/4 bg-white flex flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
-          <div className="flex flex-col p-4 h-1/3">
-            <div className="flex space-x-20 text-xl font-medium justify-center">
-              <button
-                onClick={() => setActiveTab("coverage")}
-                className={`pb-1 border-b-2 transition-colors duration-200 ${
-                  activeTab === "coverage"
-                    ? "border-[#E6007E] text-black"
-                    : "border-transparent text-black hover:text-[#E6007E]"
-                }`}
-              >
-                Карта покрытия
-              </button>
-              <button
-                onClick={() => setActiveTab("offices")}
-                className={`pb-1 border-b-2 transition-colors duration-200 ${
-                  activeTab === "offices"
-                    ? "border-[#E6007E] text-black"
-                    : "border-transparent text-black hover:text-[#E6007E]"
-                }`}
-              >
-                Офисы
-              </button>
-            </div>
-            
+        <div className="flex flex-col p-4 h-1/3">
+          <div className="flex space-x-20 text-xl font-medium justify-center">
+            <button
+              onClick={() => setActiveTab("coverage")}
+              className={`pb-1 border-b-2 transition-colors duration-200 ${
+                activeTab === "coverage"
+                  ? "border-[#E6007E] text-black"
+                  : "border-transparent text-black hover:text-[#E6007E]"
+              }`}
+            >
+              Карта покрытия
+            </button>
+            <button
+              onClick={() => setActiveTab("offices")}
+              className={`pb-1 border-b-2 transition-colors duration-200 ${
+                activeTab === "offices"
+                  ? "border-[#E6007E] text-black"
+                  : "border-transparent text-black hover:text-[#E6007E]"
+              }`}
+            >
+              Офисы
+            </button>
+          </div>
 
-            <div className="mt-6 relative flex justify-center">
-              <input
-                type="text"
-                placeholder="Что хочешь найти?"
-                className="w-5/6 border border-gray-300 rounded-md p-2 pl-4 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#d50069]"
+          <div className="mt-6 relative flex justify-center">
+            <input
+              type="text"
+              placeholder="Что хочешь найти?"
+              className="w-5/6 border border-gray-300 rounded-md p-2 pl-4 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#d50069]"
+            />
+            <div className="absolute right-[13%] top-1/2 transform -translate-y-1/2 pointer-events-none">
+              <Image
+                src="/images/Icons/Icon.svg"
+                alt="Поиск"
+                width={20}
+                height={20}
+                className="text-gray-500"
               />
-              <div className="absolute right-[13%] top-1/2 transform -translate-y-1/2 pointer-events-none">
-                <Image
-                  src="/images/Icons/Icon.svg"
-                  alt="Поиск"
-                  width={20}
-                  height={20}
-                  className="text-gray-500"
-                />
-              </div>
             </div>
+          </div>
 
             <div className="mt-6 text-sm text-gray-800 space-y-2">
               <label className="flex items-center w-2/3 justify-center">
                 <input
                   type="checkbox"
+                  // checked={showOffices}
                   onChange={() => setShowTower(!showOffices)}
                   className="w-5 h-5 accent-[#d50069] mr-2 rounded"
                 />
@@ -378,6 +387,7 @@ export default function CoverageMap({
           </div>
           <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
             {activeTab === "offices" && <Offices />}
+            {/* {activeTab === "coverage" && <CoverageRoaming />} */}
           </div>
         </div>
         <div className="flex-1 h-[calc(100vh-68px)] z-0">
@@ -433,19 +443,22 @@ export default function CoverageMap({
               ))}
             </Clusterer>
 
-            {cells.map((cell) => {
-              const cellCoords = [cell.latitude, cell.longitude];
-              const radius = 4000;
+            {cells.map((cell, index) => {
+              const polygonCoords = generatePolygonCoords(
+                [cell.latitude, cell.longitude],
+                1000
+              );
 
               return (
-                <Circle
-                  key={cell.id || `${cell.latitude}-${cell.longitude}`}
-                  geometry={[[cell.latitude, cell.longitude], 4000]}
+                <Polygon
+                  key={`polygon-${cell.id}`}
+                  geometry={[polygonCoords]}
                   options={{
-                    fillColor: "#FF3495", // можно чуть менее насыщенный цвет
-                    fillOpacity: 0.5, // снизили прозрачность
+                    fillColor: "#FF3495",
+                    fillOpacity: 0.3,
+                    strokeColor: "#FF3495",
                     strokeWidth: 0,
-                    zIndex: 0, // все на одном уровне
+                    zIndex: 1000,
                   }}
                 />
               );
@@ -456,4 +469,3 @@ export default function CoverageMap({
     </div>
   );
 }
-
