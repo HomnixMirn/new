@@ -1,4 +1,4 @@
-export default function CoverageRoaming() {
+export default function Coverage() {
     return (
       <div className="flex-1 bg-black text-white p-4">
         <h2 className="text-xl font-bold mb-4">Роуминг</h2>
