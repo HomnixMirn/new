@@ -302,6 +302,17 @@ export default function CoverageMap({
       </div>
     `;
   };
+  function handleCheckService(e, service){
+    if (e.target.checked){
+      console.log('да')
+      setServices([...services,service])
+      
+    }
+    else{
+      setServices(services.filter((v)=> v!== service))
+      console.log("нет")
+    }
+  }
 
   const Services = () => {
     const AllServices = [
@@ -315,6 +326,8 @@ export default function CoverageMap({
       "Помогают с заменой SIM-карты другого региона",
     ];
 
+     
+
     
     return (
       <div className="flex flex-col gap-5">
@@ -322,10 +335,16 @@ export default function CoverageMap({
           <div className="flex gap-5">
             <input
               type="checkbox"
+              
               checked={services.includes(service)}
-              onClick={() => servicesUpdateHandle(service)}
+              // onClick={() => servicesUpdateHandle(service)}
               name=""
-              id=""
+              id={service}
+              onChange={(e) => {
+                console.log(e)
+                handleCheckService(e,service)
+                
+              }}
             />
             <p className="">{service}</p>
           </div>
@@ -536,7 +555,11 @@ export default function CoverageMap({
                   <input
                     type="checkbox"
                     checked={services.includes("Работают после 20:00")}
-                    onChange={() => servicesUpdateHandle("Работают после 20:00")}
+                    onChange={(e) => {
+                      console.log(e)
+                      handleCheckService(e,"Работают после 20:00")
+                      
+                    }}
                     className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
                   />
                   Работают после 20:00
@@ -545,7 +568,11 @@ export default function CoverageMap({
                   <input
                     type="checkbox"
                     checked={services.includes("Работают по выходным")}
-                    onChange={() => servicesUpdateHandle("Работают по выходным")}
+                    onChange={(e) => {
+                      console.log(e)
+                      handleCheckService(e,"Работают по выходным")
+                      
+                    }}
                     className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
                   />
                   Работают по выходным
