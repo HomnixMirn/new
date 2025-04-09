@@ -9,6 +9,7 @@ from core.utils.validators import validate_email
 from rest_framework.decorators import api_view
 from core.utils.serializers import OfficeSerializer,commentsSerializer,CellsSerializer
 from core.utils.auth_decor import token_required
+import math
 
 # import json
 # url = 'D:/pusto/перенос/python/Thonny/Thony/2025/new/backend/parser/ceils.json'
@@ -66,14 +67,49 @@ def get_comments(request: Request):
     else:
         return Response('Метод не поддерживается',status=status.HTTP_405_METHOD_NOT_ALLOWED) 
     
+    
+   
+def approximate_distance_km(lat1, lon1, lat2, lon2):
+    """Приближенный расчет расстояния в километрах между двумя точками."""
+    avg_lat = (lat1 + lat2) / 2
+    km_per_deg_lat = 111.32
+    km_per_deg_lon = 111.32 * math.cos(math.radians(avg_lat))
+    delta_lat = abs(lat2 - lat1)
+    delta_lon = abs(lon2 - lon1)
+    km_lat = delta_lat * km_per_deg_lat
+    km_lon = delta_lon * km_per_deg_lon
+    return math.sqrt(km_lat**2 + km_lon**2)
+ 
+    
 @api_view(["POST"])
 def get_cells(request: Request):
     if request.method == 'POST':
-        left_bottom = request.POST['left_bottom']
-        right_top = request.POST['right_top']
+        left_bottom = request.data.get('left_bottom')
+        right_top = request.data.get('right_top')
+
+        if not left_bottom or not right_top:
+            return Response('Не указаны координаты', status=status.HTTP_400_BAD_REQUEST)
         
-        cell = cells.objects.filter(Q(latitude__gte=left_bottom[0]) & Q(latitude__lte=right_top[0]) & Q(longitude__gte=left_bottom[1]) & Q(longitude__lte=right_top[1]))
-        data = CellsSerializer(cell, many=True).data
+        cells_in_area = cells.objects.filter(Q(latitude__gte=left_bottom[0]) & Q(latitude__lte=right_top[0]) & Q(longitude__gte=left_bottom[1]) & Q(longitude__lte=right_top[1]))
+        selected = []
+        min_distance_km= 2,5
+        
+        for cell in cells_in_area:
+            too_close = False
+            for selected_cell in selected:
+                dist = approximate_distance_km(
+                    cell.latitude, cell.longitude,
+                    selected_cell.latitude, selected_cell.longitude
+                )
+                if dist < min_distance_km:
+                    too_close = True
+                    break
+            if not too_close:
+                selected.append(cell)
+                if len(selected) >= 400:
+                    break
+        
+        data = CellsSerializer(selected, many=True).data
         return Response(data, status=status.HTTP_200_OK)
     else:
         return Response('Метод не поддерживается',status=status.HTTP_405_METHOD_NOT_ALLOWED)
