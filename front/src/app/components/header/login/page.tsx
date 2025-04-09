@@ -96,8 +96,8 @@ export default function LoginForm({
                   type="text"
                   className="w-[220px] p-2 border-2 border-white rounded-[15px] bg-transparent placeholder:text-white"
                   placeholder="Введите номер телефона"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  value={login}
+                  onChange={(e) => setLogin(e.target.value)}
                   required
                   disabled={isLoading}
                   autoComplete="username"
