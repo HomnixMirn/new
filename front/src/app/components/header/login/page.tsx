@@ -118,11 +118,19 @@ export default function LoginForm({
               </div>
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 flex justify-center">
+            <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-2">
               <HollowButton
                 type="submit"
                 label={isLoading ? "Вход..." : "Войти"}
               />
+              <button
+                type="button"
+                onClick={onRegisterOpen}
+                className="text-white hover:underline cursor-pointer text-sm"
+                disabled={isLoading}
+              >
+                Регистрация
+              </button>
             </div>
           </div>
           <div>
