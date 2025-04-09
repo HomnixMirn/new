@@ -169,7 +169,6 @@ export default function CoverageMap({
       if (!response.data || response.data.length === 0) {
         return;
       }
-      console.log("response.data", response.data);
       const cells = response.data;
       generateMergedCoverage([...cells]);
     });
@@ -436,7 +435,23 @@ export default function CoverageMap({
           <label className="flex items-center w-2/3 justify-center">
             <input
               type="checkbox"
-              className="w-5 h-5 accent-[#d50069] mr-2 rounded"
+              className={`
+                  w-5 h-5
+                  appearance-none
+                  border-2 border-white
+                  rounded
+                  bg-transparent
+                  relative
+                  checked:bg-transparent
+                  checked:before:content-['']
+                  checked:before:absolute
+                  checked:before:inset-0
+                  checked:before:bg-[url('/images/Icons/whiteTickIcon.svg')]
+                  checked:before:bg-center
+                  checked:before:bg-no-repeat
+                  checked:before:bg-contain
+                  mr-2
+                `}
               checked={filters.worksAfter20}
               onChange={() => handleFilterChange("worksAfter20")}
             />
@@ -552,9 +567,28 @@ export default function CoverageMap({
             <label className="flex items-center w-2/3 justify-center">
               <input
                 type="checkbox"
-                // checked={showOffices}
+                className={`
+    w-5 h-5
+    appearance-none
+    border-2 border-black  /* Чёрная рамка */
+    rounded
+    bg-transparent
+    relative
+    checked:bg-transparent
+    checked:before:content-['']
+    checked:before:absolute
+    checked:before:inset-0
+    checked:before:mask-[url('/images/Icons/whiteTickIcon.svg')]
+    checked:before:mask-center
+    checked:before:mask-no-repeat
+    checked:before:mask-contain
+    checked:before:bg-black  /* Цвет галочки при выборе */
+    focus-visible:outline-none
+    focus-visible:ring-0
+    focus-visible:bg-transparent
+    mr-2
+  `}
                 onChange={() => setShowTower(!showOffices)}
-                className="w-5 h-5 accent-[#d50069] mr-2 rounded"
               />
               Отобразить вышки на карте
             </label>
