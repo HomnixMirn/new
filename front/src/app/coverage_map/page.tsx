@@ -342,17 +342,20 @@ export default function CoverageMap({
   function Offices() {
     const filterOffices = () => {
       const now = new Date();
-      const currentDay = now.getDay();
+      const currentDay = now.getDay(); // 0 - Sunday, 1 - Monday, etc.
       const currentHour = now.getHours();
       const currentMinutes = now.getMinutes();
-    
+  
       return offices.filter((office) => {
+        // Search filter
         if (searchQuery && !office.address.toLowerCase().includes(searchQuery.toLowerCase())) {
           return false;
         }
-    
+  
+        // Get working hours (default to 9:00-18:00 if not provided)
         const workingHours = office.working_hours || Array(7).fill("9:00-18:00");
-        
+  
+        // Works after 20:00 filter
         if (filters.worksAfter20) {
           const hasLateHours = workingHours.some(hours => {
             if (!hours || hours === "closed") return false;
@@ -363,18 +366,23 @@ export default function CoverageMap({
           });
           if (!hasLateHours) return false;
         }
-    
+  
+        // Works on weekends filter
         if (filters.worksOnWeekends) {
-          const weekendDays = [0, 7]; 
+          const weekendDays = [0, 6]; // 0 - Sunday, 6 - Saturday
           const isOpenWeekend = weekendDays.some(day => {
             const hours = workingHours[day];
             return hours && hours !== "closed";
           });
           if (!isOpenWeekend) return false;
         }
-    
+  
+        // Works now filter
         if (filters.worksNow) {
-          const todayHours = workingHours[currentDay === 0 ? 7 : currentDay - 1]; // преобразуем к 0-6 (пн-вс)
+          // Convert JavaScript day (0-6, Sun-Sat) to our array index (0-6, Mon-Sun)
+          const adjustedDay = currentDay === 0 ? 6 : currentDay - 1;
+          const todayHours = workingHours[adjustedDay];
+          
           if (!todayHours || todayHours === "closed") return false;
           
           const [openTime, closeTime] = todayHours.split('-');
@@ -391,11 +399,15 @@ export default function CoverageMap({
             return false;
           }
         }
-    
+  
         return true;
       });
     };
-
+  
+    const handleApplyServices = (selectedServices: Record<string, boolean>) => {
+      console.log("Применены фильтры:", selectedServices);
+    };
+  
     return (
       <div className="flex flex-col">
         <div className="flex justify-between items-center mb-4">
@@ -407,7 +419,7 @@ export default function CoverageMap({
             Услуги
           </h2>
         </div>
-
+  
         <div className="flex flex-col space-y-2 mb-4">
           <label className="flex items-center w-2/3 justify-center">
             <input
@@ -437,7 +449,7 @@ export default function CoverageMap({
             Только работающие сейчас
           </label>
         </div>
-
+  
         <div className="flex-1 overflow-y-auto mt-2 space-y-8 pr-2 h-[400px] custom-scrollbar">
           {isDropdownOpen ? (
             <Services />
@@ -479,13 +491,34 @@ export default function CoverageMap({
     <div className="flex h-[calc(100vh-68px)] overflow-hidden">
       <div className="w-1/4 bg-white flex flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
         <div className="flex flex-col p-4 h-1/3">
+          <div className="flex space-x-20 text-xl font-medium justify-center">
+            <button
+              onClick={() => setActiveTab("coverage")}
+              className={`pb-1 border-b-2 transition-colors duration-200 ${
+                activeTab === "coverage"
+                  ? "border-[#E6007E] text-black"
+                  : "border-transparent text-black hover:text-[#E6007E]"
+              }`}
+            >
+              Карта покрытия
+            </button>
+            <button
+              onClick={() => setActiveTab("offices")}
+              className={`pb-1 border-b-2 transition-colors duration-200 ${
+                activeTab === "offices"
+                  ? "border-[#E6007E] text-black"
+                  : "border-transparent text-black hover:text-[#E6007E]"
+              }`}
+            >
+              Офисы
+            </button>
+          </div>
+
           <div className="mt-6 relative flex justify-center">
             <input
               type="text"
               placeholder="Что хочешь найти?"
               className="w-5/6 border border-gray-300 rounded-md p-2 pl-4 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#d50069]"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
             />
             <div className="absolute right-[13%] top-1/2 transform -translate-y-1/2 pointer-events-none">
               <Image
@@ -502,8 +535,8 @@ export default function CoverageMap({
             <label className="flex items-center w-2/3 justify-center">
               <input
                 type="checkbox"
-                checked={showTower}
-                onChange={() => setShowTower(!showTower)}
+                // checked={showOffices}
+                onChange={() => setShowTower(!showOffices)}
                 className="w-5 h-5 accent-[#d50069] mr-2 rounded"
               />
               Отобразить вышки на карте
@@ -512,6 +545,7 @@ export default function CoverageMap({
         </div>
         <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
           {activeTab === "offices" && <Offices />}
+          {/* {activeTab === "coverage" && <CoverageRoaming />} */}
         </div>
       </div>
       <div className="flex-1 h-[calc(100vh-68px)] z-0">
@@ -577,6 +611,7 @@ export default function CoverageMap({
                   strokeColor: "#3fcbff",
                   strokeWidth: 1,
                   strokeOpacity: 0.6,
+                  outline:false
                 }}
               />
             ))}
