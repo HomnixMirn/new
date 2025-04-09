@@ -127,9 +127,9 @@ export default function CoverageMap({
 
   return (
     <div className="flex h-[calc(100vh-68px)] overflow-hidden">
-      <div className="w-1/3 bg-white flex flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
+      <div className="w-1/4 bg-white flex flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
         <div className="flex flex-col p-4 h-1/3">
-          <div className="flex space-x-30 text-xl font-medium justify-center">
+          <div className="flex space-x-20 text-xl font-medium justify-center">
             <button
               onClick={() => setActiveTab("coverage")}
               className={`pb-1 border-b-2 transition-colors duration-200 ${
@@ -156,9 +156,9 @@ export default function CoverageMap({
             <input
               type="text"
               placeholder="Что хочешь найти?"
-              className="w-3/4 border border-gray-300 rounded-md p-2 pl-4 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#d50069]"
+              className="w-5/6 border border-gray-300 rounded-md p-2 pl-4 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#d50069]"
             />
-            <div className="absolute right-[15%] top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <div className="absolute right-[13%] top-1/2 transform -translate-y-1/2 pointer-events-none">
               <Image
                 src="/images/Icons/Icon.svg"
                 alt="Поиск"
@@ -170,7 +170,7 @@ export default function CoverageMap({
           </div>
 
           <div className="mt-6 text-sm text-gray-800 space-y-2">
-            <label className="flex items-center w-2/3 ml-2 justify-center">
+            <label className="flex items-center w-2/3 justify-center">
               <input
                 type="checkbox"
                 // checked={showOffices}
@@ -181,7 +181,7 @@ export default function CoverageMap({
             </label>
           </div>
         </div>
-        <div className="flex-1 bg-black text-white p-4 overflow-y-auto custom-scrollbar">
+        <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
           {activeTab === "offices" && <Offices />}
           {activeTab === "coverage" && <CoverageRoaming />}
         </div>
