@@ -14,7 +14,7 @@ const StarRating = ({ rating, starColor }) => {
     width: "20px",
     height: "20px",
     background:
-      "url('/images/hollowPinkStarIcon.svg') no-repeat center/contain",
+      "url('/images/Icons/hollowPinkStarIcon.svg') no-repeat center/contain",
     filter: starColor === "#FFFFFF" ? "brightness(0) invert(1)" : "none",
   };
 
@@ -24,7 +24,7 @@ const StarRating = ({ rating, starColor }) => {
     left: "0",
     width: "20px",
     height: "20px",
-    background: "url('/images/pinkStarIcon.svg') no-repeat center/contain",
+    background: "url('/images/Icons/pinkStarIcon.svg') no-repeat center/contain",
     filter: starColor === "#FFFFFF" ? "brightness(0) invert(1)" : "none",
   };
 

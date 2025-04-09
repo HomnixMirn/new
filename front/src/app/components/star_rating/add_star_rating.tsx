@@ -1,13 +1,23 @@
 import React from "react";
 
-const AddStarRating = ({ value, onChange }) => {
+interface AddStarRatingProps {
+  value: number;
+  onChange: (value: number | null) => void;
+}
+
+const AddStarRating = ({ value, onChange }: AddStarRatingProps) => {
   const totalStars = 5;
 
-  const handleStarClick = (clickedValue) => {
+  const handleStarClick = (clickedValue: number) => {
+    if (typeof onChange !== 'function') {
+      console.error('onChange is not a function');
+      return;
+    }
+    
     if (value === clickedValue) {
-      onChange(null); // Сбрасываем фильтр при повторном клике
+      onChange(null);
     } else {
-      onChange(clickedValue); // Устанавливаем новое значение
+      onChange(clickedValue);
     }
   };
 
@@ -19,8 +29,8 @@ const AddStarRating = ({ value, onChange }) => {
   const emptyStarStyle = {
     width: "20px",
     height: "20px",
-    background:
-      "url('/images/hollowPinkStarIcon.svg') no-repeat center/contain",
+    background: "url('/images/Icons/hollowPinkStarIcon.svg') no-repeat center/contain",
+    cursor: "pointer"
   };
 
   const fullStarStyle = {
@@ -29,7 +39,8 @@ const AddStarRating = ({ value, onChange }) => {
     left: "0",
     width: "20px",
     height: "20px",
-    background: "url('/images/pinkStarIcon.svg') no-repeat center/contain",
+    background: "url('/images/Icons/pinkStarIcon.svg') no-repeat center/contain",
+    cursor: "pointer"
   };
 
   return (
@@ -46,7 +57,6 @@ const AddStarRating = ({ value, onChange }) => {
             onClick={() => handleStarClick(starValue)}
           >
             <div style={emptyStarStyle}></div>
-
             <div
               style={{
                 ...fullStarStyle,

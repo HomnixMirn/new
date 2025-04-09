@@ -15,24 +15,31 @@ import Link from "next/link";
 import AddStarRating from "../components/star_rating/add_star_rating";
 import StarRating from "../components/star_rating/star_rating";
 import * as turf from "@turf/turf";
+import { useUser } from "@/hooks/user-context";
 
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
 }) {
-  const [activeTab, setActiveTab] = useState<"offices" | "coverage">("offices");
   const [searchQuery, setSearchQuery] = useState("");
   const [isBalloonOpen, setIsBalloonOpen] = useState(false);
   const [offices, setOffices] = useState([]);
-  const [comments, setComments] = useState([]);
   const [cells, setCells] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [services, setServices] = useState([]);
   const [mergedCoverage, setMergedCoverage] = useState<any>(null);
+ 
+  // comment please dont delete
+  const [activeTab, setActiveTab] = useState<"offices" | "coverage">("offices");
+  const [showComments, setShowComments] = useState(false);
+  const [selectedOfficeId, setSelectedOfficeId] = useState<number | null>(null);
+  const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState({
     text: "",
     rating: 5,
     officeId: null,
   });
+  // comment please dont delete
+
   const [selectedOffice, setSelectedOffice] = useState(null);
   const mapRef = useRef(null);
   const [mapBounds, setMapBounds] = useState([]);
@@ -212,17 +219,28 @@ export default function CoverageMap({
     }
   };
 
+  //comment please dont delete
   useEffect(() => {
-    const handleShowComments = (e) => {
+    const handleShowComments = (e: CustomEvent) => {
+      setActiveTab("comments");
+      setShowComments(true);
+      setSelectedOfficeId(e.detail);
       fetchComments(e.detail);
     };
-
-    window.addEventListener("showComments", handleShowComments);
-
+  
+    window.addEventListener("showComments", handleShowComments as EventListener);
+    
     return () => {
-      window.removeEventListener("showComments", handleShowComments);
+      window.removeEventListener("showComments", handleShowComments as EventListener);
     };
   }, []);
+
+  const handleBackToOffices = () => {
+    setActiveTab("offices");
+    setShowComments(false);
+    setSelectedOfficeId(null);
+  };
+  //comment please dont delete
 
   const fetchComments = async (officeId) => {
     try {
@@ -294,12 +312,10 @@ export default function CoverageMap({
             office.phone || "+7 (XXX) XXX-XX-XX"
           }</span>
         </div>
-        <button onclick="window.dispatchEvent(new CustomEvent('showComments', { detail: ${
-          office.id
-        } }))" 
-          style="margin-top: auto; background: #3fcbff; border: none; padding: 8px 16px; border-radius: 4px; color: white; cursor: pointer; align-self: flex-start;">
-          Показать комментарии
-        </button>
+        <button onclick="window.dispatchEvent(new CustomEvent('showComments', { detail: ${office.id} }))" 
+        style="margin-top: auto; background: #3fcbff; border: none; padding: 8px 16px; border-radius: 4px; color: white; cursor: pointer; align-self: flex-start;">
+        Показать комментарии
+      </button>
       </div>
     `;
   };
@@ -442,8 +458,6 @@ export default function CoverageMap({
             Услуги
           </h2>
         </div>
-        
-
     <div className="flex-1 overflow-y-auto mt-2 space-y-8 pr-2 h-[400px] custom-scrollbar">
       {isDropdownOpen ? (
         <Services 
@@ -485,34 +499,44 @@ export default function CoverageMap({
             
   }
 
+  // comment please dont delete
   return (
     <div className="flex h-[calc(100vh-68px)] overflow-hidden">
-      <div className="w-1/4 bg-white flex flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
-        <div className="flex flex-col p-4 h-1/3">
-          <div className="flex space-x-20 text-xl font-medium justify-center">
-            <button
-              onClick={() => setActiveTab("coverage")}
-              className={`pb-1 border-b-2 transition-colors duration-200 ${
-                activeTab === "coverage"
-                  ? "border-[#E6007E] text-black"
-                  : "border-transparent text-black hover:text-[#E6007E]"
-              }`}
-            >
-              Карта покрытия
-            </button>
-            <button
-              onClick={() => setActiveTab("offices")}
-              className={`pb-1 border-b-2 transition-colors duration-200 ${
-                activeTab === "offices"
-                  ? "border-[#E6007E] text-black"
-                  : "border-transparent text-black hover:text-[#E6007E]"
-              }`}
-            >
-              Офисы
-            </button>
-          </div>
+  <div className="w-1/4 bg-white flex flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
+    <div className="flex flex-col p-4">
+      <div className="flex space-x-20 text-xl font-medium justify-center">
+        <button
+          onClick={() => setActiveTab(showComments ? "offices" : "comments")}
+          className={`pb-1 border-b-2 transition-colors duration-200 ${
+            activeTab === "comments"
+              ? "border-[#E6007E] text-black"
+              : "border-transparent text-black hover:text-[#E6007E]"
+          }`}
+        >
+          {showComments ? "" : "Карта покрытия"}
+        </button>
+        {!showComments && (
+          
+          <button
+            onClick={handleBackToOffices}
+            className={`pb-1 border-b-2 transition-colors duration-200 ${
+              activeTab === "offices"
+                ? "border-[#E6007E] text-black"
+                : "border-transparent text-black hover:text-[#E6007E]"
+            }`}
+          >
+            Офисы
+          </button>
+        )}
+      </div>
 
+<<<<<<< HEAD
+      {activeTab === "offices" && (
+        <>
+          <div className="mt-6 relative flex justify-center">
+=======
           <div className="mt-4 relative flex justify-center">
+>>>>>>> 92852197f0c4cd3248d73a613890bb738e039d75
             <input
               type="text"
               placeholder="Что хочешь найти?"
@@ -528,6 +552,37 @@ export default function CoverageMap({
               />
             </div>
           </div>
+<<<<<<< HEAD
+          <div className="mt-6 text-sm text-gray-800 space-y-2">
+            <label className="flex items-center w-2/3 justify-center">
+              <input
+                type="checkbox"
+                className={`
+                  w-5 h-5
+                  appearance-none
+                  border-2 border-black  /* Чёрная рамка */
+                  rounded
+                  bg-transparent
+                  relative
+                  checked:bg-transparent
+                  checked:before:content-['']
+                  checked:before:absolute
+                  checked:before:inset-0
+                  checked:before:mask-[url('/images/Icons/whiteTickIcon.svg')]
+                  checked:before:mask-center
+                  checked:before:mask-no-repeat
+                  checked:before:mask-contain
+                  checked:before:bg-black  /* Цвет галочки при выборе */
+                  focus-visible:outline-none
+                  focus-visible:ring-0
+                  focus-visible:bg-transparent
+                  mr-2
+                `}
+                onChange={() => setShowTower(!showOffices)}
+              />
+              Отобразить вышки на карте
+            </label>
+=======
 
           <div className="mt-3 text-sm text-gray-800 ml-8 space-y-3">
             {activeTab === "coverage" ? (
@@ -590,12 +645,85 @@ export default function CoverageMap({
                 </label>
               </>
             )}
+>>>>>>> 92852197f0c4cd3248d73a613890bb738e039d75
           </div>
+        </>
+      )}
+    </div>
+    
+    {/* commend please dont delet*/}
+    <div className={`flex-1 ${showComments ? "bg-white" : "bg-black"} text-${showComments ? "black" : "white"} py-4 px-10 overflow-y-auto custom-scrollbar`}>
+      {activeTab === "offices" && <Offices />}
+      
+      {showComments && (
+        <div className="h-full">
+          <div className="flex items-center mb-4 justify-between">
+            <h2 className="text-xl font-bold">Комментарии</h2>
+            <button 
+              onClick={handleBackToOffices}
+              className="text-black hover:text-[#E6007E] text-2xl mr-2"
+            >
+            → 
+        </button>
+          
+          </div>
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-3">Добавить комментарий</h3>
+            <form onSubmit={handleSubmitComment}>
+              <textarea
+                className="w-full p-2 border border-gray-300 rounded mb-2"
+                rows={3}
+                value={newComment.text}
+                onChange={(e) => setNewComment({...newComment, text: e.target.value})}
+                placeholder="Ваш комментарий"
+              />
+              <div className="flex items-center mb-4">
+                <span className="mr-2">Оценка:</span>
+                <AddStarRating
+                  value={newComment.rating}
+                  onChange={(rating) => {
+                    setNewComment(prev => ({
+                      ...prev,
+                      rating: rating || 0
+                    }));
+                  }}
+                />
+              </div>
+              <button
+                type="submit"
+                className="bg-[#3fcbff] text-white px-4 py-2 rounded"
+              >
+                Отправить
+              </button>
+            </form>
+          </div>
+          {comments.length > 0 ? (
+            comments.map(comment => (
+              <div key={comment.id} className="mb-4 p-3 border-b border-gray-200">
+                <div className="flex items-center mb-2">
+                  <StarRating rating={comment.rating} />
+                </div>
+                <p className="text-gray-800">{comment.text}</p>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500">Нет комментариев</p>
+          )}
         </div>
+<<<<<<< HEAD
+      )}
+    </div>
+  </div>
+  {/* commend please dont delet*/}
+
+ {/* {activeTab === "coverage" && <CoverageRoaming />} */}
+        
+=======
         <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
           <Offices />
         </div>
       </div>
+>>>>>>> 92852197f0c4cd3248d73a613890bb738e039d75
       <div className="flex-1 h-[calc(100vh-68px)] z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
@@ -648,7 +776,6 @@ export default function CoverageMap({
                 />
               ))}
             </Clusterer>
-
             {mergedCoverage?.map((polygonCoords, index) => (
               <Polygon
                 key={index}
