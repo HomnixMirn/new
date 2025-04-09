@@ -45,6 +45,7 @@ export default function CoverageMap({
   const mapRef = useRef(null);
   const [mapBounds, setMapBounds] = useState([]);
   const [showTower, setShowTower] = useState(false);
+  
   const [showOffices, setShowOffices] = useState(true);
 
   const [filters, setFilters] = useState({
@@ -491,33 +492,28 @@ export default function CoverageMap({
         <div
           className={`flex flex-col p-4 ${showComments ? "h-auto" : "h-1/3"}`}
         >
-          {/* Заголовки табов */}
           <div className="flex space-x-20 text-xl font-medium justify-center">
             <button
-              onClick={() =>
-                setActiveTab(showComments ? "offices" : "comments")
-              }
+              onClick={() => setActiveTab("coverage")}
               className={`pb-1 border-b-2 transition-colors duration-200 ${
-                activeTab === "comments"
+                activeTab === "coverage"
                   ? "border-[#E6007E] text-black"
                   : "border-transparent text-black hover:text-[#E6007E]"
               }`}
             >
-              {showComments ? "" : "Карта покрытия"}
+              Карта покрытия
             </button>
 
-            {!showComments && (
-              <button
-                onClick={handleBackToOffices}
-                className={`pb-1 border-b-2 transition-colors duration-200 ${
-                  activeTab === "offices"
-                    ? "border-[#E6007E] text-black"
-                    : "border-transparent text-black hover:text-[#E6007E]"
-                }`}
-              >
-                Офисы
-              </button>
-            )}
+            <button
+              onClick={() => setActiveTab("offices")}
+              className={`pb-1 border-b-2 transition-colors duration-200 ${
+                activeTab === "offices"
+                  ? "border-[#E6007E] text-black"
+                  : "border-transparent text-black hover:text-[#E6007E]"
+              }`}
+            >
+              Офисы
+            </button>
           </div>
 
           {/* Показывать поиск и фильтры только если !showComments */}
@@ -558,7 +554,7 @@ export default function CoverageMap({
                     <label className="flex items-center w-2/3">
                       <input
                         type="checkbox"
-                        checked={showRatings}
+                        // checked={showRatings}
                         onChange={() => setShowRatings(!showRatings)}
                         className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
                       />
@@ -601,8 +597,8 @@ export default function CoverageMap({
                   </>
                 )}
               </div>
-            </>
-          )}
+             </>
+          )} 
         </div>
 
         <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
