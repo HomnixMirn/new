@@ -606,7 +606,7 @@ export default function CoverageMap({
                   }}
                   options={{
                     iconLayout: "default#image",
-                    iconImageHref: "/images/pointerIcon.svg",
+                    iconImageHref: "/images/Icons/pointerIcon.svg",
                     iconImageSize: [40, 40],
                     iconImageOffset: [-20, -40],
                     balloonShadow: true,
