@@ -26,8 +26,14 @@ import math
 @api_view(['GET'])
 def all_office(request: Request):
     if request.method == 'GET':
+        print(request.GET)
         offices = Office.objects.all()
-        data = OfficeSerializer(offices, many=True).data
+        if 'search' in request.GET:
+                offices = offices.filter(address__iregex=request.GET['search'])
+        if 'services' in request.GET:
+            for service in request.GET['services'].split(','):
+                offices = offices.filter(services__name__iregex=service)
+        data = OfficeSerializer(offices.distinct(), many=True).data
         return Response(data, status=status.HTTP_200_OK)
     else:
         return Response('Метод не поддерживается',status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -55,11 +61,7 @@ def get_comments(request: Request):
         try:
             office = Office.objects.get(id=request.GET['id'])    
             comments = office.comments.all()
-            if 'search' in request.GET:
-                comments = comments.filter(address__iregix=request.GET['search'])
-            if 'services' in request.GET:
-                for service in request.GET['services'].split(','):
-                    comments = comments.filter(services__name__iregix=service)
+            
             data = commentsSerializer(comments, many=True).data        
             return Response(data, status=status.HTTP_200_OK)
         except:

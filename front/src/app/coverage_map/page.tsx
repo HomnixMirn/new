@@ -23,6 +23,8 @@ export default function CoverageMap({
   const [offices, setOffices] = useState([]);
   const [comments, setComments] = useState([]);
   const [cells, setCells] = useState([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [services , setServices] = useState([])
   const [newComment, setNewComment] = useState({
     text: "",
     rating: 5,
@@ -107,11 +109,19 @@ export default function CoverageMap({
   };
 
   useEffect(() => {
+    if (services !== []){
+      const query = services.map((service) => `${service}`).join(",");
+      axi.get("/map/all_office?services="+query).then((response) => {
+        console.log(response.data);
+        setOffices([...response.data]);
+      });
+    }
+    else{
     axi.get("/map/all_office").then((response) => {
       console.log(response.data);
       setOffices([...response.data]);
-    });
-  }, []);
+    });}
+  }, [services]);
 
   useEffect(() => {
     const data = {
@@ -220,227 +230,159 @@ export default function CoverageMap({
     throw new Error("Function not implemented.");
   }
 
-  return (
-    <div className="flex h-[calc(100vh-68px)] overflow-hidden">
-      <div className="w-[444px] bg-white flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
-        <ul className="filter-tabs flex">
-          <li className="flex-1">
-            <button
-              onClick={() => setActiveTab("offices")}
-              className={`w-full h-[9vh] px-4 py-2 transition-colors ${
-                activeTab === "offices"
-                  ? "bg-[#3fcbff] text-black font-semibold"
-                  : "bg-gray-100 text-black font-semibold hover:bg-gray-200"
-              }`}
-            >
-              Офисы продаж
-            </button>
-          </li>
-          <li className="flex-1">
-            <button
-              onClick={() => setActiveTab("coverage")}
-              className={`w-full h-[9vh] px-4 py-2 transition-colors ${
-                activeTab === "coverage"
-                  ? "bg-[#3fcbff] text-black font-semibold"
-                  : "bg-gray-100 text-black font-semibold hover:bg-gray-200"
-              }`}
-            >
-              Карта покрытия
-            </button>
-          </li>
-        </ul>
-        <div className="filter-search relative bg-[#3fcbff] p-4 ">
-          <div className="flex items-center relative">
-            <span
-              className="my-position-icon absolute left-3 cursor-pointer"
-              title="Определить мое местоположение"
-            />
-            <input
-              id="addressQuery"
-              className="bg-white text-gray-800 w-full pl-10 pr-12 py-3 
-            border-2 border-[#448EA9] 
-            focus:outline-none focus:border-2 focus:border-black
-            placeholder:text-gray-400"
-              type="text"
-              placeholder="город, адрес или метро"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              autoComplete="off"
-            />
-            {searchQuery && (
-              <button
-                className="clear absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
-                onClick={() => setSearchQuery("")}
-              ></button>
-            )}
-          </div>
+  const Services = () =>{
+    
+    const AllServices =[
+      "Подключают eSIM",
+      "Подключают услуги «Ростелекома»",
+      "Продают устройства по акции «Обмен минут на смартфоны и гаджеты»",
+      "Подключают домашний интернет от t2",
+      "Принимают платежи наличными на кассе",
+      "Продают смартфоны в trade-in",
+      "Обслуживают корпоративных клиентов",
+      "Помогают с заменой SIM-карты другого региона"
+    ]
+
+    function servicesUpdateHandle(servic){
+      if (services.includes(servic)){
+        const index = services.indexOf(servic);
+        services.splice(index, 1);
+        console.log(services)
+      }
+      else {
+        setServices([...services, servic])
+      }
+    }
+    return(
+      <div className="flex flex-col gap-5">
+        
+        
+            {AllServices.map((service) =>(
+              <div className="flex gap-5">
+                <input type="checkbox" checked={services.includes(service)} onClick={() => servicesUpdateHandle(service)} name=""  id="" />
+                <p className="">{ service}</p>
+              </div>
+            ))}
+          
+        
+  
+  
+      </div>
+    )
+  }
+  function Offices() {
+    const handleApplyServices = (selectedServices: Record<string, boolean>) => {
+      console.log("Применены фильтры:", selectedServices);
+      // Здесь будет логика фильтрации офисов
+    };
+  
+    return (
+      <div className="flex flex-col">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Офисы T2</h2>
+          <h2 className="text-xl font-bold" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>Услуги</h2>
+          
+          {/* onApply={handleApplyServices}  */}
         </div>
-
-        {activeTab === "offices" ? (
-          <div className="filter-results-container with-desktop-vertical-scrollbar"></div>
-        ) : (
-          <div className="coverage-filter"></div>
-        )}
-
-        <div className="flex-1 bg-black text-white p-4 overflow-auto">
-          {activeTab === "coverage" ? (
-            <>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Офисы T2</h2>
-                <button className="text-sm flex items-center gap-1">
-                  Услуги
-                  <span className="text-xl">🧾</span>
-                </button>
-              </div>
-
-              <ul className="space-y-4">
-                {[...Array(7)].map((_, index) => (
-                  <li key={index} className="flex justify-between items-center">
-                    <div className="flex items-start gap-3">
-                      <span
-                        className={`text-2xl ${
-                          index === 0 ? "text-[#d50069]" : "text-white"
-                        }`}
-                      >
-                        📍
-                      </span>
-                      <div>
-                        <p className="font-bold">ул. Бекантура, 1</p>
-                        <p className="text-sm text-gray-400">
-                          пн-пт 8:00-18:00 сб-вс 10:00-18:00
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 text-sm text-gray-400">
-                      💬 199
-                    </div>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-6 flex justify-center">
-                <button className="text-sm flex items-center gap-2 text-white">
-                  <span className="text-xl">⚙️</span> Фильтр
-                </button>
-              </div>
-            </>
-          ) : (
-            <div></div>
-          )}
-
-          {selectedOffice && (
-            <div className="p-4 bg-white shadow-lg rounded-lg mt-4 relative">
-              <button
-                onClick={() => setSelectedOffice(null)}
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-                aria-label="Закрыть отзывы"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-
-              <h2 className="text-xl font-semibold mb-4">Комментарии</h2>
-
-              {!setShowCommentForm && (
-                <button
-                  onClick={() => setShowCommentForm(true)}
-                  className="mb-4 bg-[#3fcbff] text-white px-4 py-2 rounded-md hover:bg-[#35b5e6]"
-                >
-                  Оставить отзыв
-                </button>
-              )}
-              <div className="max-h-[60vh] overflow-y-auto pr-2">
-                <div className="space-y-4">
-                  {comments.length > 0 ? (
-                    comments.map((comment) => (
-                      <div
-                        key={comment.id}
-                        className="border-b border-gray-200 pb-4"
-                      >
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-medium">
-                            {comment.author.username}
-                          </h3>
-                          <StarRating
-                            rating={comment.rating}
-                            starColor="#000000"
-                          />
-                        </div>
-                        <p className="text-gray-600 mt-1">{comment.text}</p>
-                        <p className="text-sm text-gray-400 mt-2">
-                          {new Date(comment.created_at).toLocaleString()}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500">
-                      Пока нет отзывов. Будьте первым!
-                    </p>
-                  )}
+        <div className="flex-1 overflow-y-auto mt-2 space-y-8 pr-2 h-[400px] custom-scrollbar">
+        {isDropdownOpen ? <Services/>:<>
+        
+        {offices.map((office, index) => (
+            <div key={office.id} className="flex justify-between items-center">
+              <div className="flex items-start gap-3">
+                <Image
+                  src="/images/Icons/point.svg"
+                  alt="point"
+                  width={25}
+                  height={25}
+                />
+                <div>
+                  <div className="font-bold">{office.address}</div>
+                  <div className="text-sm text-gray-400">
+                    {office.souring}
+                  </div>
                 </div>
-                {setShowCommentForm && (
-                  <form onSubmit={handleSubmitComment} className="mt-6">
-                    <div className="mb-4">
-                      <label className="block text-gray-700 mb-2">
-                        Ваш комментарий
-                      </label>
-                      <textarea
-                        className="w-full bg-black px-3 py-2 border border-gray-300 rounded-md text-white"
-                        rows={3}
-                        value={newComment.text}
-                        onChange={(e) =>
-                          setNewComment({ ...newComment, text: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label className="block text-gray-700 mb-2">
-                        Ваша оценка
-                      </label>
-                      <AddStarRating
-                        value={newComment.rating}
-                        onChange={(rating) =>
-                          setNewComment({ ...newComment, rating })
-                        }
-                      />
-                    </div>
-                    <div className="flex justify-between">
-                      <button
-                        type="button"
-                        onClick={() => setShowCommentForm(false)}
-                        className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400"
-                      >
-                        Отмена
-                      </button>
-                      <button
-                        type="submit"
-                        className="bg-[#3fcbff] text-white px-4 py-2 rounded-md hover:bg-[#35b5e6]"
-                      >
-                        Отправить отзыв
-                      </button>
-                    </div>
-                  </form>
-                )}
+              </div>
+              <div className="flex items-center gap-1 text-sm text-white">
+                <Image
+                  src="/images/Icons/com.svg"
+                  alt="com"
+                  width={25}
+                  height={25}
+                />
+                <div>{office.manyComments}</div>
               </div>
             </div>
-          )}
+          ))} </>   
+        }
         </div>
       </div>
+    );
+  }
 
-      <div className="flex-1 h-[calc(100vh-68px)] z-0">
+  return (
+    <div className="flex h-[calc(100vh-68px)] overflow-hidden">
+      <div className="w-1/4 bg-white flex flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
+          <div className="flex flex-col p-4 h-1/3">
+            <div className="flex space-x-20 text-xl font-medium justify-center">
+              <button
+                onClick={() => setActiveTab("coverage")}
+                className={`pb-1 border-b-2 transition-colors duration-200 ${
+                  activeTab === "coverage"
+                    ? "border-[#E6007E] text-black"
+                    : "border-transparent text-black hover:text-[#E6007E]"
+                }`}
+              >
+                Карта покрытия
+              </button>
+              <button
+                onClick={() => setActiveTab("offices")}
+                className={`pb-1 border-b-2 transition-colors duration-200 ${
+                  activeTab === "offices"
+                    ? "border-[#E6007E] text-black"
+                    : "border-transparent text-black hover:text-[#E6007E]"
+                }`}
+              >
+                Офисы
+              </button>
+            </div>
+            
+
+            <div className="mt-6 relative flex justify-center">
+              <input
+                type="text"
+                placeholder="Что хочешь найти?"
+                className="w-5/6 border border-gray-300 rounded-md p-2 pl-4 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#d50069]"
+              />
+              <div className="absolute right-[13%] top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <Image
+                  src="/images/Icons/Icon.svg"
+                  alt="Поиск"
+                  width={20}
+                  height={20}
+                  className="text-gray-500"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 text-sm text-gray-800 space-y-2">
+              <label className="flex items-center w-2/3 justify-center">
+                <input
+                  type="checkbox"
+                  // checked={showOffices}
+                  onChange={() => setShowTower(!showOffices)}
+                  className="w-5 h-5 accent-[#d50069] mr-2 rounded"
+                />
+                Отобразить вышки на карте
+              </label>
+            </div>
+          </div>
+          <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
+            {activeTab === "offices" && <Offices />}
+            {/* {activeTab === "coverage" && <CoverageRoaming />} */}
+          </div>
+        </div>
+        <div className="flex-1 h-[calc(100vh-68px)] z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
             instanceRef={(ref) => {
@@ -516,3 +458,4 @@ export default function CoverageMap({
     </div>
   );
 }
+
