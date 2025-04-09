@@ -340,8 +340,60 @@ export default function CoverageMap({
   };
 
   function Offices() {
-    const handleApplyServices = (selectedServices: Record<string, boolean>) => {
-      console.log("Применены фильтры:", selectedServices);
+    const filterOffices = () => {
+      const now = new Date();
+      const currentDay = now.getDay();
+      const currentHour = now.getHours();
+      const currentMinutes = now.getMinutes();
+    
+      return offices.filter((office) => {
+        if (searchQuery && !office.address.toLowerCase().includes(searchQuery.toLowerCase())) {
+          return false;
+        }
+    
+        const workingHours = office.working_hours || Array(7).fill("9:00-18:00");
+        
+        if (filters.worksAfter20) {
+          const hasLateHours = workingHours.some(hours => {
+            if (!hours || hours === "closed") return false;
+            const [_, closeTime] = hours.split('-');
+            if (!closeTime) return false;
+            const [closeHour, closeMinute] = closeTime.split(':').map(Number);
+            return closeHour >= 20;
+          });
+          if (!hasLateHours) return false;
+        }
+    
+        if (filters.worksOnWeekends) {
+          const weekendDays = [0, 7]; 
+          const isOpenWeekend = weekendDays.some(day => {
+            const hours = workingHours[day];
+            return hours && hours !== "closed";
+          });
+          if (!isOpenWeekend) return false;
+        }
+    
+        if (filters.worksNow) {
+          const todayHours = workingHours[currentDay === 0 ? 7 : currentDay - 1]; // преобразуем к 0-6 (пн-вс)
+          if (!todayHours || todayHours === "closed") return false;
+          
+          const [openTime, closeTime] = todayHours.split('-');
+          if (!openTime || !closeTime) return false;
+          
+          const [openHour, openMinute] = openTime.split(':').map(Number);
+          const [closeHour, closeMinute] = closeTime.split(':').map(Number);
+          
+          const currentTotalMinutes = currentHour * 60 + currentMinutes;
+          const openTotalMinutes = openHour * 60 + (openMinute || 0);
+          const closeTotalMinutes = closeHour * 60 + (closeMinute || 0);
+          
+          if (currentTotalMinutes < openTotalMinutes || currentTotalMinutes > closeTotalMinutes) {
+            return false;
+          }
+        }
+    
+        return true;
+      });
     };
 
     return (
@@ -349,7 +401,7 @@ export default function CoverageMap({
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Офисы T2</h2>
           <h2
-            className="text-xl font-bold"
+            className="text-xl font-bold cursor-pointer"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             Услуги
@@ -427,34 +479,13 @@ export default function CoverageMap({
     <div className="flex h-[calc(100vh-68px)] overflow-hidden">
       <div className="w-1/4 bg-white flex flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
         <div className="flex flex-col p-4 h-1/3">
-          <div className="flex space-x-20 text-xl font-medium justify-center">
-            <button
-              onClick={() => setActiveTab("coverage")}
-              className={`pb-1 border-b-2 transition-colors duration-200 ${
-                activeTab === "coverage"
-                  ? "border-[#E6007E] text-black"
-                  : "border-transparent text-black hover:text-[#E6007E]"
-              }`}
-            >
-              Карта покрытия
-            </button>
-            <button
-              onClick={() => setActiveTab("offices")}
-              className={`pb-1 border-b-2 transition-colors duration-200 ${
-                activeTab === "offices"
-                  ? "border-[#E6007E] text-black"
-                  : "border-transparent text-black hover:text-[#E6007E]"
-              }`}
-            >
-              Офисы
-            </button>
-          </div>
-
           <div className="mt-6 relative flex justify-center">
             <input
               type="text"
               placeholder="Что хочешь найти?"
               className="w-5/6 border border-gray-300 rounded-md p-2 pl-4 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#d50069]"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
             <div className="absolute right-[13%] top-1/2 transform -translate-y-1/2 pointer-events-none">
               <Image
@@ -471,8 +502,8 @@ export default function CoverageMap({
             <label className="flex items-center w-2/3 justify-center">
               <input
                 type="checkbox"
-                // checked={showOffices}
-                onChange={() => setShowTower(!showOffices)}
+                checked={showTower}
+                onChange={() => setShowTower(!showTower)}
                 className="w-5 h-5 accent-[#d50069] mr-2 rounded"
               />
               Отобразить вышки на карте
@@ -481,7 +512,6 @@ export default function CoverageMap({
         </div>
         <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
           {activeTab === "offices" && <Offices />}
-          {/* {activeTab === "coverage" && <CoverageRoaming />} */}
         </div>
       </div>
       <div className="flex-1 h-[calc(100vh-68px)] z-0">
