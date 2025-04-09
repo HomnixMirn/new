@@ -1,19 +1,23 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { YMaps, Map, Placemark, Clusterer } from "@pbe/react-yandex-maps";
+import {
+  YMaps,
+  Map,
+  Placemark,
+  Clusterer,
+  Circle,
+  Polygon,
+} from "@pbe/react-yandex-maps";
 import axi from "@/utils/api";
 import Image from "next/image";
-import Offices from "../slide_office/page";
-import CoverageRoaming from "../slide_cover/page";
+import Link from "next/link";
+import AddStarRating from "../components/star_rating/add_star_rating";
+import StarRating from "../components/star_rating/star_rating";
 
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
 }) {
-  const [cells, setCells] = useState([]);// надо будет пофиксить
   const [activeTab, setActiveTab] = useState<"offices" | "coverage">("offices");
-  const [show4g, setShow4g] = useState(true);
-  const [show3g, setShow3g] = useState(true);
-  const [show2g, setShow2g] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isBalloonOpen, setIsBalloonOpen] = useState(false);
   const [offices, setOffices] = useState([]);
@@ -28,6 +32,58 @@ export default function CoverageMap({
   });
   const [selectedOffice, setSelectedOffice] = useState(null);
   const mapRef = useRef(null);
+  const [mapBounds, setMapBounds] = useState([]);
+
+  const getConvexHull = (points) => {
+    const sorted = points.sort((a, b) =>
+      a[1] === b[1] ? a[0] - b[0] : a[1] - b[1]
+    );
+
+    const cross = (o, a, b) =>
+      (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+
+    const lower = [];
+    for (let p of sorted) {
+      while (
+        lower.length >= 2 &&
+        cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0
+      ) {
+        lower.pop();
+      }
+      lower.push(p);
+    }
+
+    const upper = [];
+    for (let i = sorted.length - 1; i >= 0; i--) {
+      let p = sorted[i];
+      while (
+        upper.length >= 2 &&
+        cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0
+      ) {
+        upper.pop();
+      }
+      upper.push(p);
+    }
+
+    upper.pop();
+    lower.pop();
+    return [...lower, ...upper];
+  };
+
+  const generatePolygonCoords = (center, radius, sides = 12) => {
+    const [lat, lon] = center;
+    const coords = [];
+
+    for (let i = 0; i < sides; i++) {
+      const angle = (2 * Math.PI * i) / sides;
+      const dx = (radius / 111000) * Math.cos(angle); // 1° lat ~ 111km
+      const dy =
+        (radius / (111000 * Math.cos(lat * (Math.PI / 180)))) * Math.sin(angle); // longitude compensation
+      coords.push([lat + dx, lon + dy]);
+    }
+
+    return coords;
+  };
 
   const handlePlacemarkClick = (e) => {
     e.stopPropagation();
@@ -42,11 +98,11 @@ export default function CoverageMap({
       mapRef.current
         .panTo(coords, {
           flying: true,
-          duration: 500,
+          duration: 400,
         })
         .then(() => {
           mapRef.current.setZoom(currentZoom + 1, {
-            duration: 500,
+            duration: 300,
           });
         });
     }
@@ -68,6 +124,17 @@ export default function CoverageMap({
   }, [services]);
 
   useEffect(() => {
+    const data = {
+      left_bottom: mapBounds[0],
+      right_top: mapBounds[1],
+    };
+    axi.post("/map/all_cells", data).then((response) => {
+      setCells(response.data);
+      console.log(response.data);
+    });
+  }, [mapBounds]);
+
+  useEffect(() => {
     const handleShowComments = (e) => {
       fetchComments(e.detail);
     };
@@ -86,7 +153,29 @@ export default function CoverageMap({
       setSelectedOffice(officeId);
       setNewComment((prev) => ({ ...prev, officeId }));
     } catch (error) {
-      console.error("Error fetching comments:", error);
+      console.error("Error fetching comments:", error.response?.data);
+    }
+  };
+
+  const getMapBounds = (mapRef: React.RefObject<any>) => {
+    if (!mapRef.current) return null;
+    const map = mapRef.current;
+    console.log(map);
+    const bounds = map.getBounds();
+
+    if (!bounds) return null;
+
+    return [
+      [bounds[0][0], bounds[0][1]], // Юго-западная точка (southWest)
+      [bounds[1][0], bounds[1][1]], // Северо-восточная точка (northEast)
+    ];
+  };
+
+  const handleBoundsChange = () => {
+    const bounds = getMapBounds(mapRef);
+    console.log(bounds);
+    if (bounds) {
+      setMapBounds(bounds);
     }
   };
 
@@ -296,13 +385,19 @@ export default function CoverageMap({
         <div className="flex-1 h-[calc(100vh-68px)] z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
-            instanceRef={mapRef}
+            instanceRef={(ref) => {
+              console.log(ref);
+              if (ref) {
+                mapRef.current = ref;
+              }
+            }}
             defaultState={{
               center: [56.19, 44.0],
               zoom: 10,
             }}
             width="100%"
             height="100%"
+            onBoundsChange={handleBoundsChange}
           >
             <Clusterer
               options={{
@@ -310,6 +405,9 @@ export default function CoverageMap({
                 groupByCoordinates: false,
                 clusterDisableClickZoom: true,
                 clusterOpenBalloonOnClick: false,
+                zIndex: 1000,
+                iconColor: "#000000",
+                iconSize: [40, 40],
               }}
               onClick={handleClusterClick}
             >
@@ -338,46 +436,26 @@ export default function CoverageMap({
             </Clusterer>
 
             {cells.map((cell) => {
-              console.log(cell);
+              const cellCoords = [cell.latitude, cell.longitude];
+              const radius = 4000;
+
               return (
-                <Placemark
-                  key={cell.id}
-                  geometry={[cell.latitude, cell.longitude]}
-                  properties={{
-                    balloonContent: `
-                      <div class="custom-balloon">
-                        <h3>${cell.name}</h3>
-                        <p>Адрес: ${cell.address}</p>
-                        <div class="stats">
-                          <span>Мощность: ${cell.power} dBm</span>
-                          <span>Пользователи: ${cell.users}</span>
-                        </div>
-                      </div>
-                    `,
-                    balloonContentHeader: `Ячейка ${cell.id}`,
-                  }}
+                <Circle
+                  key={cell.id || `${cell.latitude}-${cell.longitude}`}
+                  geometry={[[cell.latitude, cell.longitude], 4000]}
                   options={{
-                    balloonLayout: "default#imageWithContent",
-                    balloonCloseButton: true,
-                    balloonAutoPan: true,
+                    fillColor: "#FF3495", // можно чуть менее насыщенный цвет
+                    fillOpacity: 0.5, // снизили прозрачность
+                    strokeWidth: 0,
+                    zIndex: 0, // все на одном уровне
                   }}
-                  modules={["geoObject.addon.balloon"]}
                 />
               );
             })}
-
-            <Polygon
-              geometry={getUnifiedCoverageArea(coverageCenters, 4000)}
-              options={{
-                strokeWidth: 2,
-                strokeOpacity: 0.5,
-                fillColor: "#FF349559",
-                strokeColor: "#FF3495",
-              }}
-            />
           </Map>
         </YMaps>
       </div>
     </div>
   );
 }
+
