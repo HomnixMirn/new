@@ -40,11 +40,10 @@ body {
   animation: slideIn 3s ease-out;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 0;
+.ymaps[class$="balloon"]{
+  border-radius: 15px;
 }
 
-.custom-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.ymaps-2-1-79-balloon + .ymaps-2-1-79-balloon_layout_normal + .ymaps-2-1-79-balloon_to_top  + .ymaps-2-1-79-i-custom-scroll{
+  border-radius: 15px;
 }

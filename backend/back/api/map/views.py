@@ -84,32 +84,48 @@ def approximate_distance_km(lat1, lon1, lat2, lon2):
 @api_view(["POST"])
 def get_cells(request: Request):
     if request.method == 'POST':
-        left_bottom = request.data.get('left_bottom')
-        right_top = request.data.get('right_top')
+        try:
+            left_bottom = list(map(float, request.data['left_bottom']))
+            right_top = list(map(float, request.data['right_top']))
 
-        if not left_bottom or not right_top:
-            return Response('Не указаны координаты', status=status.HTTP_400_BAD_REQUEST)
-        
-        cells_in_area = cells.objects.filter(Q(latitude__gte=left_bottom[0]) & Q(latitude__lte=right_top[0]) & Q(longitude__gte=left_bottom[1]) & Q(longitude__lte=right_top[1]))
-        selected = []
-        min_distance_km= 2,5
-        
-        for cell in cells_in_area:
-            too_close = False
-            for selected_cell in selected:
-                dist = approximate_distance_km(
-                    cell.latitude, cell.longitude,
-                    selected_cell.latitude, selected_cell.longitude
+            # Определяем границы с учетом любого порядка координат
+            lat_min = min(left_bottom[0], right_top[0])
+            lat_max = max(left_bottom[0], right_top[0])
+            lon_min = min(left_bottom[1], right_top[1])
+            lon_max = max(left_bottom[1], right_top[1])
+
+            # Фильтруем объекты в прямоугольнике
+            cells_in_area = cells.objects.filter(
+                latitude__gte=lat_min,
+                latitude__lte=lat_max,
+                longitude__gte=lon_min,
+                longitude__lte=lon_max
                 )
-                if dist < min_distance_km:
-                    too_close = True
-                    break
-            if not too_close:
-                selected.append(cell)
-                if len(selected) >= 400:
-                    break
-        
-        data = CellsSerializer(selected, many=True).data
-        return Response(data, status=status.HTTP_200_OK)
+            
+            selected = []
+            min_distance_km= 2.5
+            
+            for cell in cells_in_area:
+                too_close = False
+                for selected_cell in selected:
+                    dist = approximate_distance_km(
+                        cell.latitude, cell.longitude,
+                        selected_cell.latitude, selected_cell.longitude
+                    )
+                    if dist < min_distance_km:
+                        too_close = True
+                        break
+                if not too_close:
+                    selected.append(cell)
+                    if len(selected) >= 400:
+                        break
+            
+            data = CellsSerializer(selected, many=True).data
+            return Response(data, status=status.HTTP_200_OK)
+        except:
+            return Response('Произошла ошибка при получении вышек', status=status.HTTP_406_NOT_ACCEPTABLE)
+            
+       
+    
     else:
         return Response('Метод не поддерживается',status=status.HTTP_405_METHOD_NOT_ALLOWED)
