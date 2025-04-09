@@ -273,7 +273,7 @@ export default function CoverageMap({
   function Offices() {
     const handleApplyServices = (selectedServices: Record<string, boolean>) => {
       console.log("Применены фильтры:", selectedServices);
-      // Здесь будет логика фильтрации офисов
+          
     };
   
     return (
@@ -369,7 +369,6 @@ export default function CoverageMap({
               <label className="flex items-center w-2/3 justify-center">
                 <input
                   type="checkbox"
-                  // checked={showOffices}
                   onChange={() => setShowTower(!showOffices)}
                   className="w-5 h-5 accent-[#d50069] mr-2 rounded"
                 />
@@ -379,7 +378,6 @@ export default function CoverageMap({
           </div>
           <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
             {activeTab === "offices" && <Offices />}
-            {/* {activeTab === "coverage" && <CoverageRoaming />} */}
           </div>
         </div>
         <div className="flex-1 h-[calc(100vh-68px)] z-0">
