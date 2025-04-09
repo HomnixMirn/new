@@ -10,6 +10,7 @@ import {
 } from "@pbe/react-yandex-maps";
 import axi from "@/utils/api";
 import Image from "next/image";
+import Services from "../servecesFilter/page";
 import Link from "next/link";
 import AddStarRating from "../components/star_rating/add_star_rating";
 import StarRating from "../components/star_rating/star_rating";
@@ -303,36 +304,36 @@ export default function CoverageMap({
     `;
   };
 
-  const Services = () => {
-    const AllServices = [
-      "Подключают eSIM",
-      "Подключают услуги «Ростелекома»",
-      "Продают устройства по акции «Обмен минут на смартфоны и гаджеты»",
-      "Подключают домашний интернет от t2",
-      "Принимают платежи наличными на кассе",
-      "Продают смартфоны в trade-in",
-      "Обслуживают корпоративных клиентов",
-      "Помогают с заменой SIM-карты другого региона",
-    ];
+  // const Services = () => {
+  //   const AllServices = [
+  //     "Подключают eSIM",
+  //     "Подключают услуги «Ростелекома»",
+  //     "Продают устройства по акции «Обмен минут на смартфоны и гаджеты»",
+  //     "Подключают домашний интернет от t2",
+  //     "Принимают платежи наличными на кассе",
+  //     "Продают смартфоны в trade-in",
+  //     "Обслуживают корпоративных клиентов",
+  //     "Помогают с заменой SIM-карты другого региона",
+  //   ];
 
     
-    return (
-      <div className="flex flex-col gap-5">
-        {AllServices.map((service) => (
-          <div className="flex gap-5">
-            <input
-              type="checkbox"
-              checked={services.includes(service)}
-              onClick={() => servicesUpdateHandle(service)}
-              name=""
-              id=""
-            />
-            <p className="">{service}</p>
-          </div>
-        ))}
-      </div>
-    );
-  };
+  //   return (
+  //     <div className="flex flex-col gap-5">
+  //       {AllServices.map((service) => (
+  //         <div className="flex gap-5">
+  //           <input
+  //             type="checkbox"
+  //             checked={services.includes(service)}
+  //             onClick={() => servicesUpdateHandle(service)}
+  //             name=""
+  //             id=""
+  //           />
+  //           <p className="">{service}</p>
+  //         </div>
+  //       ))}
+  //     </div>
+  //   );
+  // };
 
   function Offices() {
     const filterOffices = () => {
@@ -422,13 +423,14 @@ export default function CoverageMap({
             Услуги
           </h2>
         </div>
-
-        {/*  */}
         
 
     <div className="flex-1 overflow-y-auto mt-2 space-y-8 pr-2 h-[400px] custom-scrollbar">
       {isDropdownOpen ? (
-        <Services />
+        <Services 
+        services={services} 
+        onServiceToggle={servicesUpdateHandle} 
+      />
       ) : (
         <>
           {offices.map((office, index) => (
@@ -491,7 +493,7 @@ export default function CoverageMap({
             </button>
           </div>
 
-          <div className="mt-6 relative flex justify-center">
+          <div className="mt-4 relative flex justify-center">
             <input
               type="text"
               placeholder="Что хочешь найти?"
@@ -564,8 +566,7 @@ export default function CoverageMap({
           </div>
         </div>
         <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
-          {activeTab === "offices" && <Offices />}
-          {/* {activeTab === "coverage" && <CoverageRoaming />} */}
+          <Offices />
         </div>
       </div>
       <div className="flex-1 h-[calc(100vh-68px)] z-0">
