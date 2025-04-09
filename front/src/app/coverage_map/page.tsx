@@ -446,7 +446,10 @@ export default function CoverageMap({
               {offices.map((office, index) => (
                 <div
                   key={office.id}
-                  className="flex justify-between items-stretch gap-4"
+                  className="flex justify-between items-stretch gap-4 cursor-pointer"
+                  onClick={() =>
+                    handleOfficeClick(office.latitude, office.longitude)
+                  }
                 >
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     <Image
