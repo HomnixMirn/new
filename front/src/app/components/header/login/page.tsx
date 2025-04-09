@@ -73,17 +73,17 @@ export default function LoginForm({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-opacity-90 backdrop-blur-sm border-2 border-white rounded-lg shadow-lg p-6 w-[650px] h-[450px] relative">
+      <div className="bg-opacity-90 bg-white backdrop-blur-sm border-2 border-white rounded-lg shadow-lg p-6 w-[650px] h-[450px] relative">
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 transition-colors"
+          className="absolute top-4 right-4 text-crow text-2xl hover:text-gray-300 transition-colors"
           aria-label="Закрыть"
         >
           &times;
         </button>
 
         <div className="flex items-start justify-between">
-          <h1 className="text-3xl font-bold">Вход</h1>
+          <h1 className="text-3xl font-bold text-black">Вход</h1>
         </div>
 
         {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
@@ -91,10 +91,11 @@ export default function LoginForm({
         <form onSubmit={handleSubmit} className="flex items-center gap-8 h-[calc(100%-50px)]">
           <div className="flex justify-center items-center h-full relative">
             <div>
-              <div className="mb-4">
+            <p className="text-[#aaa] ml-[8px]">Введите логин и пароль</p>
+              <div className="mb-2">
                 <input
                   type="text"
-                  className="w-[220px] p-2 border-2 border-white rounded-[15px] bg-transparent placeholder:text-white"
+                  className="mt-[5px] w-[220px] h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
                   placeholder="Введите номер телефона"
                   value={login}
                   onChange={(e) => setLogin(e.target.value)}
@@ -103,11 +104,10 @@ export default function LoginForm({
                   autoComplete="username"
                 />
               </div>
-
               <div className="mb-4">
                 <input
                   type="password"
-                  className="w-[220px] p-2 border-2 border-white rounded-[15px] bg-transparent placeholder:text-white"
+                  className="w-[220px] h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
                   placeholder="Пароль"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -126,7 +126,7 @@ export default function LoginForm({
               <button
                 type="button"
                 onClick={onRegisterOpen}
-                className="text-white hover:underline cursor-pointer text-sm"
+                className="text-black hover:underline cursor-pointer text-sm"
                 disabled={isLoading}
               >
                 Регистрация
