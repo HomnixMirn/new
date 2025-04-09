@@ -33,6 +33,21 @@ export default function CoverageMap({
   const [selectedOffice, setSelectedOffice] = useState(null);
   const mapRef = useRef(null);
   const [mapBounds, setMapBounds] = useState([]);
+  const [showTower, setShowTower] = useState(false);
+  const [showOffices, setShowOffices] = useState(true);
+
+  const [filters, setFilters] = useState({
+    worksAfter20: false,
+    worksOnWeekends: false,
+    worksNow: false,
+  });
+
+  const handleFilterChange = (filterName) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [filterName]: !prevFilters[filterName],
+    }));
+  };
 
   const getConvexHull = (points) => {
     const sorted = points.sort((a, b) =>
@@ -76,9 +91,9 @@ export default function CoverageMap({
 
     for (let i = 0; i < sides; i++) {
       const angle = (2 * Math.PI * i) / sides;
-      const dx = (radius / 111000) * Math.cos(angle); // 1° lat ~ 111km
+      const dx = (radius / 111000) * Math.cos(angle);
       const dy =
-        (radius / (111000 * Math.cos(lat * (Math.PI / 180)))) * Math.sin(angle); // longitude compensation
+        (radius / (111000 * Math.cos(lat * (Math.PI / 180)))) * Math.sin(angle);
       coords.push([lat + dx, lon + dy]);
     }
 
@@ -109,18 +124,37 @@ export default function CoverageMap({
   };
 
   useEffect(() => {
-    if (services !== []) {
-      const query = services.map((service) => `${service}`).join(",");
-      axi.get("/map/all_office?services=" + query).then((response) => {
-        console.log(response.data);
-        setOffices([...response.data]);
-      });
-    } else {
-      axi.get("/map/all_office").then((response) => {
-        console.log(response.data);
-        setOffices([...response.data]);
-      });
-    }
+    const fetchOffices = async () => {
+      try {
+        const url = services.length
+          ? `/map/all_office?services=${services.join(",")}`
+          : "/map/all_office";
+        const response = await axi.get(url);
+
+        const validatedOffices = response.data.map((office) => ({
+          ...office,
+          working_hours:
+            Array.isArray(office.working_hours) && office.working_hours.length === 7
+              ? office.working_hours
+              : [
+                  "9:00-18:00",
+                  "9:00-18:00",
+                  "9:00-18:00",
+                  "9:00-18:00",
+                  "9:00-18:00",
+                  "9:00-18:00",
+                  "9:00-18:00",
+                ],
+        }));
+
+        setOffices(validatedOffices);
+      } catch (error) {
+        console.error("Ошибка загрузки офисов:", error);
+        setOffices([]);
+      }
+    };
+
+    fetchOffices();
   }, [services]);
 
   useEffect(() => {
@@ -166,14 +200,14 @@ export default function CoverageMap({
     if (!bounds) return null;
 
     return [
-      [bounds[0][0], bounds[0][1]], // Юго-западная точка (southWest)
-      [bounds[1][0], bounds[1][1]], // Северо-восточная точка (northEast)
+      [bounds[0][0], bounds[0][1]],
+      [bounds[1][0], bounds[1][1]],
     ];
   };
 
   const handleBoundsChange = () => {
     const bounds = getMapBounds(mapRef);
-    console.log("Current bounds:", bounds[0], bounds[1]);
+    console.log(bounds);
     if (bounds) {
       setMapBounds(bounds);
     }
@@ -226,10 +260,6 @@ export default function CoverageMap({
     `;
   };
 
-  function setShowCommentForm(arg0: boolean): void {
-    throw new Error("Function not implemented.");
-  }
-
   const Services = () => {
     const AllServices = [
       "Подключают eSIM",
@@ -268,10 +298,80 @@ export default function CoverageMap({
       </div>
     );
   };
+
   function Offices() {
-    const handleApplyServices = (selectedServices: Record<string, boolean>) => {
-      console.log("Применены фильтры:", selectedServices);
-          
+    const [filters, setFilters] = useState({
+      worksAfter20: false,
+      worksOnWeekends: false,
+      worksNow: false,
+    });
+  
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
+    const handleFilterChange = (filterName) => {
+      setFilters((prevFilters) => ({
+        ...prevFilters,
+        [filterName]: !prevFilters[filterName],
+      }));
+    };
+  
+    const parseTime = (timeStr) => {
+      if (!timeStr) return { hours: 0, minutes: 0 };
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      return { hours, minutes };
+    };
+  
+    const filterOffices = () => {
+      const today = new Date();
+      const currentDayIndex = today.getDay(); 
+      const currentHours = today.getHours();
+      const currentMinutes = today.getMinutes();
+  
+      return offices.filter((office) => {
+        if (!office.working_hours || office.working_hours.length < 7) {
+          return false;
+        }
+  
+
+        let worksAfter20 = false;
+        let worksOnWeekends = false;
+        let isOpenNow = false;
+  
+        for (let i = 0; i < 7; i++) {
+          const workingHours = office.working_hours[i];
+          if (!workingHours) continue;
+  
+          const [openTime, closeTime] = workingHours.split('-');
+          const open = parseTime(openTime);
+          const close = parseTime(closeTime);
+  
+          // Проверяем работу после 20:00 в любой день
+          if (close.hours > 20 || (close.hours === 20 && close.minutes > 0)) {
+            worksAfter20 = true;
+          }
+  
+          // Проверяем работу в выходные (0 - воскресенье, 6 - суббота)
+          if ((i === 0 || i === 7) && workingHours !== "выходной") {
+            worksOnWeekends = true;
+          }
+  
+          // Проверяем работу сейчас
+          if (i === currentDayIndex) {
+            const currentTotalMinutes = currentHours * 60 + currentMinutes;
+            const openTotalMinutes = open.hours * 60 + open.minutes;
+            const closeTotalMinutes = close.hours * 60 + close.minutes;
+  
+            isOpenNow = currentTotalMinutes >= openTotalMinutes && 
+                        currentTotalMinutes <= closeTotalMinutes;
+          }
+        }
+  
+        return (
+          (!filters.worksAfter20 || worksAfter20) &&
+          (!filters.worksOnWeekends || worksOnWeekends) &&
+          (!filters.worksNow || isOpenNow)
+        );
+      });
     };
 
     return (
@@ -284,19 +384,45 @@ export default function CoverageMap({
           >
             Услуги
           </h2>
-
-          {/* onApply={handleApplyServices}  */}
         </div>
+
+        <div className="flex flex-col space-y-2 mb-4">
+          <label className="flex items-center w-2/3 justify-center">
+            <input
+              type="checkbox"
+              className="w-5 h-5 accent-[#d50069] mr-2 rounded"
+              checked={filters.worksAfter20}
+              onChange={() => handleFilterChange("worksAfter20")}
+            />
+            Работают после 20:00
+          </label>
+          <label className="flex items-center w-2/3 justify-center">
+            <input
+              type="checkbox"
+              className="w-5 h-5 accent-[#d50069] mr-2 rounded"
+              checked={filters.worksOnWeekends}
+              onChange={() => handleFilterChange("worksOnWeekends")}
+            />
+            Работают по выходным
+          </label>
+          <label className="flex items-center w-2/3 justify-center">
+            <input
+              type="checkbox"
+              className="w-5 h-5 accent-[#d50069] mr-2 rounded"
+              checked={filters.worksNow}
+              onChange={() => handleFilterChange("worksNow")}
+            />
+            Только работающие сейчас
+          </label>
+        </div>
+
         <div className="flex-1 overflow-y-auto mt-2 space-y-8 pr-2 h-[400px] custom-scrollbar">
           {isDropdownOpen ? (
             <Services />
           ) : (
             <>
-              {offices.map((office, index) => (
-                <div
-                  key={office.id}
-                  className="flex justify-between items-center"
-                >
+              {filterOffices().map((office, index) => (
+                <div key={office.id} className="flex justify-between items-center">
                   <div className="flex items-start gap-3">
                     <Image
                       src="/images/Icons/point.svg"
@@ -306,9 +432,7 @@ export default function CoverageMap({
                     />
                     <div>
                       <div className="font-bold">{office.address}</div>
-                      <div className="text-sm text-gray-400">
-                        {office.souring}
-                      </div>
+                      <div className="text-sm text-gray-400">{office.souring}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1 text-sm text-white">
@@ -321,7 +445,7 @@ export default function CoverageMap({
                     <div>{office.manyComments}</div>
                   </div>
                 </div>
-              ))}{" "}
+              ))}
             </>
           )}
         </div>
@@ -373,24 +497,43 @@ export default function CoverageMap({
             </div>
           </div>
 
-            <div className="mt-6 text-sm text-gray-800 space-y-2">
-              <label className="flex items-center w-2/3 justify-center">
-                <input
-                  type="checkbox"
-                  // checked={showOffices}
-                  onChange={() => setShowTower(!showOffices)}
-                  className="w-5 h-5 accent-[#d50069] mr-2 rounded"
-                />
-                Отобразить вышки на карте
-              </label>
-            </div>
-          </div>
-          <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
-            {activeTab === "offices" && <Offices />}
-            {/* {activeTab === "coverage" && <CoverageRoaming />} */}
+          <div className="mt-6 text-sm text-gray-800 space-y-2">
+            <label className="flex items-center w-2/3 justify-center">
+              <input
+                type="checkbox"
+                onChange={() => setShowTower(!showOffices)}
+                className="w-5 h-5 accent-[#d50069] mr-2 rounded"
+              />
+              Отобразить вышки на карте
+            </label>
+            <label className="flex items-center w-2/3 justify-center">
+              <input
+                type="checkbox"
+                className="w-5 h-5 accent-[#d50069] mr-2 rounded"
+              />
+              Работают после 20:00
+            </label>
+            <label className="flex items-center w-2/3 justify-center">
+              <input
+                type="checkbox"
+                className="w-5 h-5 accent-[#d50069] mr-2 rounded"
+              />
+              Работают по выходным
+            </label>
+            <label className="flex items-center w-2/3 justify-center">
+              <input
+                type="checkbox"
+                className="w-5 h-5 accent-[#d50069] mr-2 rounded"
+              />
+              Только работающие сейчас
+            </label>
           </div>
         </div>
-        <div className="flex-1 h-[calc(100vh-68px)] z-0">
+        <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
+          {activeTab === "offices" && <Offices />}
+        </div>
+      </div>
+      <div className="flex-1 h-[calc(100vh-68px)] z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
             instanceRef={(ref) => {
@@ -443,22 +586,16 @@ export default function CoverageMap({
               ))}
             </Clusterer>
 
-            {cells.map((cell, index) => {
-              const polygonCoords = generatePolygonCoords(
-                [cell.latitude, cell.longitude],
-                1000
-              );
-
+            {cells.map((cell) => {
               return (
-                <Polygon
-                  key={`polygon-${cell.id}`}
-                  geometry={[polygonCoords]}
+                <Circle
+                  key={cell.id || `${cell.latitude}-${cell.longitude}`}
+                  geometry={[[cell.latitude, cell.longitude], 4000]}
                   options={{
                     fillColor: "#FF3495",
-                    fillOpacity: 0.3,
-                    strokeColor: "#FF3495",
+                    fillOpacity: 0.5,
                     strokeWidth: 0,
-                    zIndex: 1000,
+                    zIndex: 0,
                   }}
                 />
               );
