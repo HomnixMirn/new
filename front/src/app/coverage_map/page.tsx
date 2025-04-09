@@ -35,6 +35,21 @@ export default function CoverageMap({
   const [selectedOffice, setSelectedOffice] = useState(null);
   const mapRef = useRef(null);
   const [mapBounds, setMapBounds] = useState([]);
+  const [showTower, setShowTower] = useState(false);
+  const [showOffices, setShowOffices] = useState(true);
+
+  const [filters, setFilters] = useState({
+    worksAfter20: false,
+    worksOnWeekends: false,
+    worksNow: false,
+  });
+
+  const handleFilterChange = (filterName) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [filterName]: !prevFilters[filterName],
+    }));
+  };
 
   const getConvexHull = (points) => {
     const sorted = points.sort((a, b) =>
@@ -78,9 +93,9 @@ export default function CoverageMap({
 
     for (let i = 0; i < sides; i++) {
       const angle = (2 * Math.PI * i) / sides;
-      const dx = (radius / 111000) * Math.cos(angle); // 1° lat ~ 111km
+      const dx = (radius / 111000) * Math.cos(angle);
       const dy =
-        (radius / (111000 * Math.cos(lat * (Math.PI / 180)))) * Math.sin(angle); // longitude compensation
+        (radius / (111000 * Math.cos(lat * (Math.PI / 180)))) * Math.sin(angle);
       coords.push([lat + dx, lon + dy]);
     }
 
@@ -111,18 +126,37 @@ export default function CoverageMap({
   };
 
   useEffect(() => {
-    if (services !== []) {
-      const query = services.map((service) => `${service}`).join(",");
-      axi.get("/map/all_office?services=" + query).then((response) => {
-        console.log(response.data);
-        setOffices([...response.data]);
-      });
-    } else {
-      axi.get("/map/all_office").then((response) => {
-        console.log(response.data);
-        setOffices([...response.data]);
-      });
-    }
+    const fetchOffices = async () => {
+      try {
+        const url = services.length
+          ? `/map/all_office?services=${services.join(",")}`
+          : "/map/all_office";
+        const response = await axi.get(url);
+
+        const validatedOffices = response.data.map((office) => ({
+          ...office,
+          working_hours:
+            Array.isArray(office.working_hours) && office.working_hours.length === 7
+              ? office.working_hours
+              : [
+                  "9:00-18:00",
+                  "9:00-18:00",
+                  "9:00-18:00",
+                  "9:00-18:00",
+                  "9:00-18:00",
+                  "9:00-18:00",
+                  "9:00-18:00",
+                ],
+        }));
+
+        setOffices(validatedOffices);
+      } catch (error) {
+        console.error("Ошибка загрузки офисов:", error);
+        setOffices([]);
+      }
+    };
+
+    fetchOffices();
   }, [services]);
 
   useEffect(() => {
@@ -206,14 +240,14 @@ export default function CoverageMap({
     if (!bounds) return null;
 
     return [
-      [bounds[0][0], bounds[0][1]], // Юго-западная точка (southWest)
-      [bounds[1][0], bounds[1][1]], // Северо-восточная точка (northEast)
+      [bounds[0][0], bounds[0][1]],
+      [bounds[1][0], bounds[1][1]],
     ];
   };
 
   const handleBoundsChange = () => {
     const bounds = getMapBounds(mapRef);
-    console.log("Current bounds:", bounds[0], bounds[1]);
+    console.log(bounds);
     if (bounds) {
       setMapBounds(bounds);
     }
@@ -266,10 +300,6 @@ export default function CoverageMap({
     `;
   };
 
-  function setShowCommentForm(arg0: boolean): void {
-    throw new Error("Function not implemented.");
-  }
-
   const Services = () => {
     const AllServices = [
       "Подключают eSIM",
@@ -308,32 +338,125 @@ export default function CoverageMap({
       </div>
     );
   };
+
   function Offices() {
+    const filterOffices = () => {
+      const now = new Date();
+      const currentDay = now.getDay(); // 0 - Sunday, 1 - Monday, etc.
+      const currentHour = now.getHours();
+      const currentMinutes = now.getMinutes();
+  
+      return offices.filter((office) => {
+        // Search filter
+        if (searchQuery && !office.address.toLowerCase().includes(searchQuery.toLowerCase())) {
+          return false;
+        }
+  
+        // Get working hours (default to 9:00-18:00 if not provided)
+        const workingHours = office.working_hours || Array(7).fill("9:00-18:00");
+  
+        // Works after 20:00 filter
+        if (filters.worksAfter20) {
+          const hasLateHours = workingHours.some(hours => {
+            if (!hours || hours === "closed") return false;
+            const [_, closeTime] = hours.split('-');
+            if (!closeTime) return false;
+            const [closeHour, closeMinute] = closeTime.split(':').map(Number);
+            return closeHour >= 20;
+          });
+          if (!hasLateHours) return false;
+        }
+  
+        // Works on weekends filter
+        if (filters.worksOnWeekends) {
+          const weekendDays = [0, 6]; // 0 - Sunday, 6 - Saturday
+          const isOpenWeekend = weekendDays.some(day => {
+            const hours = workingHours[day];
+            return hours && hours !== "closed";
+          });
+          if (!isOpenWeekend) return false;
+        }
+  
+        // Works now filter
+        if (filters.worksNow) {
+          // Convert JavaScript day (0-6, Sun-Sat) to our array index (0-6, Mon-Sun)
+          const adjustedDay = currentDay === 0 ? 6 : currentDay - 1;
+          const todayHours = workingHours[adjustedDay];
+          
+          if (!todayHours || todayHours === "closed") return false;
+          
+          const [openTime, closeTime] = todayHours.split('-');
+          if (!openTime || !closeTime) return false;
+          
+          const [openHour, openMinute] = openTime.split(':').map(Number);
+          const [closeHour, closeMinute] = closeTime.split(':').map(Number);
+          
+          const currentTotalMinutes = currentHour * 60 + currentMinutes;
+          const openTotalMinutes = openHour * 60 + (openMinute || 0);
+          const closeTotalMinutes = closeHour * 60 + (closeMinute || 0);
+          
+          if (currentTotalMinutes < openTotalMinutes || currentTotalMinutes > closeTotalMinutes) {
+            return false;
+          }
+        }
+  
+        return true;
+      });
+    };
+  
     const handleApplyServices = (selectedServices: Record<string, boolean>) => {
       console.log("Применены фильтры:", selectedServices);
     };
-
+  
     return (
       <div className="flex flex-col">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Офисы T2</h2>
           <h2
-            className="text-xl font-bold"
+            className="text-xl font-bold cursor-pointer"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             Услуги
           </h2>
         </div>
+  
+        <div className="flex flex-col space-y-2 mb-4">
+          <label className="flex items-center w-2/3 justify-center">
+            <input
+              type="checkbox"
+              className="w-5 h-5 accent-[#d50069] mr-2 rounded"
+              checked={filters.worksAfter20}
+              onChange={() => handleFilterChange("worksAfter20")}
+            />
+            Работают после 20:00
+          </label>
+          <label className="flex items-center w-2/3 justify-center">
+            <input
+              type="checkbox"
+              className="w-5 h-5 accent-[#d50069] mr-2 rounded"
+              checked={filters.worksOnWeekends}
+              onChange={() => handleFilterChange("worksOnWeekends")}
+            />
+            Работают по выходным
+          </label>
+          <label className="flex items-center w-2/3 justify-center">
+            <input
+              type="checkbox"
+              className="w-5 h-5 accent-[#d50069] mr-2 rounded"
+              checked={filters.worksNow}
+              onChange={() => handleFilterChange("worksNow")}
+            />
+            Только работающие сейчас
+          </label>
+        </div>
+  
         <div className="flex-1 overflow-y-auto mt-2 space-y-8 pr-2 h-[400px] custom-scrollbar">
           {isDropdownOpen ? (
             <Services />
           ) : (
             <>
-              {offices.map((office, index) => (
-                <div
-                  key={office.id}
-                  className="flex justify-between items-center"
-                >
+              {filterOffices().map((office, index) => (
+                <div key={office.id} className="flex justify-between items-center">
                   <div className="flex items-start gap-3">
                     <Image
                       src="/images/Icons/point.svg"
@@ -343,9 +466,7 @@ export default function CoverageMap({
                     />
                     <div>
                       <div className="font-bold">{office.address}</div>
-                      <div className="text-sm text-gray-400">
-                        {office.souring}
-                      </div>
+                      <div className="text-sm text-gray-400">{office.souring}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1 text-sm text-white">
@@ -358,7 +479,7 @@ export default function CoverageMap({
                     <div>{office.manyComments}</div>
                   </div>
                 </div>
-              ))}{" "}
+              ))}
             </>
           )}
         </div>
@@ -490,6 +611,7 @@ export default function CoverageMap({
                   strokeColor: "#3fcbff",
                   strokeWidth: 1,
                   strokeOpacity: 0.6,
+                  outline:false
                 }}
               />
             ))}
