@@ -426,6 +426,7 @@ export default function CoverageMap({
         <Services 
         services={services} 
         onServiceToggle={servicesUpdateHandle} 
+        setServices={setServices}
       />
       ) : (
         <>
@@ -440,19 +441,17 @@ export default function CoverageMap({
                   className="mt-0.5 flex-shrink-0"
                 />
                 <div className="min-w-0 self-center">
-                  <div className="font-bold truncate">{office.address}</div>
+                  <div className="font-bold break-words">{office.address}</div>
                   <div className="text-sm text-gray-400 truncate">{office.souring}</div>
                 </div>
               </div>
               <div className="flex items-center gap-1 text-sm text-white flex-shrink-0">
-                
-                  <Image
-                    src="/images/Icons/com.svg"
-                    alt="com"
-                    width={20}
-                    height={20}
-                  />
-
+                <Image
+                  src="/images/Icons/com.svg"
+                  alt="com"
+                  width={20}
+                  height={20}
+                />
                 <div>{office.manyComments}</div>
               </div>
             </div>
