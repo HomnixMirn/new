@@ -4,6 +4,7 @@ import axi from "@/utils/api";
 import { useUser } from "@/hooks/user-context";
 import HollowButton from "@components/buttons/hollow_button/page";
 import { useNotificationManager } from "@/hooks/notification-context";
+import Image from "next/image";
 
 interface LoginFormProps {
   onClose: () => void;
@@ -21,6 +22,7 @@ export default function LoginForm({
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [phone, setPhone] = useState("");
 
   const { fetchUser } = useUser();
   const { addNotification } = useNotificationManager();
@@ -71,57 +73,73 @@ export default function LoginForm({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-opacity-90 backdrop-blur-sm border-2 border-white rounded-lg shadow-lg p-6 w-full max-w-md">
-        <h1 className="text-3xl font-bold mb-4 text-center">Авторизация</h1>
+      <div className="bg-opacity-90 backdrop-blur-sm border-2 border-white rounded-lg shadow-lg p-6 w-[650px] h-[450px] relative">
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 text-white text-2xl hover:text-gray-300 transition-colors"
+          aria-label="Закрыть"
+        >
+          &times;
+        </button>
+
+        <div className="flex items-start justify-between">
+          <h1 className="text-3xl font-bold">Вход</h1>
+        </div>
 
         {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+        
+        <form onSubmit={handleSubmit} className="flex items-center gap-8 h-[calc(100%-50px)]">
+          <div className="flex justify-center items-center h-full relative">
+            <div>
+              <div className="mb-4">
+                <input
+                  type="text"
+                  className="w-[220px] p-2 border-2 border-white rounded-[15px] bg-transparent placeholder:text-white"
+                  placeholder="Введите номер телефона"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  autoComplete="username"
+                />
+              </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <input
-              type="text"
-              className="w-full p-2 border-2 border-white rounded bg-transparent placeholder:text-white"
-              placeholder="Введите логин"
-              value={login}
-              onChange={(e) => setLogin(e.target.value)}
-              required
-              disabled={isLoading}
-              autoComplete="username"
-            />
-          </div>
+              <div className="mb-4">
+                <input
+                  type="password"
+                  className="w-[220px] p-2 border-2 border-white rounded-[15px] bg-transparent placeholder:text-white"
+                  placeholder="Пароль"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={isLoading}
+                  autoComplete="current-password"
+                />
+              </div>
+            </div>
 
-          <div className="mb-4">
-            <input
-              type="password"
-              className="w-full p-2 border-2 border-white rounded bg-transparent placeholder:text-white"
-              placeholder="Пароль"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={isLoading}
-              autoComplete="current-password"
-            />
-          </div>
-
-          <div className="flex flex-col gap-4 items-center">
-            <div className="flex gap-4 w-full justify-center">
+            <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-2">
               <HollowButton
                 type="submit"
                 label={isLoading ? "Вход..." : "Войти"}
               />
-              <HollowButton onClick={onClose} label="Закрыть" />
-            </div>
-
-            <div className="flex flex-col items-center">
-              <p>Нет аккаунта?</p>
               <button
                 type="button"
                 onClick={onRegisterOpen}
-                className="text-white hover:underline cursor-pointer"
+                className="text-white hover:underline cursor-pointer text-sm"
+                disabled={isLoading}
               >
-                Зарегистрируйтесь
+                Регистрация
               </button>
             </div>
+          </div>
+          <div>
+            <Image 
+              width={360}
+              height={360}
+              src="/images/icons/auth.png"
+              alt="Authentication"
+            />  
           </div>
         </form>
       </div>

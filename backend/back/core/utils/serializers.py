@@ -32,7 +32,6 @@ class dayScheduleSerializer(serializers.ModelSerializer):
         fields = '__all__'
         
 class commentsSerializer(serializers.ModelSerializer):
-    author = ProfileSerializer()
     class Meta:
         model = comments
         fields = '__all__'
