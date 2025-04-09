@@ -141,36 +141,38 @@ export default function CoverageMap({
       setMergedCoverage(null);
       return;
     }
-  
+
     try {
-      // 1. Создаем все полигоны
       const polygons = cells.map((cell) => {
-        const center = [cell.longitude, cell.latitude]; // Важно: [lng, lat]
+        const center = [cell.longitude, cell.latitude];
         return turf.circle(center, 4000, { steps: 64, units: "meters" });
       });
-  
-      // 2. Объединяем все полигоны за один вызов
+
       const combined = turf.combine(turf.featureCollection(polygons));
-      
-      // 3. Извлекаем объединенную геометрию
       const merged = combined.features[0];
-      
-      if (!merged) {
-        console.warn("No merged geometry found");
-        return;
-      }
-  
-      // 4. Преобразуем координаты для Яндекс.Карт
+
+      if (!merged) return;
+
+      const processCoordinates = (coords) => {
+        return coords.map((ring) => ring.map(([lng, lat]) => [lat, lng]));
+      };
+
+      let processedCoords;
       const coordinates = turf.getCoords(merged);
-      
-      const processedCoords = coordinates.map((ring) => ring.map(([lng, lat]) => [lat, lng]));  
-      console.log(processedCoords)
+
+      if (merged.geometry.type === "MultiPolygon") {
+        processedCoords = coordinates.map((polygon) =>
+          processCoordinates(polygon)
+        );
+      } else {
+        processedCoords = [processCoordinates(coordinates)];
+      }
+      console.log(processedCoords);
       setMergedCoverage(processedCoords);
     } catch (error) {
       console.error("Error merging coverage:", error);
     }
   };
-
 
   useEffect(() => {
     const handleShowComments = (e) => {
@@ -309,7 +311,6 @@ export default function CoverageMap({
   function Offices() {
     const handleApplyServices = (selectedServices: Record<string, boolean>) => {
       console.log("Применены фильтры:", selectedServices);
-          
     };
 
     return (
@@ -322,8 +323,6 @@ export default function CoverageMap({
           >
             Услуги
           </h2>
-
-          {/* onApply={handleApplyServices}  */}
         </div>
         <div className="flex-1 overflow-y-auto mt-2 space-y-8 pr-2 h-[400px] custom-scrollbar">
           {isDropdownOpen ? (
@@ -411,24 +410,24 @@ export default function CoverageMap({
             </div>
           </div>
 
-            <div className="mt-6 text-sm text-gray-800 space-y-2">
-              <label className="flex items-center w-2/3 justify-center">
-                <input
-                  type="checkbox"
-                  // checked={showOffices}
-                  onChange={() => setShowTower(!showOffices)}
-                  className="w-5 h-5 accent-[#d50069] mr-2 rounded"
-                />
-                Отобразить вышки на карте
-              </label>
-            </div>
-          </div>
-          <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
-            {activeTab === "offices" && <Offices />}
-            {/* {activeTab === "coverage" && <CoverageRoaming />} */}
+          <div className="mt-6 text-sm text-gray-800 space-y-2">
+            <label className="flex items-center w-2/3 justify-center">
+              <input
+                type="checkbox"
+                // checked={showOffices}
+                onChange={() => setShowTower(!showOffices)}
+                className="w-5 h-5 accent-[#d50069] mr-2 rounded"
+              />
+              Отобразить вышки на карте
+            </label>
           </div>
         </div>
-        <div className="flex-1 h-[calc(100vh-68px)] z-0">
+        <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
+          {activeTab === "offices" && <Offices />}
+          {/* {activeTab === "coverage" && <CoverageRoaming />} */}
+        </div>
+      </div>
+      <div className="flex-1 h-[calc(100vh-68px)] z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
             instanceRef={(ref) => {
@@ -481,10 +480,10 @@ export default function CoverageMap({
               ))}
             </Clusterer>
 
-            
-            {mergedCoverage && (
+            {mergedCoverage?.map((polygonCoords, index) => (
               <Polygon
-                geometry={mergedCoverage}
+                key={index}
+                geometry={polygonCoords}
                 options={{
                   fillColor: "#3fcbff",
                   fillOpacity: 0.15,
@@ -493,7 +492,7 @@ export default function CoverageMap({
                   strokeOpacity: 0.6,
                 }}
               />
-            )}
+            ))}
           </Map>
         </YMaps>
       </div>
