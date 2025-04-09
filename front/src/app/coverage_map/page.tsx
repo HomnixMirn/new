@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   YMaps,
   Map,
@@ -50,10 +50,7 @@ export default function CoverageMap({
       ...prevFilters,
       [filterName]: !prevFilters[filterName],
     }));
-    
   };
-
-  
 
   function servicesUpdateHandle(servic) {
     if (services.includes(servic)) {
@@ -139,25 +136,24 @@ export default function CoverageMap({
     }
   };
 
-  
   useEffect(() => {
-    let query =''
-    if (filters.worksNow){
-      const time = new Date(); 
-      query += `filters=${time.getHours()}&`
+    let query = "";
+    if (filters.worksNow) {
+      const time = new Date();
+      query += `filters=${time.getHours()}&`;
     }
-    if (services !== []){
-      query += 'services=' + services.map((service) => `${service}`).join(",");
-      axi.get("/map/all_office?"+query).then((response) => {
+    if (services !== []) {
+      query += "services=" + services.map((service) => `${service}`).join(",");
+      axi.get("/map/all_office?" + query).then((response) => {
+        console.log(response.data);
+        setOffices([...response.data]);
+      });
+    } else {
+      axi.get("/map/all_office" + query).then((response) => {
         console.log(response.data);
         setOffices([...response.data]);
       });
     }
-    else{
-    axi.get("/map/all_office"+query).then((response) => {
-      console.log(response.data);
-      setOffices([...response.data]);
-    });}
   }, [services, filters]);
 
   useEffect(() => {
@@ -303,15 +299,13 @@ export default function CoverageMap({
       </div>
     `;
   };
-  function handleCheckService(e, service){
-    if (e.target.checked){
-      console.log('да')
-      setServices([...services,service])
-      
-    }
-    else{
-      setServices(services.filter((v)=> v!== service))
-      console.log("нет")
+  function handleCheckService(e, service) {
+    if (e.target.checked) {
+      console.log("да");
+      setServices([...services, service]);
+    } else {
+      setServices(services.filter((v) => v !== service));
+      console.log("нет");
     }
   }
 
@@ -357,9 +351,7 @@ export default function CoverageMap({
           if (!isOpenWeekend) return false;
         }
 
-        // Works now filter
         if (filters.worksNow) {
-          // Convert JavaScript day (0-6, Sun-Sat) to our array index (0-6, Mon-Sun)
           const adjustedDay = currentDay === 0 ? 6 : currentDay - 1;
           const todayHours = workingHours[adjustedDay];
 
@@ -387,6 +379,21 @@ export default function CoverageMap({
       });
     };
 
+    const handleOfficeClick = useCallback((lat: number, lon: number) => {
+      if (mapRef.current) {
+        mapRef.current
+          .panTo([lat, lon], {
+            flying: true,
+            duration: 400,
+          })
+          .then(() => {
+            mapRef.current.setZoom(15, {
+              duration: 400,
+            });
+          });
+      }
+    }, []);
+
     const handleApplyServices = (selectedServices: Record<string, boolean>) => {
       console.log("Применены фильтры:", selectedServices);
     };
@@ -402,50 +409,55 @@ export default function CoverageMap({
             Услуги
           </div>
         </div>
-        
 
-    <div className="flex-1 overflow-y-auto mt-2 space-y-8 pr-2 h-[400px] custom-scrollbar">
-      {isDropdownOpen ? (
-        <Services 
-        services={services} 
-        onServiceToggle={servicesUpdateHandle} 
-      />
-      ) : (
-        <>
-          {offices.map((office, index) => (
-            <div key={office.id} className="flex justify-between items-stretch gap-4">
-              <div className="flex items-start gap-3 flex-1 min-w-0">
-                <Image
-                  src="/images/Icons/point.svg"
-                  alt="point"
-                  width={25}
-                  height={25}
-                  className="mt-0.5 flex-shrink-0"
-                />
-                <div className="min-w-0 self-center">
-                  <div className="font-bold truncate">{office.address}</div>
-                  <div className="text-sm text-gray-400 truncate">{office.souring}</div>
+        <div className="flex-1 overflow-y-auto mt-2 space-y-8 pr-2 h-[400px] custom-scrollbar">
+          {isDropdownOpen ? (
+            <Services
+              services={services}
+              onServiceToggle={servicesUpdateHandle}
+            />
+          ) : (
+            <>
+              {offices.map((office, index) => (
+                <div
+                  key={office.id}
+                  className="flex justify-between items-stretch gap-4 cursor-pointer"
+                  onClick={() =>
+                    handleOfficeClick(office.latitude, office.longitude)
+                  }
+                >
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <Image
+                      src="/images/Icons/point.svg"
+                      alt="point"
+                      width={25}
+                      height={25}
+                      className="mt-0.5 flex-shrink-0"
+                    />
+                    <div className="min-w-0 self-center">
+                      <div className="font-bold truncate">{office.address}</div>
+                      <div className="text-sm text-gray-400 truncate">
+                        {office.souring}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 text-sm text-white flex-shrink-0">
+                    <Image
+                      src="/images/Icons/com.svg"
+                      alt="com"
+                      width={20}
+                      height={20}
+                    />
+
+                    <div>{office.manyComments}</div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-1 text-sm text-white flex-shrink-0">
-                
-                  <Image
-                    src="/images/Icons/com.svg"
-                    alt="com"
-                    width={20}
-                    height={20}
-                  />
-
-                <div>{office.manyComments}</div>
-              </div>
-            </div>
-          ))}
-        </>
-      )}
-    </div>
-  </div>
-);
-            
+              ))}
+            </>
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -521,9 +533,8 @@ export default function CoverageMap({
                     type="checkbox"
                     checked={services.includes("Работают после 20:00")}
                     onChange={(e) => {
-                      console.log(e)
-                      handleCheckService(e,"Работают после 20:00")
-                      
+                      console.log(e);
+                      handleCheckService(e, "Работают после 20:00");
                     }}
                     className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
                   />
@@ -534,9 +545,8 @@ export default function CoverageMap({
                     type="checkbox"
                     checked={services.includes("Работают по выходным")}
                     onChange={(e) => {
-                      console.log(e)
-                      handleCheckService(e,"Работают по выходным")
-                      
+                      console.log(e);
+                      handleCheckService(e, "Работают по выходным");
                     }}
                     className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
                   />
