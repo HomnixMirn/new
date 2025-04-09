@@ -6,6 +6,8 @@ import HollowButton from "@components/buttons/hollow_button/page";
 import { useNotificationManager } from "@/hooks/notification-context";
 import Image from "next/image";
 
+import CloseButton from "@/app/components/buttons/close_button/page";
+
 interface LoginFormProps {
   onClose: () => void;
   onLoginSuccess: () => void;
@@ -22,10 +24,11 @@ export default function LoginForm({
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [phone, setPhone] = useState("");
 
   const { fetchUser } = useUser();
   const { addNotification } = useNotificationManager();
+
+  const [imgSrc, setImgSrc] = useState("/images/Icons/cross.svg");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,25 +76,20 @@ export default function LoginForm({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-opacity-90 bg-white backdrop-blur-sm border-2 border-white rounded-lg shadow-lg p-6 w-[650px] h-[450px] relative">
-        <button 
-          onClick={onClose}
-          className="absolute top-4 right-4 text-crow text-2xl hover:text-gray-300 transition-colors"
-          aria-label="Закрыть"
-        >
-          &times;
-        </button>
-
+      <div className="bg-opacity-90 bg-white backdrop-blur-sm border-2 border-white rounded-[16px] shadow-lg p-6 w-[650px] h-[450px] relative">
         <div className="flex items-start justify-between">
           <h1 className="text-3xl font-bold text-black">Вход</h1>
         </div>
 
         {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-        
-        <form onSubmit={handleSubmit} className="flex items-center gap-8 h-[calc(100%-50px)]">
+
+        <form
+          onSubmit={handleSubmit}
+          className="flex items-center gap-8 h-[calc(100%-50px)]"
+        >
           <div className="flex justify-center items-center h-full relative">
             <div>
-            <p className="text-[#aaa] ml-[8px]">Введите логин и пароль</p>
+              <p className="text-[#aaa] ml-[8px]">Введите логин и пароль</p>
               <div className="mb-2">
                 <input
                   type="text"
@@ -133,13 +131,14 @@ export default function LoginForm({
               </button>
             </div>
           </div>
-          <div>
-            <Image 
+          <div className="relative">
+            <Image
               width={360}
               height={360}
-              src="/images/icons/auth.png"
+              src="/images/auth.svg"
               alt="Authentication"
-            />  
+            />
+            <CloseButton onClick={onClose} />
           </div>
         </form>
       </div>

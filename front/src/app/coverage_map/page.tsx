@@ -10,6 +10,7 @@ import {
 } from "@pbe/react-yandex-maps";
 import axi from "@/utils/api";
 import Image from "next/image";
+import Services from "../servecesFilter/page";
 import Link from "next/link";
 import AddStarRating from "../components/star_rating/add_star_rating";
 import StarRating from "../components/star_rating/star_rating";
@@ -318,6 +319,17 @@ export default function CoverageMap({
       </div>
     `;
   };
+  function handleCheckService(e, service){
+    if (e.target.checked){
+      console.log('да')
+      setServices([...services,service])
+      
+    }
+    else{
+      setServices(services.filter((v)=> v!== service))
+      console.log("нет")
+    }
+  }
 
   const Services = () => {
     const AllServices = [
@@ -331,6 +343,8 @@ export default function CoverageMap({
       "Помогают с заменой SIM-карты другого региона",
     ];
 
+     
+
     
     return (
       <div className="flex flex-col gap-5">
@@ -338,10 +352,16 @@ export default function CoverageMap({
           <div className="flex gap-5">
             <input
               type="checkbox"
+              
               checked={services.includes(service)}
-              onClick={() => servicesUpdateHandle(service)}
+              // onClick={() => servicesUpdateHandle(service)}
               name=""
-              id=""
+              id={service}
+              onChange={(e) => {
+                console.log(e)
+                handleCheckService(e,service)
+                
+              }}
             />
             <p className="">{service}</p>
           </div>
@@ -429,6 +449,7 @@ export default function CoverageMap({
     return (
       <div className="flex flex-col">
         <div className="flex justify-between items-center mb-4">
+          {/* Modal Serveces */}
           <h2 className="text-xl font-bold">Офисы T2</h2>
           <h2
             className="text-xl font-bold cursor-pointer"
@@ -437,156 +458,45 @@ export default function CoverageMap({
             Услуги
           </h2>
         </div>
-
-        <div className="flex flex-col space-y-2 mb-4">
-          <label className="flex items-center w-2/3 justify-center">
-            <input
-              type="checkbox"
-              className="w-5 h-5 accent-[#d50069] mr-2 rounded"
-              checked={services.includes("Работают после 20:00")}
-              onChange={() => servicesUpdateHandle("Работают после 20:00")}
-              className={`
-                  w-5 h-5
-                  appearance-none
-                  border-2 border-white
-                  rounded
-                  bg-transparent
-                  relative
-                  checked:bg-transparent
-                  checked:before:content-['']
-                  checked:before:absolute
-                  checked:before:inset-0
-                  checked:before:bg-[url('/images/Icons/whiteTickIcon.svg')]
-                  checked:before:bg-center
-                  checked:before:bg-no-repeat
-                  checked:before:bg-contain
-                  mr-2
-                `}
- 
-            />
-            Работают после 20:00
-          </label>
-          <label className="flex items-center w-2/3 justify-center">
-            <input
-              type="checkbox"
-              className="w-5 h-5 accent-[#d50069] mr-2 rounded"
-              checked={services.includes("Работают по выходным")}
-              onChange={() => servicesUpdateHandle("Работают по выходным")}
-            />
-            Работают по выходным
-          </label>
-          <label className="flex items-center w-2/3 justify-center">
-            <input
-              type="checkbox"
-              className="w-5 h-5 accent-[#d50069] mr-2 rounded"
-              checked={filters.worksNow}
-              onChange={() => handleFilterChange("worksNow")}
-            />
-            Только работающие сейчас
-          </label>
-        </div>
-
-        <div className="flex-1 overflow-y-auto mt-2 space-y-8 pr-2 h-[400px] custom-scrollbar">
-          {isDropdownOpen ? (
-            <Services />
-          ) : (
-            <>
-              <div className="flex flex-col">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-bold">Офисы T2</h2>
-                  <h2
-                    className="text-xl font-bold cursor-pointer"
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  >
-                    Услуги
-                  </h2>
+    <div className="flex-1 overflow-y-auto mt-2 space-y-8 pr-2 h-[400px] custom-scrollbar">
+      {isDropdownOpen ? (
+        <Services 
+        services={services} 
+        onServiceToggle={servicesUpdateHandle} 
+      />
+      ) : (
+        <>
+          {offices.map((office, index) => (
+                <div key={office.id} className="flex justify-between items-center">
+                  <div className="flex items-start gap-3">
+                    <Image
+                      src="/images/Icons/point.svg"
+                      alt="point"
+                      width={25}
+                      height={25}
+                    />
+                    <div>
+                      <div className="font-bold">{office.address}</div>
+                      <div className="text-sm text-gray-400">{office.souring}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 text-sm text-white">
+                    <Image
+                      src="/images/Icons/com.svg"
+                      alt="com"
+                      width={25}
+                      height={25}
+                    />
+                    <div>{office.manyComments}</div>
+                  </div>
                 </div>
-
-    <div className="flex flex-col space-y-2 mb-4">
-      <label className="flex items-center w-2/3 justify-center">
-        <input
-          type="checkbox"
-          checked={services.includes("Работают после 20:00")}
-          onChange={() => servicesUpdateHandle("Работают после 20:00")}
-          className={`
-            w-5 h-5
-            appearance-none
-            border-2 border-white
-            rounded
-            bg-transparent
-            relative
-            checked:bg-transparent
-            checked:before:content-['']
-            checked:before:absolute
-            checked:before:inset-0
-            checked:before:bg-[url('/images/Icons/whiteTickIcon.svg')]
-            checked:before:bg-center
-            checked:before:bg-no-repeat
-            checked:before:bg-contain
-            mr-2
-          `}
-        />
-        Работают после 20:00
-      </label>
-      <label className="flex items-center w-2/3 justify-center">
-        <input
-          type="checkbox"
-          checked={services.includes("Работают по выходным")}
-          onChange={() => servicesUpdateHandle("Работают по выходным")}
-          className="w-5 h-5 accent-[#d50069] mr-2 rounded"
-        />
-        Работают по выходным
-      </label>
-      <label className="flex items-center w-2/3 justify-center">
-        <input
-          type="checkbox"
-          className="w-5 h-5 accent-[#d50069] mr-2 rounded"
-          checked={filters.worksNow}
-          onChange={() => handleFilterChange("worksNow")}
-        />
-        Только работающие сейчас
-      </label>
+              ))}
+        </>
+      )}
     </div>
-      <div className="flex-1 overflow-y-auto mt-2 space-y-8 pr-2 h-[400px] custom-scrollbar">
-        {isDropdownOpen ? (
-              <Services />
-            ) : (
-              <>
-                {offices.map((office, index) => (
-                      <div key={office.id} className="flex justify-between items-center">
-                        <div className="flex items-start gap-3">
-                          <Image
-                            src="/images/Icons/point.svg"
-                            alt="point"
-                            width={25}
-                            height={25}
-                          />
-                          <div>
-                            <div className="font-bold">{office.address}</div>
-                            <div className="text-sm text-gray-400">{office.souring}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-white">
-                          <Image
-                            src="/images/Icons/com.svg"
-                            alt="com"
-                            width={25}
-                            height={25}
-                          />
-                          <div>{office.manyComments}</div>
-                        </div>
-                      </div>
-                    ))}
-              </>
-            )}
-          </div>
-        </div>
-          );
-            </>
-          )}
-        </div>
-      </div>
-    );
+  </div>
+);
+            
   }
 
   // comment please dont delete
@@ -620,9 +530,13 @@ export default function CoverageMap({
         )}
       </div>
 
+<<<<<<< HEAD
       {activeTab === "offices" && (
         <>
           <div className="mt-6 relative flex justify-center">
+=======
+          <div className="mt-4 relative flex justify-center">
+>>>>>>> 92852197f0c4cd3248d73a613890bb738e039d75
             <input
               type="text"
               placeholder="Что хочешь найти?"
@@ -634,10 +548,11 @@ export default function CoverageMap({
                 alt="Поиск"
                 width={20}
                 height={20}
-                className="text-gray-500"
+                className=""
               />
             </div>
           </div>
+<<<<<<< HEAD
           <div className="mt-6 text-sm text-gray-800 space-y-2">
             <label className="flex items-center w-2/3 justify-center">
               <input
@@ -667,6 +582,70 @@ export default function CoverageMap({
               />
               Отобразить вышки на карте
             </label>
+=======
+
+          <div className="mt-3 text-sm text-gray-800 ml-8 space-y-3">
+            {activeTab === "coverage" ? (
+              <>
+                <label className="flex items-center w-2/3">
+                  <input
+                    type="checkbox"
+                    checked={showTower}
+                    onChange={() => setShowTower(!showTower)}
+                    className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
+                  />
+                  Показать вышки на карте
+                </label>
+                <label className="flex items-center w-2/3">
+                  <input
+                    type="checkbox"
+                    // checked={showRatings}
+                    onChange={() => setShowRatings(!showRatings)}
+                    className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
+                  />
+                  Показать оценки связи от клиентов
+                </label>
+              </>
+            ) : (
+              <>
+                <label className="flex items-center w-2/3">
+                  <input
+                    type="checkbox"
+                    checked={services.includes("Работают после 20:00")}
+                    onChange={(e) => {
+                      console.log(e)
+                      handleCheckService(e,"Работают после 20:00")
+                      
+                    }}
+                    className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
+                  />
+                  Работают после 20:00
+                </label>
+                <label className="flex items-center w-2/3">
+                  <input
+                    type="checkbox"
+                    checked={services.includes("Работают по выходным")}
+                    onChange={(e) => {
+                      console.log(e)
+                      handleCheckService(e,"Работают по выходным")
+                      
+                    }}
+                    className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
+                  />
+                  Работают по выходным
+                </label>
+                <label className="flex items-center w-2/3">
+                  <input
+                    type="checkbox"
+                    checked={filters.worksNow}
+                    onChange={() => handleFilterChange("worksNow")}
+                    className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
+                  />
+                  Сейчас работают
+                </label>
+              </>
+            )}
+>>>>>>> 92852197f0c4cd3248d73a613890bb738e039d75
           </div>
         </>
       )}
@@ -731,6 +710,7 @@ export default function CoverageMap({
             <p className="text-gray-500">Нет комментариев</p>
           )}
         </div>
+<<<<<<< HEAD
       )}
     </div>
   </div>
@@ -738,6 +718,12 @@ export default function CoverageMap({
 
  {/* {activeTab === "coverage" && <CoverageRoaming />} */}
         
+=======
+        <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
+          <Offices />
+        </div>
+      </div>
+>>>>>>> 92852197f0c4cd3248d73a613890bb738e039d75
       <div className="flex-1 h-[calc(100vh-68px)] z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
