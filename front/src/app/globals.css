@@ -79,3 +79,7 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+nextjs-portal {
+  display: none;
+}
