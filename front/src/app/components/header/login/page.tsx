@@ -111,14 +111,26 @@ export default function LoginForm({
                   />
                 </div>
                 <div className="flex flex-col items-center ">
-                <button
-                  className="w-full h-10
-                  relative mt-15 text-base bg-black text-white px-6 py-2 rounded-[20px] font-medium overflow-hidden group transition-all duration-300 hover:bg-[#FF3495] flex justify-center items-center"
-                >
-                  <span className="relative z-10 group-hover:text-white duration-300 text-[20px] font-bold tracking-normal leading-none text-center">
-                    Войти
-                  </span>
+
+                  <button
+                    className="w-full h-10
+                    relative mt-15 text-base bg-black text-white px-6 py-2 rounded-[20px] font-medium overflow-hidden group transition-all duration-300 hover:bg-[#FF3495] flex justify-center items-center"
+                  >
+                    <span className="relative z-10 group-hover:text-white duration-300 text-[20px] font-bold tracking-normal leading-none text-center">
+                      Войти
+                    </span>
+
+                    
                 </button>
+                <div className="text-center mt-1 mb-4">
+                  <button
+                    type="button"
+                    onClick={onRegisterOpen}
+                    className="text-black hover:underline text-sm"
+                  >
+                    Зарегистрироваться
+                  </button>
+                </div>
                 </div>
               </div>
             </div>
