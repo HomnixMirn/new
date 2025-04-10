@@ -758,14 +758,13 @@ export default function CoverageMap({
                 </h3>
                 <form onSubmit={handleSubmitComment}>
                   <textarea
-                    className="w-full p-2 border border-gray-300 rounded mb-2"
+                    className="w-full p-2 border bg-[#F3F3F3] text-[#B0B0B0] border-gray-300 rounded-[8px] mb-2"
                     rows={3}
                     value={newComment.text}
-                    onChange={(e) =>
-                      setNewComment({ ...newComment, text: e.target.value })
-                    }
-                    placeholder="Ваш комментарий"
+                    onChange={(e) => setNewComment({ ...newComment, text: e.target.value })}
+                    placeholder="Ваш комментарий..."
                   />
+                  
                   <div className="flex items-center mb-4">
                     <span className="mr-2">Оценка:</span>
                     <AddStarRating
@@ -778,12 +777,18 @@ export default function CoverageMap({
                       }}
                     />
                   </div>
+                  
                   <button
-                    type="submit"
-                    className="bg-[#3fcbff] text-white px-4 py-2 rounded"
+                    className="w-[150px] h-10 mb-3 relative text-base bg-black text-white px-6 py-2 rounded-[20px] font-medium overflow-hidden group transition-all duration-300 hover:bg-[#FF3495] flex justify-center items-center mx-auto"
                   >
-                    Отправить
+                    <span className="relative z-10 group-hover:text-white duration-300 text-[20px] font-bold tracking-normal leading-none text-center">
+                      Отправить
+                    </span>
                   </button>
+                  
+                  <div className="flex justify-center mb-4">
+                    <div className="w-[50px] h-[5px] bg-[#B0B0B0] rounded-[8px]"></div>
+                  </div>
                 </form>
               </div>
               {comments.length > 0 ? (

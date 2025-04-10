@@ -119,7 +119,6 @@ export default function LoginForm({
                     <span className="relative z-10 group-hover:text-white duration-300 text-[20px] font-bold tracking-normal leading-none text-center">
                       Войти
                     </span>
-
                     
                 </button>
                 <div className="text-center mt-1 mb-4">
