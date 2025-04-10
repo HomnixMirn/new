@@ -9,29 +9,26 @@ import Image from "next/image";
 import CloseButton from "@/app/components/buttons/close_button/page";
 
 interface LoginFormProps {
-    onClose: () => void;
-    onLoginSuccess: () => void;
-    onRegisterOpen: () => void;
-    onLogout: () => void;
-  }
+  onClose: () => void;
+  onLoginSuccess: () => void;
+  onRegisterOpen: () => void;
+  onLogout: () => void;
+}
 
 export default function Form({
-    onClose,
-    onLoginSuccess,
-    onRegisterOpen,
-  }: LoginFormProps) {
-    const [login, setLogin] = useState("");
-      const [password, setPassword] = useState("");
-      const [error, setError] = useState<string | null>(null);
-      const [isLoading, setIsLoading] = useState(false);
-    
-      const { fetchUser } = useUser();
-      const { addNotification } = useNotificationManager();
-    
-      const [imgSrc, setImgSrc] = useState("/images/Icons/cross.svg");
-    return (
-        <div className="w-full h-full absolute bg-black/50">
+  onClose,
+  onLoginSuccess,
+  onRegisterOpen,
+}: LoginFormProps) {
+  const [login, setLogin] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-        </div>
-    )
+  const { fetchUser } = useUser();
+  const { addNotification } = useNotificationManager();
+
+  const [imgSrc, setImgSrc] = useState("/images/Icons/cross.svg");
+
+  return <div className="z-1000 w-full h-full absolute bg-black/50"></div>;
 }

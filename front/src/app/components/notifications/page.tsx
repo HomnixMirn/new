@@ -23,7 +23,6 @@ export default function Notifications() {
     return `Статус: ${status}`;
   };
 
-  // Функция для добавления анимации только один раз
   const handleAnimationEnd = (id: number) => {
     setAnimatedNotifications((prev) => [...prev, id]);
   };

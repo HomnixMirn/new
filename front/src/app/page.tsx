@@ -5,21 +5,28 @@ import { useNotificationManager } from "@/hooks/notification-context";
 import Link from "next/link";
 import Form from "./components/form/page";
 
-
 export default function Home() {
-  const {addNotification} = useNotificationManager()
+  const { addNotification } = useNotificationManager();
   const [isFormOpen, setIsFormOpen] = useState(false);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       addNotification({
         title: "Помогите нам улучшить качество нашей сети!",
-        description: <p key={0} onClick={() => setIsFormOpen(true)} className=" underline">Оставте отзыв о вашей текущей сети</p>,
+        description: (
+          <span
+            key="feedback-link"
+            onClick={() => setIsFormOpen(true)}
+            className="cursor-pointer underline block"
+          >
+            Оставьте отзыв о вашей текущей сети
+          </span>
+        ),
         createdAt: new Date(),
         id: 0,
-        status: 'помогите улчшить сервис!',
-      })
-      // Place any additional code you want to run here
-    },  5 * 1000); // 2 minutes in milliseconds
+        status: "помогите улчшить сервис!",
+      });
+    }, 5 * 1000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -27,16 +34,15 @@ export default function Home() {
   return (
     <div>
       {isFormOpen && (
-              <Form
-                onClose={() => setIsLoginOpen(false)}
-                onLoginSuccess={handleLoginSuccess}
-                onRegisterOpen={() => {
-                  setIsLoginOpen(false);
-                  setIsRegisterOpen(true);
-                }}
-              />
-            )}
-      
+        <Form
+          onClose={() => setIsLoginOpen(false)}
+          onRegisterOpen={() => {
+            setIsLoginOpen(false);
+            setIsRegisterOpen(true);
+          }}
+        />
+      )}
+
       <CoverageMap />
     </div>
   );
