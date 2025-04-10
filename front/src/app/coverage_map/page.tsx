@@ -506,6 +506,7 @@ export default function CoverageMap({
             <Services
               services={services}
               onServiceToggle={servicesUpdateHandle}
+              setServices={setServices}
             />
           ) : (
             <>
