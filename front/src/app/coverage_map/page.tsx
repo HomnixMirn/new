@@ -203,8 +203,9 @@ export default function CoverageMap({
           return;
         }
 
-        const cells = response.data;
-        generateMergedCoverage([...cells]);
+        const cellss = response.data;
+        setCells(cellss)
+        generateMergedCoverage([...cellss]);
       } catch (error) {
         const errorMessage =
           error.response?.data?.message || "Ошибка при загрузке зон покрытия";
@@ -836,6 +837,18 @@ export default function CoverageMap({
                   strokeOpacity: 0.6,
                   outline: false,
                 }}
+              />
+            ))}
+            
+            {console.log(showTower)}
+            {console.log(cells)}
+            
+            {console.log(showTower && mapRef?.current.getZoom() >= 10 && cells  )}
+            
+            {showTower && mapRef?.current.getZoom() <= 10 && cells.map((cell) =>(
+              <Placemark
+                  key={cell.id}
+                  geometry={[cell.latitude, cell.longitude]}
               />
             ))}
           </Map>
