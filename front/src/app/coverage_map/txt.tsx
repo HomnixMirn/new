@@ -1,11 +1,10 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   YMaps,
   Map,
   Placemark,
   Clusterer,
-  Circle,
   Polygon,
 } from "@pbe/react-yandex-maps";
 import axi from "@/utils/api";
@@ -15,6 +14,7 @@ import Link from "next/link";
 import AddStarRating from "../components/star_rating/add_star_rating";
 import StarRating from "../components/star_rating/star_rating";
 import * as turf from "@turf/turf";
+import { useNotificationManager } from "@/hooks/notification-context";
 
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
@@ -27,24 +27,36 @@ export default function CoverageMap({
   const [services, setServices] = useState([]);
   const [mergedCoverage, setMergedCoverage] = useState<any>(null);
   const [search, setSearch] = useState("");
-  
+
   // comment please dont delete
   const [activeTab, setActiveTab] = useState<"offices" | "coverage">("offices");
   const [showComments, setShowComments] = useState(false);
   const [selectedOfficeId, setSelectedOfficeId] = useState<number | null>(null);
   const [comments, setComments] = useState([]);
-  
+
   const [newComment, setNewComment] = useState({
-      text: "",
-      rating: 5,
-      officeId: null,
+    text: "",
+    rating: 5,
+    officeId: null,
   });
+
+  //отображение рейтнга 
+  const calculateAverageRating = (officeId: number) => {
+    const officeComments = comments.filter(comment => comment.officeId === officeId);
+    if (officeComments.length === 0) return 0;
+    const sum = officeComments.reduce((total, comment) => total + comment.rating, 0);
+    const average = sum / officeComments.length;
+    return Math.round(average * 10) / 10;
+  };
+
+
   // comment please dont delete
-  
+
   const [selectedOffice, setSelectedOffice] = useState(null);
   const mapRef = useRef(null);
   const [mapBounds, setMapBounds] = useState([]);
   const [showTower, setShowTower] = useState(false);
+  
   const [showOffices, setShowOffices] = useState(true);
 
   const [filters, setFilters] = useState({
@@ -53,15 +65,21 @@ export default function CoverageMap({
     worksNow: false,
   });
 
+  const [initialCenter, setInitialCenter] = useState([56.19, 44.0]);
+  const [initialZoom, setInitialZoom] = useState(10);
+  const isCenteredRef = useRef(false);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(
+    null
+  );
+  const watchIdRef = useRef<number | null>(null);
+  const { addNotification } = useNotificationManager();
+
   const handleFilterChange = (filterName) => {
     setFilters((prevFilters) => ({
       ...prevFilters,
       [filterName]: !prevFilters[filterName],
     }));
-    
   };
-
-  
 
   function servicesUpdateHandle(servic) {
     if (services.includes(servic)) {
@@ -147,39 +165,71 @@ export default function CoverageMap({
     }
   };
 
-  
   useEffect(() => {
-    let query =''
-    if (filters.worksNow){
-      const time = new Date(); 
-      query += `filters=${time.getHours()}&`
-    }
-    if (search !==''){
-      query += `search=${search}&`
-    }
-    if (services !== []){
-      query += 'services=' + services.map((service) => `${service}`).join(",");
-      
-    }
-    
-    axi.get("/map/all_office?"+query).then((response) => {
-      console.log(response.data);
-      setOffices([...response.data]);
-    });
+    const loadOffices = async () => {
+      try {
+        let query = "";
+        if (filters.worksNow) {
+          const time = new Date();
+          query += `filters=${time.getHours()}&`;
+        }
+        if (search !== "") {
+          query += `search=${search}&`;
+        }
+        if (services !== []) {
+          query +=
+            "services=" + services.map((service) => `${service}`).join(",");
+        }
+
+        const response = await axi.get(`/map/all_office?${query}`);
+        setOffices([...response.data]);
+      } catch (error) {
+        const errorMessage =
+          error.response?.data?.message || "Ошибка при загрузке офисов";
+        addNotification({
+          id: Date.now().toString(),
+          title: "Ошибка загрузки",
+          description: errorMessage,
+          status: 500,
+          createdAt: new Date().toISOString(),
+        });
+      }
+    };
+
+    loadOffices();
   }, [services, filters, search]);
 
   useEffect(() => {
-    const data = {
-      left_bottom: mapBounds[0],
-      right_top: mapBounds[1],
-    };
-    axi.post("/map/all_cells", data).then((response) => {
-      if (!response.data || response.data.length === 0) {
-        return;
+    const loadCells = async () => {
+      try {
+        const data = {
+          left_bottom: mapBounds[0],
+          right_top: mapBounds[1],
+        };
+        const response = await axi.post("/map/all_cells", data);
+
+        if (!response.data || response.data.length === 0) {
+          return;
+        }
+
+        const cells = response.data;
+        generateMergedCoverage([...cells]);
+      } catch (error) {
+        const errorMessage =
+          error.response?.data?.message || "Ошибка при загрузке зон покрытия";
+        addNotification({
+          id: Date.now().toString(),
+          title: "Ошибка загрузки",
+          description: errorMessage,
+          status: 500,
+          createdAt: new Date().toISOString(),
+        });
       }
-      const cells = response.data;
-      generateMergedCoverage([...cells]);
-    });
+    };
+
+    if (mapBounds.length > 0) {
+      loadCells();
+    }
   }, [mapBounds]);
 
   const generateMergedCoverage = (cells) => {
@@ -217,40 +267,62 @@ export default function CoverageMap({
       setMergedCoverage(processedCoords);
     } catch (error) {
       console.error("Error merging coverage:", error);
+      addNotification({
+        id: Date.now().toString(),
+        title: "Ошибка обработки",
+        description: "Не удалось сгенерировать зону покрытия",
+        status: 500,
+        createdAt: new Date().toISOString(),
+      });
     }
   };
 
-    //comment please dont delete
-    useEffect(() => {
-      const handleShowComments = (e: CustomEvent) => {
-        setActiveTab("comments");
-        setShowComments(true);
-        setSelectedOfficeId(e.detail);
-        fetchComments(e.detail);
-      };
-    
-      window.addEventListener("showComments", handleShowComments as EventListener);
-      
-      return () => {
-        window.removeEventListener("showComments", handleShowComments as EventListener);
-      };
-    }, []);
-  
-    const handleBackToOffices = () => {
-      setActiveTab("offices");
-      setShowComments(false);
-      setSelectedOfficeId(null);
+  //comment please dont delete
+  useEffect(() => {
+    const handleShowComments = (e: CustomEvent) => {
+      setActiveTab("comments");
+      setShowComments(true);
+      setSelectedOfficeId(e.detail);
+      fetchComments(e.detail);
     };
-    //comment please dont delete
+
+    window.addEventListener(
+      "showComments",
+      handleShowComments as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "showComments",
+        handleShowComments as EventListener
+      );
+    };
+  }, []);
+
+  const handleBackToOffices = () => {
+    setActiveTab("offices");
+    setShowComments(false);
+    setSelectedOfficeId(null);
+  };
+  //comment please dont delete
 
   const fetchComments = async (officeId) => {
     try {
       const response = await axi.get(`/map/get_comments?id=${officeId}`);
+      console.log("Комментарии с оценками:", response.data);
       setComments(response.data);
       setSelectedOffice(officeId);
       setNewComment((prev) => ({ ...prev, officeId }));
     } catch (error) {
-      console.error("Error fetching comments:", error.response?.data);
+      const errorMessage =
+        error.response?.data?.message || "Ошибка при загрузке комментариев";
+        addNotification({
+        id: Date.now().toString(),
+        title: "Ошибка загрузки",
+        description: errorMessage,
+        status: 500,
+        createdAt: new Date().toISOString(),
+      });
     }
   };
 
@@ -291,46 +363,79 @@ export default function CoverageMap({
         officeId: newComment.officeId,
       });
     } catch (error) {
-      console.error("Error adding comment:", error);
+      const errorMessage =
+        error.response?.data?.message || "Ошибка при отправке комментария";
+      addNotification({
+        id: Date.now().toString(),
+        title: "Ошибка",
+        description: errorMessage,
+        status: 500,
+        createdAt: new Date().toISOString(),
+      });
     }
   };
 
   const createBalloonContent = (office) => {
+    const averageRating = calculateAverageRating(office.id);
+    const commentCount = comments.filter(c => c.officeId === office.id).length;
+  
+    const renderStars = (rating) => {
+      const fullStars = Math.floor(rating);
+      const hasHalfStar = rating - fullStars >= 0.5;
+      let stars = '';
+      
+      // Полные звезды
+      for (let i = 0; i < fullStars; i++) {
+        stars += '<span style="color: gold; font-size: 16px;">★</span>';
+      }
+      
+      // Половина звезды
+      if (hasHalfStar) {
+        stars += '<span style="color: gold; font-size: 16px;">½</span>';
+      }
+      
+      // Пустые звезды
+      const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+      for (let i = 0; i < emptyStars; i++) {
+        stars += '<span style="color: lightgray; font-size: 16px;">★</span>';
+      }
+      
+      return stars;
+    };
+  
     return `
-      <div style="width: 350px; height: 130px; border-radius: 16px; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-        <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">${
-          office.address
-        }</div>
+      <div style="width: 350px; border-radius: 16px; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+        <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">${office.address}</div>
+        
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+          <div style="font-size: 16px; margin-right: 8px;">
+            ${renderStars(averageRating)}
+          </div>
+          <span style="font-size: 14px; color: #666;">
+            ${averageRating.toFixed(1)} (${commentCount} ${commentCount % 10 === 1 && commentCount % 100 !== 11 ? 'отзыв' : commentCount % 10 >= 2 && commentCount % 10 <= 4 && (commentCount % 100 < 10 || commentCount % 100 >= 20) ? 'отзыва' : 'отзывов'})
+          </span>
+        </div>
+        
         <div style="display: flex; margin-bottom: 8px;">
           <span style="font-size: 14px; color: #666;">Часы работы:</span>
-          <span style="font-size: 14px; margin-left: 8px;">${
-            office.working_hours || "9:00 - 18:00"
-          }</span>
+          <span style="font-size: 14px; margin-left: 8px;">${office.working_hours || "9:00 - 18:00"}</span>
         </div>
-        <div style="display: flex; margin-bottom: 8px;">
-          <span style="font-size: 14px; color: #666;">Телефон:</span>
-          <span style="font-size: 14px; margin-left: 8px;">${
-            office.phone || "+7 (XXX) XXX-XX-XX"
-          }</span>
-        </div>
-        <button onclick="window.dispatchEvent(new CustomEvent('showComments', { detail: ${
-          office.id
-        } }))" 
-          style="margin-top: auto; background: #3fcbff; border: none; padding: 8px 16px; border-radius: 4px; color: white; cursor: pointer; align-self: flex-start;">
+        
+        <button onclick="window.dispatchEvent(new CustomEvent('showComments', { detail: ${office.id} }))" 
+          style="margin-top: 8px; background: #3fcbff; border: none; padding: 8px 16px; border-radius: 4px; color: white; cursor: pointer; align-self: flex-start;">
           Показать комментарии
         </button>
       </div>
     `;
   };
-  function handleCheckService(e, service){
-    if (e.target.checked){
-      console.log('да')
-      setServices([...services,service])
-      
-    }
-    else{
-      setServices(services.filter((v)=> v!== service))
-      console.log("нет")
+  
+  function handleCheckService(e, service) {
+    if (e.target.checked) {
+      console.log("да");
+      setServices([...services, service]);
+    } else {
+      setServices(services.filter((v) => v !== service));
+      console.log("нет");
     }
   }
 
@@ -376,9 +481,7 @@ export default function CoverageMap({
           if (!isOpenWeekend) return false;
         }
 
-        // Works now filter
         if (filters.worksNow) {
-          // Convert JavaScript day (0-6, Sun-Sat) to our array index (0-6, Mon-Sun)
           const adjustedDay = currentDay === 0 ? 6 : currentDay - 1;
           const todayHours = workingHours[adjustedDay];
 
@@ -406,6 +509,21 @@ export default function CoverageMap({
       });
     };
 
+    const handleOfficeClick = useCallback((lat: number, lon: number) => {
+      if (mapRef.current) {
+        mapRef.current
+          .panTo([lat, lon], {
+            flying: true,
+            duration: 400,
+          })
+          .then(() => {
+            mapRef.current.setZoom(15, {
+              duration: 400,
+            });
+          });
+      }
+    }, []);
+
     const handleApplyServices = (selectedServices: Record<string, boolean>) => {
       console.log("Применены фильтры:", selectedServices);
     };
@@ -421,93 +539,126 @@ export default function CoverageMap({
             Услуги
           </div>
         </div>
-        
 
-    <div className="flex-1 overflow-y-auto mt-2 space-y-8 pr-2 h-[400px] custom-scrollbar">
-      {isDropdownOpen ? (
-        <Services 
-        services={services} 
-        onServiceToggle={servicesUpdateHandle} 
-        setServices={setServices}
-      />
-      ) : (
-        <>
-          {offices.map((office, index) => (
-            <div key={office.id} className="flex justify-between items-stretch gap-4">
-              <div className="flex items-start gap-3 flex-1 min-w-0">
-                <Image
-                  src="/images/Icons/point.svg"
-                  alt="point"
-                  width={25}
-                  height={25}
-                  className="mt-0.5 flex-shrink-0"
-                />
-                <div className="min-w-0 self-center">
-                  <div className="font-bold break-words">{office.address}</div>
-                  <div className="text-sm text-gray-400 truncate">{office.souring}</div>
+        <div className="flex-1 overflow-y-auto mt-2 space-y-8 pr-2 h-[400px] custom-scrollbar">
+          {isDropdownOpen ? (
+            <Services
+              services={services}
+              onServiceToggle={servicesUpdateHandle}
+              setServices={setServices}
+            />
+          ) : (
+            <>
+              {offices.map((office, index) => (
+                <div
+                  key={office.id}
+                  className="flex justify-between items-stretch gap-4 cursor-pointer"
+                  onClick={() =>
+                    handleOfficeClick(office.latitude, office.longitude)
+                  }
+                >
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <Image
+                      src="/images/Icons/point.svg"
+                      alt="point"
+                      width={25}
+                      height={25}
+                      className="mt-0.5 flex-shrink-0"
+                    />
+                    <div className="min-w-0 self-center">
+                      <div className="font-bold break-words">
+                        {office.address}
+                      </div>
+                      <div className="text-sm text-gray-400 truncate">
+                        {office.souring}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 text-sm text-white flex-shrink-0">
+                    <Image
+                      src="/images/Icons/com.svg"
+                      alt="com"
+                      width={20}
+                      height={20}
+                    />
+                    <div>{office.manyComments}</div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-1 text-sm text-white flex-shrink-0">
-                <Image
-                  src="/images/Icons/com.svg"
-                  alt="com"
-                  width={20}
-                  height={20}
-                />
-                <div>{office.manyComments}</div>
-              </div>
-            </div>
-          ))}
-        </>
-      )}
-    </div>
-  </div>
-);
-            
+              ))}
+            </>
+          )}
+        </div>
+      </div>
+    );
   }
+
+  useEffect(() => {
+    const handleSuccess = (position: GeolocationPosition) => {
+      const { latitude, longitude } = position.coords;
+      setUserLocation([latitude, longitude]);
+
+      if (!isCenteredRef.current && mapRef.current) {
+        mapRef.current.panTo([latitude, longitude], { flying: true });
+        isCenteredRef.current = true;
+      }
+    };
+
+    const handleError = (error: GeolocationPositionError) => {
+      console.error("Ошибка геолокации:", error);
+    };
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(handleSuccess, handleError);
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        handleSuccess,
+        handleError
+      );
+    }
+
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="flex h-[calc(100vh-68px)] overflow-hidden">
-      <div className="w-1/4 bg-white flex flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
-      <div className={`flex flex-col p-4 ${showComments ? "h-auto" : "h-1/3"}`}>
-  {/* Заголовки табов */}
-  <div className="flex space-x-20 text-xl font-medium justify-center">
-    <button
-      onClick={() => setActiveTab(showComments ? "offices" : "comments")}
-      className={`pb-1 border-b-2 transition-colors duration-200 ${
-        activeTab === "comments"
-          ? "border-[#E6007E] text-black"
-          : "border-transparent text-black hover:text-[#E6007E]"
-      }`}
-    >
-      {showComments ? "" : "Карта покрытия"}
-    </button>
-    
-    {!showComments && (
-      <button
-        onClick={handleBackToOffices}
-        className={`pb-1 border-b-2 transition-colors duration-200 ${
-          activeTab === "offices"
-            ? "border-[#E6007E] text-black"
-            : "border-transparent text-black hover:text-[#E6007E]"
-        }`}
-      >
-        Офисы
-      </button>
-    )}
-  </div>
+     <div className="w-1/4 bg-white flex flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
+      {/* Блок с табами - скрывается при showComments */}
+      {!showComments && (
+        <div className="flex flex-col p-4">
+          <div className="flex space-x-20 text-xl font-medium justify-center">
+            <button
+              onClick={() => setActiveTab("coverage")}
+              className={`pb-1 border-b-2 transition-colors duration-200 ${
+                activeTab === "coverage"
+                  ? "border-[#E6007E] text-black"
+                  : "border-transparent text-black hover:text-[#E6007E]"
+              }`}
+            >
+              Карта покрытия
+            </button>
 
-  {/* Показывать поиск и фильтры только если !showComments */}
-  {!showComments && (
-    <>
+            <button
+              onClick={() => setActiveTab("offices")}
+              className={`pb-1 border-b-2 transition-colors duration-200 ${
+                activeTab === "offices"
+                  ? "border-[#E6007E] text-black"
+                  : "border-transparent text-black hover:text-[#E6007E]"
+              }`}
+            >
+              Офисы
+            </button>
+          </div>
+
+      {/* Поиск и фильтры */}
       <div className="mt-4 relative flex justify-center">
         <input
           type="text"
           placeholder="Что хочешь найти?"
           value={search}
-          onChange={(e) => {
-            setSearch(e.target.value)
-          }}
+          onChange={(e) => setSearch(e.target.value)}
           className="w-5/6 border border-gray-300 rounded-md p-2 pl-4 pr-10 text-sm text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#d50069]"
         />
         <div className="absolute right-[13%] top-1/2 transform -translate-y-1/2 pointer-events-none">
@@ -535,7 +686,6 @@ export default function CoverageMap({
             <label className="flex items-center w-2/3">
               <input
                 type="checkbox"
-                checked={showRatings}
                 onChange={() => setShowRatings(!showRatings)}
                 className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
               />
@@ -574,99 +724,121 @@ export default function CoverageMap({
           </>
         )}
       </div>
-    </>
+    </div>
+  )}
+
+  {/* Основной контент - офисы или комментарии */}
+
+      <div className={`flex-1 ${showComments ? "bg-white" : "bg-black"} text-${showComments ? "black" : "white"} py-4 px-10 overflow-y-auto custom-scrollbar`}>
+        {showComments ? (
+          /* Блок комментариев */
+
+          <div className="h-full">
+  <div className="flex items-center mb-4 justify-between">
+    <h2 className="text-xl font-bold">Комментарии</h2>
+    <button 
+      onClick={() => setShowComments(false)}
+      className="text-black hover:text-[#E6007E] text-2xl mr-2"
+    >
+      ➔
+    </button>
+  </div>
+
+  <div className="mt-6">
+    <h3 className="text-lg font-semibold mb-3">Добавить комментарий</h3>
+    <form onSubmit={handleSubmitComment}>
+      <textarea
+        className="w-full p-2 border border-gray-300 rounded mb-2"
+        rows={3}
+        value={newComment.text}
+        onChange={(e) => setNewComment({...newComment, text: e.target.value})}
+        placeholder="Ваш комментарий"
+      />
+      <div className="flex items-center mb-4">
+        <span className="mr-2">Оценка:</span>
+        <AddStarRating
+          value={newComment.rating}
+          onChange={(rating) => {
+            setNewComment(prev => ({
+              ...prev,
+              rating: rating || 0
+            }));
+          }}
+        />
+      </div>
+      <button
+        type="submit"
+        className="bg-[#3fcbff] text-white px-4 py-2 rounded"
+      >
+        Отправить
+      </button>
+    </form>
+  </div>
+  
+  {comments.length > 0 ? (
+    comments.map(comment => (
+      <div key={comment.id} className="mb-4 p-3 border-b border-gray-200">
+        <div className="flex items-center justify-between mb-2">
+        <AddStarRating
+          value={newComment.rating}
+          onChange={(rating) => {
+          setNewComment(prev => ({
+          ...prev,
+          rating: rating || 0
+          }));
+          }}
+         />
+          <span className="text-sm text-gray-500">
+            {comment.author.user.username}
+          </span>
+        </div>
+        <p className="text-gray-800">{comment.text}</p>
+      </div>
+    ))
+  ) : (
+    <p className="text-gray-500">Нет комментариев</p>
   )}
 </div>
-
-
-
-            <div className={`flex-1 ${showComments ? "bg-white" : "bg-black"} text-${showComments ? "black" : "white"} py-4 px-10 overflow-y-auto custom-scrollbar`}>
-              {activeTab === "offices" && <Offices />}
-              
-              {showComments && (
-                <div className="h-full">
-                  <div className="flex items-center mb-4 justify-between">
-                    <h2 className="text-xl font-bold">Комментарии</h2>
-                    <button 
-                      onClick={handleBackToOffices}
-                      className="text-black hover:text-[#E6007E] text-2xl mr-2"
-                    >
-                    → 
-                </button>
-                  
-                  </div>
-                  <div className="mt-6">
-                    <h3 className="text-lg font-semibold mb-3">Добавить комментарий</h3>
-                    <form onSubmit={handleSubmitComment}>
-                      <textarea
-                        className="w-full p-2 border border-gray-300 rounded mb-2"
-                        rows={3}
-                        value={newComment.text}
-                        onChange={(e) => setNewComment({...newComment, text: e.target.value})}
-                        placeholder="Ваш комментарий"
-                      />
-                      <div className="flex items-center mb-4">
-                        <span className="mr-2">Оценка:</span>
-                        <AddStarRating
-                          value={newComment.rating}
-                          onChange={(rating) => {
-                            setNewComment(prev => ({
-                              ...prev,
-                              rating: rating || 0
-                            }));
-                          }}
-                        />
-                      </div>
-                      <button
-                        type="submit"
-                        className="bg-[#3fcbff] text-white px-4 py-2 rounded"
-                      >
-                        Отправить
-                      </button>
-                    </form>
-                  </div>
-                  {comments.length > 0 ? (
-                    comments.map(comment => (
-                      <div key={comment.id} className="mb-4 p-3 border-b border-gray-200">
-                        <div className="flex items-center mb-2">
-                          <StarRating rating={comment.rating} />
-                        </div>
-                        <p className="text-gray-800">{comment.text}</p>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500">Нет комментариев</p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-          {/* commend please dont delet*/}
+        ) : (
+          <Offices />
+        )}
+      </div>
+    </div>
+      {/* commend please dont delet*/}
 
       <div className="flex-1 h-[calc(100vh-68px)] z-0">
         <YMaps query={{ apikey: apiKey }}>
           <Map
             instanceRef={(ref) => {
-              console.log(ref);
-              if (ref) {
-                mapRef.current = ref;
-              }
+              if (ref) mapRef.current = ref;
             }}
             defaultState={{
-              center: [56.19, 44.0],
-              zoom: 10,
+              center: initialCenter,
+              zoom: initialZoom,
             }}
             width="100%"
             height="100%"
             onBoundsChange={handleBoundsChange}
           >
+            {userLocation && (
+              <Placemark
+                geometry={userLocation}
+                options={{
+                  iconLayout: "default#image",
+                  iconImageHref: "/images/Icons/Raul.svg",
+                  iconImageSize: [40, 40],
+                  iconImageOffset: [-20, -40],
+                  zIndex: 100000,
+                }}
+              />
+            )}
             <Clusterer
               options={{
                 preset: "islands#blackClusterIcons",
                 groupByCoordinates: false,
                 clusterDisableClickZoom: true,
                 clusterOpenBalloonOnClick: false,
-                zIndex: 1000,
+                zIndex: 10,
                 iconColor: "#000000",
                 iconSize: [40, 40],
               }}
@@ -713,6 +885,6 @@ export default function CoverageMap({
           </Map>
         </YMaps>
       </div>
-      </div>
+    </div>
   );
 }

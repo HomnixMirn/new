@@ -2,16 +2,18 @@
 
 @font-face {
   font-family: "T2 Rooftop";
-  src: url("/fonts/T2_Rooftop-Regular.woff2") format("woff2");
-  font-weight: 400;
+  src: url("/fonts/T2-Rooftop-Medium.woff2") format("woff2"),
+    url("/fonts/T2-Rooftop-Medium.woff") format("woff");
+  font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
   font-family: "T2 Rooftop";
-  src: url("/fonts/T2-Rooftop-Medium.woff2") format("woff2");
-  font-weight: 500;
+  src: url("/fonts/T2_Rooftop-Regular.woff2") format("woff2"),
+    url("/fonts/T2_Rooftop-Regular.woff") format("woff");
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
@@ -35,8 +37,8 @@
   }
 }
 
-/* body {
-  font-family: 'T2 Rooftop', sans-serif;
+/* * {
+  font-family: "T2 Rooftop", sans-serif;
 } */
 
 @keyframes slideInFromBottom {

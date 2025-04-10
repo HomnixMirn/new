@@ -1,19 +1,17 @@
 "use client";
-import React, { createContext, useContext, useState } from "react";
-import axi from "@/utils/api";
-import { API_URL } from "@/index";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 interface NotificationManagerType {
   id: number;
   title: string;
-  description: string;
+  description: string | React.ReactNode;
   createdAt: Date;
-  status: number;
+  status: number; // Изменено на number
 }
 
 interface NotificationManagerContextType {
   notifications: NotificationManagerType[];
-  addNotification: (notification: NotificationManagerType) => void;
+  addNotification: (notification: Omit<NotificationManagerType, "id">) => void;
   removeNotification: (id: number) => void;
 }
 
@@ -27,46 +25,56 @@ export const NotificationManagerProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const savedNotifications = localStorage.getItem("notifications");
-  const initialNotifications = savedNotifications
-    ? JSON.parse(savedNotifications)
-    : [];
   const [notifications, setNotifications] = useState<NotificationManagerType[]>(
-    [...initialNotifications]
+    []
   );
 
-  const addNotification = async (notification: NotificationManagerType) => {
-    try {
-      notification.id = notifications.length + 1;
-      setNotifications([...notifications, notification]);
-      if (notification.status >= 200 && notification.status < 300) {
-      const newNotifications = [...notifications, notification];
-
-      localStorage.setItem("notifications", JSON.stringify(newNotifications));
+  // Инициализация из localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("notifications");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          setNotifications(
+            parsed.map((n: any) => ({
+              ...n,
+              createdAt: new Date(n.createdAt),
+            }))
+          );
+        } catch (e) {
+          localStorage.removeItem("notifications");
+        }
       }
-      console.log(notifications);
-    } catch {
-      addNotification({
-        id: notifications.length + 1,
-        title: "Ошибка",
-        description: "Произошла ошибка при добавлении уведомления",
-        createdAt: new Date(),
-        status: "error",
-      });
+    }
+  }, []);
+
+  // Автосохранение при изменениях
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("notifications", JSON.stringify(notifications));
+    }
+  }, [notifications]);
+
+  const addNotification = async (
+    notification: Omit<NotificationManagerType, "id">
+  ) => {
+    try {
+      const newNotification = {
+        ...notification,
+        id: Date.now(), // Используем timestamp для уникальности ID
+      };
+
+      setNotifications((prev) => [...prev, newNotification]);
+    } catch (error) {
+      console.error("Failed to add notification:", error);
     }
   };
 
   const removeNotification = (id: number) => {
-    setNotifications(
-      notifications.filter((notification) => notification.id !== id)
-    );
-    const newNotifications = [
-      ...notifications.filter((notification) => notification.id !== id),
-    ];
-    console.log(newNotifications);
-    localStorage.setItem("notifications", JSON.stringify(newNotifications));
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
-  
+
   return (
     <NotificationManagerContext.Provider
       value={{ notifications, addNotification, removeNotification }}
