@@ -176,6 +176,13 @@ export default function CoverageMap({
       } catch (error) {
         const errorMessage =
           error.response?.data?.message || "Ошибка при загрузке офисов";
+        addNotification({
+          id: Date.now().toString(),
+          title: "Ошибка загрузки",
+          description: errorMessage,
+          status: 500,
+          createdAt: new Date().toISOString(),
+        });
       }
     };
 
@@ -202,6 +209,13 @@ export default function CoverageMap({
         } catch (error) {
           const errorMessage =
             error.response?.data?.message || "Ошибка при загрузке зон покрытия";
+          addNotification({
+            id: Date.now().toString(),
+            title: "Ошибка загрузки",
+            description: errorMessage,
+            status: 500,
+            createdAt: new Date().toISOString(),
+          });
         }
       };
 
@@ -211,7 +225,7 @@ export default function CoverageMap({
     }
     if (!isShowNetwork) {
       setMergedCoverage([]);
-      setCells([]);
+      setCells([])
     }
   }, [mapBounds, isShowNetwork]);
 
@@ -250,6 +264,13 @@ export default function CoverageMap({
       setMergedCoverage(processedCoords);
     } catch (error) {
       console.error("Error merging coverage:", error);
+      addNotification({
+        id: Date.now().toString(),
+        title: "Ошибка обработки",
+        description: "Не удалось сгенерировать зону покрытия",
+        status: 500,
+        createdAt: new Date().toISOString(),
+      });
     }
   };
 
@@ -291,6 +312,13 @@ export default function CoverageMap({
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || "Ошибка при загрузке комментариев";
+      addNotification({
+        id: Date.now().toString(),
+        title: "Ошибка загрузки",
+        description: errorMessage,
+        status: 500,
+        createdAt: new Date().toISOString(),
+      });
     }
   };
 
@@ -333,51 +361,57 @@ export default function CoverageMap({
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || "Ошибка при отправке комментария";
+      addNotification({
+        id: Date.now().toString(),
+        title: "Ошибка",
+        description: errorMessage,
+        status: 500,
+        createdAt: new Date().toISOString(),
+      });
     }
   };
 
   const createBalloonContent = (office) => {
     // Получаем средний рейтинг из данных офиса (должен приходить с бэкенда)
     const averageRating = office.rating || 0; // Предполагаем, что бэкенд возвращает это поле
-
+    
     // Функция для отрисовки звезд рейтинга
     const renderStars = (rating: number) => {
       const fullStars = Math.floor(rating);
       const hasHalfStar = rating % 1 >= 0.5;
-      let starsHtml = "";
-
+      let starsHtml = '';
+      
       // Полные звезды
       for (let i = 0; i < fullStars; i++) {
-        starsHtml += '<span style="color: gold; font-size: 16px;">★</span>';
+        starsHtml += '<span style="color: #FF3495; font-size: 16px;">★</span>';
       }
-
+      
       // Половина звезды
       if (hasHalfStar) {
-        starsHtml += '<span style="color: gold; font-size: 16px;">½</span>';
+        starsHtml += '<span style="color: #FF3495; font-size: 16px;">½</span>';
       }
-
+      
       // Пустые звезды
       const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
       for (let i = 0; i < emptyStars; i++) {
-        starsHtml +=
-          '<span style="color: lightgray; font-size: 16px;">★</span>';
+        starsHtml += '<span style="color: lightgray; font-size: 16px;">★</span>';
       }
-
+      
       return starsHtml;
     };
-
+  
     return `
-      <div style="width: 350px; height: 150px; border-radius: 16px; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+      <div style="justify-content: center; width: 350px; height: 150px;  display: flex; flex-direction: column; padding: 10px; box-sizing: border-box; background: white; 2px 10px rgba(0,0,0,0.2);">
         <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">${
           office.address
         }</div>
-        <div style="display: flex; margin-bottom: 8px;">
+      <div style="flex-direction: row; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; margin-bottom: 8px; flex-direction: column;">
           <span style="font-size: 14px; color: #666;">Часы работы:</span>
-          <span style="font-size: 14px; margin-left: 8px;">${
+          <span style="font-size: 14px;">${
             office.souring || "9:00 - 18:00"
           }</span>
         </div>
-        <div style="flex-direction: row-reverse; margin-top: auto; display: flex; align-items: center; justify-content: space-between;">
           <button onclick="window.dispatchEvent(new CustomEvent('showComments', { detail: ${
             office.id
           } }))" 
@@ -386,7 +420,7 @@ export default function CoverageMap({
               ${renderStars(averageRating)}
             </div>
             <span style="font-size: 14px; color: #666;">
-              ${averageRating.toFixed(1)}/5
+              ${averageRating.toFixed(1)}
             </span>
           </button>
         </div>
@@ -394,6 +428,7 @@ export default function CoverageMap({
     `;
   };
 
+  
   function handleCheckService(e, service) {
     if (e.target.checked) {
       console.log("да");
@@ -639,6 +674,15 @@ export default function CoverageMap({
             <div className="mt-3 text-sm text-black ml-8 space-y-3">
               {activeTab === "coverage" ? (
                 <>
+                <label className="flex items-center w-2/3">
+                    <input
+                      type="checkbox"
+                      checked={isShowNetwork}
+                      onChange={() => setIsShowNetwork(!isShowNetwork)}
+                      className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
+                    />
+                    Показать покрытие 4G
+                  </label>  
                   <label className="flex items-center w-2/3">
                     <input
                       type="checkbox"
@@ -648,15 +692,7 @@ export default function CoverageMap({
                     />
                     Показать вышки на карте
                   </label>
-                  <label className="flex items-center w-2/3">
-                    <input
-                      type="checkbox"
-                      checked={isShowNetwork}
-                      onChange={() => setIsShowNetwork(!isShowNetwork)}
-                      className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
-                    />
-                    Показать покрытие 4G
-                  </label>
+                  
                 </>
               ) : (
                 <>
@@ -722,14 +758,13 @@ export default function CoverageMap({
                 </h3>
                 <form onSubmit={handleSubmitComment}>
                   <textarea
-                    className="w-full p-2 border border-gray-300 rounded mb-2"
+                    className="w-full p-2 border bg-[#F3F3F3] text-[#B0B0B0] border-gray-300 rounded-[8px] mb-2"
                     rows={3}
                     value={newComment.text}
-                    onChange={(e) =>
-                      setNewComment({ ...newComment, text: e.target.value })
-                    }
-                    placeholder="Ваш комментарий"
+                    onChange={(e) => setNewComment({ ...newComment, text: e.target.value })}
+                    placeholder="Ваш комментарий..."
                   />
+                  
                   <div className="flex items-center mb-4">
                     <span className="mr-2">Оценка:</span>
                     <AddStarRating
@@ -743,11 +778,15 @@ export default function CoverageMap({
                     />
                   </div>
                   <button
-                    type="submit"
-                    className="bg-[#3fcbff] text-white px-4 py-2 rounded"
+                    className="w-[150px] h-10 mb-3 relative text-base bg-black text-white px-6 py-2 rounded-[20px] font-medium overflow-hidden group transition-all duration-300 hover:bg-[#FF3495] flex justify-center items-center mx-auto"
                   >
-                    Отправить
+                    <span className="relative z-10 group-hover:text-white duration-300 text-[20px] font-bold tracking-normal leading-none text-center">
+                      Отправить
+                    </span>
                   </button>
+                  <div className="flex justify-center mb-4">
+                    <div className="w-[50px] h-[5px] bg-[#B0B0B0] rounded-[8px]"></div>
+                  </div>
                 </form>
               </div>
               {comments.length > 0 ? (
@@ -824,7 +863,6 @@ export default function CoverageMap({
                     iconImageHref: "/images/Icons/pointerIcon.svg",
                     iconImageSize: [40, 40],
                     iconImageOffset: [-20, -40],
-                    balloonShadow: true,
                     balloonOffset: [0, 0],
                     balloonAutoPan: true,
                     balloonCloseButton: true,
@@ -867,7 +905,6 @@ export default function CoverageMap({
                     iconImageHref: "/images/Icons/tvTower.svg",
                     iconImageSize: [40, 40],
                     iconImageOffset: [-20, -40],
-                    balloonShadow: true,
                     balloonOffset: [0, 0],
                     balloonAutoPan: true,
                     balloonCloseButton: true,
