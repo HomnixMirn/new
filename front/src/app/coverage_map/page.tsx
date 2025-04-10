@@ -408,13 +408,7 @@ export default function CoverageMap({
         <div style="display: flex; margin-bottom: 8px;">
           <span style="font-size: 14px; color: #666;">Часы работы:</span>
           <span style="font-size: 14px; margin-left: 8px;">${
-            office.working_hours || "9:00 - 18:00"
-          }</span>
-        </div>
-        <div style="display: flex; margin-bottom: 8px;">
-          <span style="font-size: 14px; color: #666;">Телефон:</span>
-          <span style="font-size: 14px; margin-left: 8px;">${
-            office.phone || "+7 (XXX) XXX-XX-XX"
+            office.souring || "9:00 - 18:00"
           }</span>
         </div>
         <div style="flex-direction: row-reverse; margin-top: auto; display: flex; align-items: center; justify-content: space-between;">
