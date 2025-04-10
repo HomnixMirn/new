@@ -857,26 +857,25 @@ export default function CoverageMap({
             {console.log(showTower)}
             {console.log(cells)}
 
-            {console.log(showTower && mapRef?.current.getZoom() >= 10 && cells)}
+            {console.log(showTower && mapRef?.current.getZoom())}
 
             {showTower &&
-              mapRef?.current.getZoom() <= 10 &&
+              mapRef?.current.getZoom() >= 13 &&
               cells.map((cell) => (
                 <Placemark
                   key={cell.id}
                   geometry={[cell.latitude, cell.longitude]}
-
-                  // options={{
-                  //   iconLayout: "default#image",
-                  //   iconImageHref: "/images/Icons/tvTower.svg",
-                  //   iconImageSize: [40, 40],
-                  //   iconImageOffset: [-20, -40],
-                  //   balloonShadow: true,
-                  //   balloonOffset: [0, 0],
-                  //   balloonAutoPan: true,
-                  //   balloonCloseButton: true,
-                  //   balloonPanelMaxMapArea: 0,
-                  // }}
+                  options={{
+                    iconLayout: "default#image",
+                    iconImageHref: "/images/Icons/tvTower.svg",
+                    iconImageSize: [40, 40],
+                    iconImageOffset: [-20, -40],
+                    balloonShadow: true,
+                    balloonOffset: [0, 0],
+                    balloonAutoPan: true,
+                    balloonCloseButton: true,
+                    balloonPanelMaxMapArea: 0,
+                  }}
                 />
               ))}
           </Map>
