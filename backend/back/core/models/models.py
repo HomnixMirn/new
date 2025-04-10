@@ -77,6 +77,16 @@ class cells(models.Model):
     longitude = models.FloatField(null=True, blank=True)
     type = models.CharField(max_length=50)
     
+class NetworkComments(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+    rating = models.IntegerField()
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+    
+    
+    
 
 class authorizedToken(Token):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
