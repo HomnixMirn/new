@@ -30,5 +30,9 @@ export default function Form({
 
   const [imgSrc, setImgSrc] = useState("/images/Icons/cross.svg");
 
-  return <div className="z-1000 w-full h-full absolute bg-black/50"></div>;
+  return (
+    <div className="z-1000 w-full h-full fixed inset-0 bg-black/50">
+      <div className="bg-white rounded-[16px] w-[432px] h-[500px] "></div>
+    </div>
+  );
 }

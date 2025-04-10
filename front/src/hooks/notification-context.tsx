@@ -1,17 +1,19 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
+import axi from "@/utils/api";
+import { API_URL } from "@/index";
 
 interface NotificationManagerType {
   id: number;
   title: string;
-  description: string | React.ReactNode;
+  description: string;
   createdAt: Date;
-  status: number; // Изменено на number
+  status: number;
 }
 
 interface NotificationManagerContextType {
   notifications: NotificationManagerType[];
-  addNotification: (notification: Omit<NotificationManagerType, "id">) => void;
+  addNotification: (notification: NotificationManagerType) => void;
   removeNotification: (id: number) => void;
 }
 
@@ -25,54 +27,44 @@ export const NotificationManagerProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
+  const savedNotifications = localStorage.getItem("notifications");
+  const initialNotifications = savedNotifications
+    ? JSON.parse(savedNotifications)
+    : [];
   const [notifications, setNotifications] = useState<NotificationManagerType[]>(
-    []
+    [...initialNotifications]
   );
 
-  // Инициализация из localStorage
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("notifications");
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setNotifications(
-            parsed.map((n: any) => ({
-              ...n,
-              createdAt: new Date(n.createdAt),
-            }))
-          );
-        } catch (e) {
-          localStorage.removeItem("notifications");
-        }
-      }
-    }
-  }, []);
-
-  // Автосохранение при изменениях
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("notifications", JSON.stringify(notifications));
-    }
-  }, [notifications]);
-
-  const addNotification = async (
-    notification: Omit<NotificationManagerType, "id">
-  ) => {
+  const addNotification = async (notification: NotificationManagerType) => {
     try {
-      const newNotification = {
-        ...notification,
-        id: Date.now(), // Используем timestamp для уникальности ID
-      };
+      notification.id = notifications.length + 1;
+      setNotifications([...notifications, notification]);
+      if (notification.status >= 200 && notification.status < 300) {
+        const newNotifications = [...notifications, notification];
 
-      setNotifications((prev) => [...prev, newNotification]);
-    } catch (error) {
-      console.error("Failed to add notification:", error);
+        localStorage.setItem("notifications", JSON.stringify(newNotifications));
+      }
+      console.log(notifications);
+    } catch {
+      addNotification({
+        id: notifications.length + 1,
+        title: "Ошибка",
+        description: "Произошла ошибка при добавлении уведомления",
+        createdAt: new Date(),
+        status: "error",
+      });
     }
   };
 
   const removeNotification = (id: number) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    setNotifications(
+      notifications.filter((notification) => notification.id !== id)
+    );
+    const newNotifications = [
+      ...notifications.filter((notification) => notification.id !== id),
+    ];
+    console.log(newNotifications);
+    localStorage.setItem("notifications", JSON.stringify(newNotifications));
   };
 
   return (
