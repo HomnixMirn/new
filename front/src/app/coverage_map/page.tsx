@@ -45,6 +45,7 @@ export default function CoverageMap({
   const mapRef = useRef(null);
   const [mapBounds, setMapBounds] = useState([]);
   const [showTower, setShowTower] = useState(false);
+  
   const [showOffices, setShowOffices] = useState(true);
 
   const [filters, setFilters] = useState({
@@ -505,7 +506,6 @@ export default function CoverageMap({
             <Services
               services={services}
               onServiceToggle={servicesUpdateHandle}
-              setServices={setServices}
             />
           ) : (
             <>
@@ -588,33 +588,28 @@ export default function CoverageMap({
         <div
           className={`flex flex-col p-4 ${showComments ? "h-auto" : "h-1/3"}`}
         >
-          {/* Заголовки табов */}
           <div className="flex space-x-20 text-xl font-medium justify-center">
             <button
-              onClick={() =>
-                setActiveTab(showComments ? "offices" : "comments")
-              }
+              onClick={() => setActiveTab("coverage")}
               className={`pb-1 border-b-2 transition-colors duration-200 ${
-                activeTab === "comments"
+                activeTab === "coverage"
                   ? "border-[#E6007E] text-black"
                   : "border-transparent text-black hover:text-[#E6007E]"
               }`}
             >
-              {showComments ? "" : "Карта покрытия"}
+              Карта покрытия
             </button>
 
-            {!showComments && (
-              <button
-                onClick={handleBackToOffices}
-                className={`pb-1 border-b-2 transition-colors duration-200 ${
-                  activeTab === "offices"
-                    ? "border-[#E6007E] text-black"
-                    : "border-transparent text-black hover:text-[#E6007E]"
-                }`}
-              >
-                Офисы
-              </button>
-            )}
+            <button
+              onClick={() => setActiveTab("offices")}
+              className={`pb-1 border-b-2 transition-colors duration-200 ${
+                activeTab === "offices"
+                  ? "border-[#E6007E] text-black"
+                  : "border-transparent text-black hover:text-[#E6007E]"
+              }`}
+            >
+              Офисы
+            </button>
           </div>
 
           {/* Показывать поиск и фильтры только если !showComments */}
@@ -655,7 +650,7 @@ export default function CoverageMap({
                     <label className="flex items-center w-2/3">
                       <input
                         type="checkbox"
-                        checked={showRatings}
+                        // checked={showRatings}
                         onChange={() => setShowRatings(!showRatings)}
                         className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
                       />
@@ -698,79 +693,12 @@ export default function CoverageMap({
                   </>
                 )}
               </div>
-            </>
-          )}
+             </>
+          )} 
         </div>
 
-        <div
-          className={`flex-1 ${showComments ? "bg-white" : "bg-black"} text-${
-            showComments ? "black" : "white"
-          } py-4 px-10 overflow-y-auto custom-scrollbar`}
-        >
-          {activeTab === "offices" && <Offices />}
-
-          {showComments && (
-            <div className="h-full">
-              <div className="flex items-center mb-4 justify-between">
-                <h2 className="text-xl font-bold">Комментарии</h2>
-                <button
-                  onClick={handleBackToOffices}
-                  className="text-black hover:text-[#E6007E] text-2xl mr-2"
-                >
-                  →
-                </button>
-              </div>
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-3">
-                  Добавить комментарий
-                </h3>
-                <form onSubmit={handleSubmitComment}>
-                  <textarea
-                    className="w-full p-2 border border-gray-300 rounded mb-2"
-                    rows={3}
-                    value={newComment.text}
-                    onChange={(e) =>
-                      setNewComment({ ...newComment, text: e.target.value })
-                    }
-                    placeholder="Ваш комментарий"
-                  />
-                  <div className="flex items-center mb-4">
-                    <span className="mr-2">Оценка:</span>
-                    <AddStarRating
-                      value={newComment.rating}
-                      onChange={(rating) => {
-                        setNewComment((prev) => ({
-                          ...prev,
-                          rating: rating || 0,
-                        }));
-                      }}
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="bg-[#3fcbff] text-white px-4 py-2 rounded"
-                  >
-                    Отправить
-                  </button>
-                </form>
-              </div>
-              {comments.length > 0 ? (
-                comments.map((comment) => (
-                  <div
-                    key={comment.id}
-                    className="mb-4 p-3 border-b border-gray-200"
-                  >
-                    <div className="flex items-center mb-2">
-                      <StarRating rating={comment.rating} />
-                    </div>
-                    <p className="text-gray-800">{comment.text}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500">Нет комментариев</p>
-              )}
-            </div>
-          )}
+        <div className="flex-1 bg-black text-white py-4 px-10 overflow-y-auto custom-scrollbar">
+          <Offices />
         </div>
       </div>
       {/* commend please dont delet*/}
