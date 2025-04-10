@@ -76,21 +76,21 @@ export default function LoginForm({
 
   return (
     <div className="bg-black/50 fixed inset-0 flex items-center justify-center z-50">
-      <div className="bg-white rounded-[16px] w-[650px] h-[400px] p-5 box-border flex">
-        <div>
-          <p>Вход</p>
+      <div className="bg-white justify-between rounded-[14px] w-[650px] h-[400px] p-5 box-border flex">
+        <div className="justify-center">
+          <p className="text-7xl">Вход</p>
           <form
             onSubmit={handleSubmit}
             className="flex items-center gap-8 h-[calc(100%-50px)]"
           >
-            <div className="flex justify-center items-center h-full relative">
+            <div className="flex mt-8 justify-center items-center h-full relative">
               <div>
-                <p className="text-[#aaa] ml-[8px]">Введите логин и пароль</p>
+                <p className="text-[#aaa] ml-[8px] text-sm">Введите логин и пароль</p>
                 <div className="mb-2">
                   <input
                     type="text"
-                    className="mt-[5px] w-[220px] h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
-                    placeholder="Введите номер телефона"
+                    className="mt-[5px] w-full h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
+                    placeholder="Логин"
                     value={login}
                     onChange={(e) => setLogin(e.target.value)}
                     required
@@ -101,7 +101,7 @@ export default function LoginForm({
                 <div className="mb-4">
                   <input
                     type="password"
-                    className="w-[220px] h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
+                    className="w-full h-[38px] p-2 bg-cover border-black rounded-[10px] bg-[#F3F3F3] placeholder:text-[#B0B0B0]"
                     placeholder="Пароль"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -110,19 +110,15 @@ export default function LoginForm({
                     autoComplete="current-password"
                   />
                 </div>
-                <div className="flex flex-col items-center gap-2">
-                  <HollowButton
-                    type="submit"
-                    label={isLoading ? "Вход..." : "Войти"}
-                  />
-                  <button
-                    type="button"
-                    onClick={onRegisterOpen}
-                    className="text-black hover:underline cursor-pointer text-sm"
-                    disabled={isLoading}
-                  >
-                    Уже есть аккаунт? Войти
-                  </button>
+                <div className="flex flex-col items-center ">
+                <button
+                  className="w-full h-10
+                  relative mt-15 text-base bg-black text-white px-6 py-2 rounded-[20px] font-medium overflow-hidden group transition-all duration-300 hover:bg-[#FF3495] flex justify-center items-center"
+                >
+                  <span className="relative z-10 group-hover:text-white duration-300 text-[20px] font-bold tracking-normal leading-none text-center">
+                    Войти
+                  </span>
+                </button>
                 </div>
               </div>
             </div>
