@@ -383,12 +383,12 @@ export default function CoverageMap({
       
       // Полные звезды
       for (let i = 0; i < fullStars; i++) {
-        starsHtml += '<span style="color: gold; font-size: 16px;">★</span>';
+        starsHtml += '<span style="color: #FF3495; font-size: 16px;">★</span>';
       }
       
       // Половина звезды
       if (hasHalfStar) {
-        starsHtml += '<span style="color: gold; font-size: 16px;">½</span>';
+        starsHtml += '<span style="color: #FF3495; font-size: 16px;">½</span>';
       }
       
       // Пустые звезды
@@ -420,7 +420,7 @@ export default function CoverageMap({
               ${renderStars(averageRating)}
             </div>
             <span style="font-size: 14px; color: #666;">
-              ${averageRating.toFixed(1)}/5
+              ${averageRating.toFixed(1)}
             </span>
           </button>
         </div>
@@ -777,7 +777,6 @@ export default function CoverageMap({
                       }}
                     />
                   </div>
-                  
                   <button
                     className="w-[150px] h-10 mb-3 relative text-base bg-black text-white px-6 py-2 rounded-[20px] font-medium overflow-hidden group transition-all duration-300 hover:bg-[#FF3495] flex justify-center items-center mx-auto"
                   >
@@ -785,7 +784,6 @@ export default function CoverageMap({
                       Отправить
                     </span>
                   </button>
-                  
                   <div className="flex justify-center mb-4">
                     <div className="w-[50px] h-[5px] bg-[#B0B0B0] rounded-[8px]"></div>
                   </div>
