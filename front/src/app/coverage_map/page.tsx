@@ -5,7 +5,6 @@ import {
   Map,
   Placemark,
   Clusterer,
-  Circle,
   Polygon,
 } from "@pbe/react-yandex-maps";
 import axi from "@/utils/api";
@@ -15,6 +14,7 @@ import Link from "next/link";
 import AddStarRating from "../components/star_rating/add_star_rating";
 import StarRating from "../components/star_rating/star_rating";
 import * as turf from "@turf/turf";
+import { useNotificationManager } from "@/hooks/notification-context";
 
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
@@ -52,6 +52,15 @@ export default function CoverageMap({
     worksOnWeekends: false,
     worksNow: false,
   });
+
+  const [initialCenter, setInitialCenter] = useState([56.19, 44.0]);
+  const [initialZoom, setInitialZoom] = useState(10);
+  const isCenteredRef = useRef(false);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(
+    null
+  );
+  const watchIdRef = useRef<number | null>(null);
+  const { addNotification } = useNotificationManager();
 
   const handleFilterChange = (filterName) => {
     setFilters((prevFilters) => ({
@@ -145,36 +154,70 @@ export default function CoverageMap({
   };
 
   useEffect(() => {
-    let query = "";
-    if (filters.worksNow) {
-      const time = new Date();
-      query += `filters=${time.getHours()}&`;
-    }
-    if (search !== "") {
-      query += `search=${search}&`;
-    }
-    if (services !== []) {
-      query += "services=" + services.map((service) => `${service}`).join(",");
-    }
+    const loadOffices = async () => {
+      try {
+        let query = "";
+        if (filters.worksNow) {
+          const time = new Date();
+          query += `filters=${time.getHours()}&`;
+        }
+        if (search !== "") {
+          query += `search=${search}&`;
+        }
+        if (services !== []) {
+          query +=
+            "services=" + services.map((service) => `${service}`).join(",");
+        }
 
-    axi.get("/map/all_office?" + query).then((response) => {
-      console.log(response.data);
-      setOffices([...response.data]);
-    });
+        const response = await axi.get(`/map/all_office?${query}`);
+        setOffices([...response.data]);
+      } catch (error) {
+        const errorMessage =
+          error.response?.data?.message || "Ошибка при загрузке офисов";
+        addNotification({
+          id: Date.now().toString(),
+          title: "Ошибка загрузки",
+          description: errorMessage,
+          status: 500,
+          createdAt: new Date().toISOString(),
+        });
+      }
+    };
+
+    loadOffices();
   }, [services, filters, search]);
 
   useEffect(() => {
-    const data = {
-      left_bottom: mapBounds[0],
-      right_top: mapBounds[1],
-    };
-    axi.post("/map/all_cells", data).then((response) => {
-      if (!response.data || response.data.length === 0) {
-        return;
+    const loadCells = async () => {
+      try {
+        const data = {
+          left_bottom: mapBounds[0],
+          right_top: mapBounds[1],
+        };
+        const response = await axi.post("/map/all_cells", data);
+
+        if (!response.data || response.data.length === 0) {
+          return;
+        }
+
+        const cells = response.data;
+        generateMergedCoverage([...cells]);
+      } catch (error) {
+        const errorMessage =
+          error.response?.data?.message || "Ошибка при загрузке зон покрытия";
+        addNotification({
+          id: Date.now().toString(),
+          title: "Ошибка загрузки",
+          description: errorMessage,
+          status: 500,
+          createdAt: new Date().toISOString(),
+        });
       }
-      const cells = response.data;
-      generateMergedCoverage([...cells]);
-    });
+    };
+
+    if (mapBounds.length > 0) {
+      loadCells();
+    }
   }, [mapBounds]);
 
   const generateMergedCoverage = (cells) => {
@@ -212,6 +255,13 @@ export default function CoverageMap({
       setMergedCoverage(processedCoords);
     } catch (error) {
       console.error("Error merging coverage:", error);
+      addNotification({
+        id: Date.now().toString(),
+        title: "Ошибка обработки",
+        description: "Не удалось сгенерировать зону покрытия",
+        status: 500,
+        createdAt: new Date().toISOString(),
+      });
     }
   };
 
@@ -251,7 +301,15 @@ export default function CoverageMap({
       setSelectedOffice(officeId);
       setNewComment((prev) => ({ ...prev, officeId }));
     } catch (error) {
-      console.error("Error fetching comments:", error.response?.data);
+      const errorMessage =
+        error.response?.data?.message || "Ошибка при загрузке комментариев";
+      addNotification({
+        id: Date.now().toString(),
+        title: "Ошибка загрузки",
+        description: errorMessage,
+        status: 500,
+        createdAt: new Date().toISOString(),
+      });
     }
   };
 
@@ -292,7 +350,15 @@ export default function CoverageMap({
         officeId: newComment.officeId,
       });
     } catch (error) {
-      console.error("Error adding comment:", error);
+      const errorMessage =
+        error.response?.data?.message || "Ошибка при отправке комментария";
+      addNotification({
+        id: Date.now().toString(),
+        title: "Ошибка",
+        description: errorMessage,
+        status: 500,
+        createdAt: new Date().toISOString(),
+      });
     }
   };
 
@@ -486,6 +552,36 @@ export default function CoverageMap({
     );
   }
 
+  useEffect(() => {
+    const handleSuccess = (position: GeolocationPosition) => {
+      const { latitude, longitude } = position.coords;
+      setUserLocation([latitude, longitude]);
+
+      if (!isCenteredRef.current && mapRef.current) {
+        mapRef.current.panTo([latitude, longitude], { flying: true });
+        isCenteredRef.current = true;
+      }
+    };
+
+    const handleError = (error: GeolocationPositionError) => {
+      console.error("Ошибка геолокации:", error);
+    };
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(handleSuccess, handleError);
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        handleSuccess,
+        handleError
+      );
+    }
+
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="flex h-[calc(100vh-68px)] overflow-hidden">
       <div className="w-1/4 bg-white flex flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
@@ -527,7 +623,7 @@ export default function CoverageMap({
               <div className="mt-4 relative flex justify-center">
                 <input
                   type="text"
-                  placeholder="Что хочешь найти?"
+                  placeholder="Введите адрес офиса"
                   value={search}
                   onChange={(e) => {
                     setSearch(e.target.value);
@@ -683,26 +779,35 @@ export default function CoverageMap({
         <YMaps query={{ apikey: apiKey }}>
           <Map
             instanceRef={(ref) => {
-              console.log(ref);
-              if (ref) {
-                mapRef.current = ref;
-              }
+              if (ref) mapRef.current = ref;
             }}
             defaultState={{
-              center: [56.19, 44.0],
-              zoom: 10,
+              center: initialCenter,
+              zoom: initialZoom,
             }}
             width="100%"
             height="100%"
             onBoundsChange={handleBoundsChange}
           >
+            {userLocation && (
+              <Placemark
+                geometry={userLocation}
+                options={{
+                  iconLayout: "default#image",
+                  iconImageHref: "/images/Icons/Raul.svg",
+                  iconImageSize: [40, 40],
+                  iconImageOffset: [-20, -40],
+                  zIndex: 100000,
+                }}
+              />
+            )}
             <Clusterer
               options={{
                 preset: "islands#blackClusterIcons",
                 groupByCoordinates: false,
                 clusterDisableClickZoom: true,
                 clusterOpenBalloonOnClick: false,
-                zIndex: 1000,
+                zIndex: 10,
                 iconColor: "#000000",
                 iconSize: [40, 40],
               }}
