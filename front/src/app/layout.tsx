@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { UserProvider } from "@/hooks/user-context";
 import { NotificationManagerProvider } from "@/hooks/notification-context";
+import { GEOProvider } from "@/hooks/geo-context";
 import Header from "./components/header/page";
 import Notifications from "./components/notifications/page";
 
@@ -27,16 +28,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <UserProvider>
-      <NotificationManagerProvider>
-        <html lang="en">
-          <body>
-            <Header />
-            <Notifications />
-            {children}
-          </body>
-        </html>
-      </NotificationManagerProvider>
-    </UserProvider>
+    <GEOProvider>
+      <UserProvider>
+        <NotificationManagerProvider>
+          <html lang="en">
+            <body>
+              <Header />
+              <Notifications />
+              {children}
+            </body>
+          </html>
+        </NotificationManagerProvider>
+      </UserProvider>
+    </GEOProvider>
   );
 }

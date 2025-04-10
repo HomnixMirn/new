@@ -5,6 +5,7 @@ import { useNotificationManager } from "@/hooks/notification-context";
 import BlackCloseButton from "@/app/components/buttons/black_close_button/page";
 import SaveButton from "../buttons/save_button/page";
 import AddStarRating from "@/app/components/star_rating/add_star_rating";
+import { useGEO } from "@/hooks/geo-context";
 
 interface RatingFormProps {
   onClose: () => void;
@@ -22,27 +23,13 @@ export default function RatingForm({ onClose }: RatingFormProps) {
 
   const { addNotification } = useNotificationManager();
 
-  useEffect(() => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setCoordinates({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-      },
-      (error) => {
-        console.error("Error getting location:", error);
-        setError(
-          "Для отправки оценки необходимо разрешить доступ к геолокации"
-        );
-      }
-    );
-  }, []);
+  const {GEO} = useGEO()
+  console.log(GEO)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!coordinates) {
+    if (!GEO) {
       setError("Ожидание получения геопозиции...");
       return;
     }
@@ -56,8 +43,8 @@ export default function RatingForm({ onClose }: RatingFormProps) {
     try {
       await axi.post("/map/add_network_comment", {
         text: comment.trim(),
-        latitude: coordinates.latitude,
-        longitude: coordinates.longitude,
+        latitude: GEO.latitude,
+        longitude: GEO.longitude,
         rating: rating,
       });
 
