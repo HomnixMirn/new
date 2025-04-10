@@ -33,15 +33,7 @@ export default function Home() {
 
   return (
     <div>
-      {isFormOpen && (
-        <Form
-          onClose={() => setIsLoginOpen(false)}
-          onRegisterOpen={() => {
-            setIsLoginOpen(false);
-            setIsRegisterOpen(true);
-          }}
-        />
-      )}
+      {isFormOpen && <Form onClose={() => setIsFormOpen(false)} />}
 
       <CoverageMap />
     </div>
