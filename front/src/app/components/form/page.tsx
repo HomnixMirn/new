@@ -48,13 +48,8 @@ export default function RatingForm({ onClose }: RatingFormProps) {
         rating: rating,
       });
 
-      addNotification({
-        type: "success",
-        message: "Спасибо за ваш отзыв!",
-      });
-      onClose();
+    onClose();
     } catch (error) {
-      setError("Ошибка при отправке отзыва");
       console.error("Submission error:", error);
     } finally {
       setIsLoading(false);

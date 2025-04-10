@@ -44,6 +44,9 @@ export const NotificationManagerProvider = ({
 
         localStorage.setItem("notifications", JSON.stringify(newNotifications));
       }
+      else{
+        localStorage.removeItem('notifications')
+      }
       console.log(notifications);
     } catch {
       addNotification({

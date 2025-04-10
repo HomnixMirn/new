@@ -172,13 +172,6 @@ export default function CoverageMap({
       } catch (error) {
         const errorMessage =
           error.response?.data?.message || "Ошибка при загрузке офисов";
-        addNotification({
-          id: Date.now().toString(),
-          title: "Ошибка загрузки",
-          description: errorMessage,
-          status: 500,
-          createdAt: new Date().toISOString(),
-        });
       }
     };
 
@@ -205,13 +198,6 @@ export default function CoverageMap({
         } catch (error) {
           const errorMessage =
             error.response?.data?.message || "Ошибка при загрузке зон покрытия";
-          addNotification({
-            id: Date.now().toString(),
-            title: "Ошибка загрузки",
-            description: errorMessage,
-            status: 500,
-            createdAt: new Date().toISOString(),
-          });
         }
       };
 
@@ -260,13 +246,6 @@ export default function CoverageMap({
       setMergedCoverage(processedCoords);
     } catch (error) {
       console.error("Error merging coverage:", error);
-      addNotification({
-        id: Date.now().toString(),
-        title: "Ошибка обработки",
-        description: "Не удалось сгенерировать зону покрытия",
-        status: 500,
-        createdAt: new Date().toISOString(),
-      });
     }
   };
 
@@ -308,13 +287,6 @@ export default function CoverageMap({
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || "Ошибка при загрузке комментариев";
-      addNotification({
-        id: Date.now().toString(),
-        title: "Ошибка загрузки",
-        description: errorMessage,
-        status: 500,
-        createdAt: new Date().toISOString(),
-      });
     }
   };
 
@@ -357,13 +329,6 @@ export default function CoverageMap({
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || "Ошибка при отправке комментария";
-      addNotification({
-        id: Date.now().toString(),
-        title: "Ошибка",
-        description: errorMessage,
-        status: 500,
-        createdAt: new Date().toISOString(),
-      });
     }
   };
 
@@ -760,11 +725,11 @@ export default function CoverageMap({
                     key={comment.id}
                     className="mb-4 p-3 border-b border-gray-200"
                   >
+                    <h1 className="font-bold text-[25px]">{comment.author.user.username}</h1>
                     <div className="flex items-center mb-2">
                       <StarRating rating={comment.rating} />
                     </div>
                     <p className="text-gray-800">{comment.text}</p>
-                    <p>{comment.author.user.username}</p>
                   </div>
                 ))
               ) : (
