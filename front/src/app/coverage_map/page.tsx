@@ -364,8 +364,36 @@ export default function CoverageMap({
   };
 
   const createBalloonContent = (office) => {
+    // Получаем средний рейтинг из данных офиса (должен приходить с бэкенда)
+    const averageRating = office.rating || 0; // Предполагаем, что бэкенд возвращает это поле
+    
+    // Функция для отрисовки звезд рейтинга
+    const renderStars = (rating: number) => {
+      const fullStars = Math.floor(rating);
+      const hasHalfStar = rating % 1 >= 0.5;
+      let starsHtml = '';
+      
+      // Полные звезды
+      for (let i = 0; i < fullStars; i++) {
+        starsHtml += '<span style="color: gold; font-size: 16px;">★</span>';
+      }
+      
+      // Половина звезды
+      if (hasHalfStar) {
+        starsHtml += '<span style="color: gold; font-size: 16px;">½</span>';
+      }
+      
+      // Пустые звезды
+      const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+      for (let i = 0; i < emptyStars; i++) {
+        starsHtml += '<span style="color: lightgray; font-size: 16px;">★</span>';
+      }
+      
+      return starsHtml;
+    };
+  
     return `
-      <div style="width: 350px; height: 130px; border-radius: 16px; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+      <div style="width: 350px; height: 150px; border-radius: 16px; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
         <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">${
           office.address
         }</div>
@@ -381,15 +409,27 @@ export default function CoverageMap({
             office.phone || "+7 (XXX) XXX-XX-XX"
           }</span>
         </div>
-        <button onclick="window.dispatchEvent(new CustomEvent('showComments', { detail: ${
-          office.id
-        } }))" 
-          style="margin-top: auto; background: #3fcbff; border: none; padding: 8px 16px; border-radius: 4px; color: white; cursor: pointer; align-self: flex-start;">
-          Показать комментарии
-        </button>
+        <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center;">
+            <div style="font-size: 16px; margin-right: 8px;">
+              ${renderStars(averageRating)}
+            </div>
+            <span style="font-size: 14px; color: #666;">
+              ${averageRating.toFixed(1)}/5
+            </span>
+          </div>
+          <button onclick="window.dispatchEvent(new CustomEvent('showComments', { detail: ${
+            office.id
+          } }))" 
+            style="background: #3fcbff; border: none; padding: 6px 12px; border-radius: 4px; color: white; cursor: pointer; font-size: 12px;">
+            Комментарии (${office.comments_count || 0})
+          </button>
+        </div>
       </div>
     `;
   };
+
+  
   function handleCheckService(e, service) {
     if (e.target.checked) {
       console.log("да");
