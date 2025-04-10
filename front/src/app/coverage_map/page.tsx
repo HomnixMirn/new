@@ -761,7 +761,7 @@ export default function CoverageMap({
                     key={comment.id}
                     className="mb-4 p-3 border-b border-gray-200"
                   >
-                    <h1 className="font-bold">{comment.author.user.username}</h1>
+                    <h1 className="font-bold text-[25px]">{comment.author.user.username}</h1>
                     <div className="flex items-center mb-2">
                       <StarRating rating={comment.rating} />
                     </div>
