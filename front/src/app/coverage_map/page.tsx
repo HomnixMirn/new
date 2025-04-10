@@ -15,6 +15,7 @@ import AddStarRating from "../components/star_rating/add_star_rating";
 import StarRating from "../components/star_rating/star_rating";
 import * as turf from "@turf/turf";
 import { useNotificationManager } from "@/hooks/notification-context";
+import { useRouter } from "next/navigation";
 
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
