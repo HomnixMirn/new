@@ -154,3 +154,19 @@ def get_cells(request: Request):
     
     else:
         return Response('Метод не поддерживается',status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+
+@api_view(["POST"])
+@token_required
+def addNetworkComment(request: Request):
+    if request.method == 'POST':
+        data = request.data
+        try:
+            text = data['text']
+            latitude = data['latitude']
+            longitude = data['longitude']
+            rating = data['rating']
+            newComment = NetworkComments.objects.create(text=text, latitude=latitude, longitude=longitude, rating=rating, user=request.user)
+            return Response('Комментарий добавлен', status=status.HTTP_200_OK)
+        except:
+            return Response('Произошла ошибка при добавлении комментария', status=status.HTTP_406_NOT_ACCEPTABLE)
