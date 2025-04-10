@@ -26,7 +26,7 @@ export default function Home() {
         id: 0,
         status: "помогите улчшить сервис!",
       });
-    }, 5 * 1000);
+    }, 2* 60 * 1000);
 
     return () => clearTimeout(timer);
   }, []);
