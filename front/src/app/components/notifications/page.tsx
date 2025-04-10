@@ -20,7 +20,7 @@ export default function Notifications() {
   const getStatusText = (status: number) => {
     if (status >= 200 && status < 300) return "Успешно";
     if (status >= 400 && status < 500) return `Ошибка ${status}`;
-    return `Статус ${status}`;
+    return `Статус: ${status}`;
   };
 
   // Функция для добавления анимации только один раз

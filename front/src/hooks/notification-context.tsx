@@ -39,8 +39,11 @@ export const NotificationManagerProvider = ({
     try {
       notification.id = notifications.length + 1;
       setNotifications([...notifications, notification]);
+      if (notification.status >= 200 && notification.status < 300) {
       const newNotifications = [...notifications, notification];
+
       localStorage.setItem("notifications", JSON.stringify(newNotifications));
+      }
       console.log(notifications);
     } catch {
       addNotification({
@@ -63,7 +66,7 @@ export const NotificationManagerProvider = ({
     console.log(newNotifications);
     localStorage.setItem("notifications", JSON.stringify(newNotifications));
   };
-
+  
   return (
     <NotificationManagerContext.Provider
       value={{ notifications, addNotification, removeNotification }}
