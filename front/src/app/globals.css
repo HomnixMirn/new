@@ -1,20 +1,21 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: 'T2 Rooftop';
-  src: url('/fonts/T2_Rooftop-Regular.woff2') format('woff2');
+  font-family: "T2 Rooftop";
+  src: url("/fonts/T2_Rooftop-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'T2 Halvar';
-  src: url('/fonts/HalvarBreitt2-XBd.woff2') format('woff2');
+  font-family: "T2 Halvar";
+  src: url("/fonts/HalvarBreitt2-XBd.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
+
 @layer base {
   :root {
     /* 1. Определяем CSS-переменные для шрифтов */
@@ -27,7 +28,8 @@
   }
 
   /* 3. Применяем переменные к HTML/body */
-  html, body {
+  html,
+  body {
     font-family: var(--font-sans);
     background-color: var(--color-background);
     color: var(--color-foreground);
