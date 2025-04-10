@@ -224,8 +224,8 @@ export default function CoverageMap({
       loadCells();
     }
   }
-  if (!isShowNetwork){
-    setMergedCoverage([])
+  else{
+    setMapBounds([]);
   }
   }, [mapBounds, isShowNetwork]);
 
@@ -847,8 +847,22 @@ export default function CoverageMap({
             
             {showTower && mapRef?.current.getZoom() <= 10 && cells.map((cell) =>(
               <Placemark
-                  key={cell.id}
+
+              key={cell.id}
                   geometry={[cell.latitude, cell.longitude]}
+                  
+                  // options={{
+                  //   iconLayout: "default#image",
+                  //   iconImageHref: "/images/Icons/tvTower.svg",
+                  //   iconImageSize: [40, 40],
+                  //   iconImageOffset: [-20, -40],
+                  //   balloonShadow: true,
+                  //   balloonOffset: [0, 0],
+                  //   balloonAutoPan: true,
+                  //   balloonCloseButton: true,
+                  //   balloonPanelMaxMapArea: 0,
+                  // }}
+                  
               />
             ))}
           </Map>
