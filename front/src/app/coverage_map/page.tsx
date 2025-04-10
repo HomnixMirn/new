@@ -674,6 +674,15 @@ export default function CoverageMap({
             <div className="mt-3 text-sm text-black ml-8 space-y-3">
               {activeTab === "coverage" ? (
                 <>
+                <label className="flex items-center w-2/3">
+                    <input
+                      type="checkbox"
+                      checked={isShowNetwork}
+                      onChange={() => setIsShowNetwork(!isShowNetwork)}
+                      className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
+                    />
+                    Показать покрытие 4G
+                  </label>  
                   <label className="flex items-center w-2/3">
                     <input
                       type="checkbox"
@@ -683,15 +692,7 @@ export default function CoverageMap({
                     />
                     Показать вышки на карте
                   </label>
-                  <label className="flex items-center w-2/3">
-                    <input
-                      type="checkbox"
-                      checked={isShowNetwork}
-                      onChange={() => setIsShowNetwork(!isShowNetwork)}
-                      className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
-                    />
-                    Показать покрытие 4G
-                  </label>
+                  
                 </>
               ) : (
                 <>
