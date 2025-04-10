@@ -374,29 +374,15 @@ export default function CoverageMap({
         <div style="display: flex; margin-bottom: 8px;">
           <span style="font-size: 14px; color: #666;">Часы работы:</span>
           <span style="font-size: 14px; margin-left: 8px;">${
-            office.working_hours || "9:00 - 18:00"
+            office.souring || "9:00 - 18:00"
           }</span>
         </div>
-        <div style="display: flex; margin-bottom: 8px;">
-          <span style="font-size: 14px; color: #666;">Телефон:</span>
-          <span style="font-size: 14px; margin-left: 8px;">${
-            office.phone || "+7 (XXX) XXX-XX-XX"
-          }</span>
-        </div>
-        <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between;">
-          <div style="display: flex; align-items: center;">
-            <div style="font-size: 16px; margin-right: 8px;">
-              ${renderStars(averageRating)}
-            </div>
-            <span style="font-size: 14px; color: #666;">
-              ${averageRating.toFixed(1)}/5
-            </span>
-          </div>
+        <div style="flex-direction: row-reverse; margin-top: auto; display: flex; align-items: center; justify-content: space-between;">
           <button onclick="window.dispatchEvent(new CustomEvent('showComments', { detail: ${
             office.id
           } }))" 
-            style="background: #3fcbff; border: none; padding: 6px 12px; border-radius: 4px; color: white; cursor: pointer; font-size: 12px;">
-            <div style="font-size: 16px; margin-right: 8px;">
+            style=" border: none; padding: 6px 12px; color: white; cursor: pointer; font-size: 12px; display: flex; width: 130px; justify-content: space-between;">
+            <div style="font-size: 16px; margin-: 8px;">
               ${renderStars(averageRating)}
             </div>
             <span style="font-size: 14px; color: #666;">
