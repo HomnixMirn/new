@@ -10,12 +10,11 @@ import {
 import axi from "@/utils/api";
 import Image from "next/image";
 import Services from "../servecesFilter/page";
-import Link from "next/link";
 import AddStarRating from "../components/star_rating/add_star_rating";
 import StarRating from "../components/star_rating/star_rating";
 import * as turf from "@turf/turf";
 import { useNotificationManager } from "@/hooks/notification-context";
-import { useRouter } from "next/navigation";
+import { useGEO } from "@/hooks/geo-context";
 
 export default function CoverageMap({
   apiKey = "43446600-2296-4713-9c16-4baf8af7f5fd",
@@ -40,7 +39,6 @@ export default function CoverageMap({
     rating: 5,
     officeId: null,
   });
-  // comment please dont delete
 
   const [selectedOffice, setSelectedOffice] = useState(null);
   const mapRef = useRef(null);
@@ -57,12 +55,9 @@ export default function CoverageMap({
   });
 
   const [initialCenter, setInitialCenter] = useState([56.19, 44.0]);
-  const [initialZoom, setInitialZoom] = useState(10);
   const isCenteredRef = useRef(false);
-  const [userLocation, setUserLocation] = useState<[number, number] | null>(
-    null
-  );
-  const watchIdRef = useRef<number | null>(null);
+  const { GEO } = useGEO();
+
   const { addNotification } = useNotificationManager();
 
   const handleFilterChange = (filterName) => {
@@ -226,7 +221,7 @@ export default function CoverageMap({
     }
     if (!isShowNetwork) {
       setMergedCoverage([]);
-      setCells([])
+      setCells([]);
     }
   }, [mapBounds, isShowNetwork]);
 
@@ -375,32 +370,33 @@ export default function CoverageMap({
   const createBalloonContent = (office) => {
     // Получаем средний рейтинг из данных офиса (должен приходить с бэкенда)
     const averageRating = office.rating || 0; // Предполагаем, что бэкенд возвращает это поле
-    
+
     // Функция для отрисовки звезд рейтинга
     const renderStars = (rating: number) => {
       const fullStars = Math.floor(rating);
       const hasHalfStar = rating % 1 >= 0.5;
-      let starsHtml = '';
-      
+      let starsHtml = "";
+
       // Полные звезды
       for (let i = 0; i < fullStars; i++) {
         starsHtml += '<span style="color: #FF3495; font-size: 16px;">★</span>';
       }
-      
+
       // Половина звезды
       if (hasHalfStar) {
         starsHtml += '<span style="color: #FF3495; font-size: 16px;">½</span>';
       }
-      
+
       // Пустые звезды
       const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
       for (let i = 0; i < emptyStars; i++) {
-        starsHtml += '<span style="color: lightgray; font-size: 16px;">★</span>';
+        starsHtml +=
+          '<span style="color: lightgray; font-size: 16px;">★</span>';
       }
-      
+
       return starsHtml;
     };
-  
+
     return `
       <div style="justify-content: center; width: 350px; height: 150px;  display: flex; flex-direction: column; padding: 10px; box-sizing: border-box; background: white; 2px 10px rgba(0,0,0,0.2);">
         <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">${
@@ -429,7 +425,6 @@ export default function CoverageMap({
     `;
   };
 
-  
   function handleCheckService(e, service) {
     if (e.target.checked) {
       console.log("да");
@@ -593,36 +588,6 @@ export default function CoverageMap({
     );
   }
 
-  useEffect(() => {
-    const handleSuccess = (position: GeolocationPosition) => {
-      const { latitude, longitude } = position.coords;
-      setUserLocation([latitude, longitude]);
-
-      if (!isCenteredRef.current && mapRef.current) {
-        mapRef.current.panTo([latitude, longitude], { flying: true });
-        isCenteredRef.current = true;
-      }
-    };
-
-    const handleError = (error: GeolocationPositionError) => {
-      console.error("Ошибка геолокации:", error);
-    };
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(handleSuccess, handleError);
-      watchIdRef.current = navigator.geolocation.watchPosition(
-        handleSuccess,
-        handleError
-      );
-    }
-
-    return () => {
-      if (watchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
-      }
-    };
-  }, []);
-
   return (
     <div className="flex h-[calc(100vh-68px)] overflow-hidden">
       <div className="w-1/4 bg-white flex flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
@@ -675,7 +640,7 @@ export default function CoverageMap({
             <div className="mt-3 text-sm text-black ml-8 space-y-3">
               {activeTab === "coverage" ? (
                 <>
-                <label className="flex items-center w-2/3">
+                  <label className="flex items-center w-2/3">
                     <input
                       type="checkbox"
                       checked={isShowNetwork}
@@ -683,7 +648,7 @@ export default function CoverageMap({
                       className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
                     />
                     Показать покрытие 4G
-                  </label>  
+                  </label>
                   <label className="flex items-center w-2/3">
                     <input
                       type="checkbox"
@@ -693,7 +658,6 @@ export default function CoverageMap({
                     />
                     Показать вышки на карте
                   </label>
-                  
                 </>
               ) : (
                 <>
@@ -762,10 +726,12 @@ export default function CoverageMap({
                     className="w-full p-2 border bg-[#F3F3F3] text-[#B0B0B0] border-gray-300 rounded-[8px] mb-2"
                     rows={3}
                     value={newComment.text}
-                    onChange={(e) => setNewComment({ ...newComment, text: e.target.value })}
+                    onChange={(e) =>
+                      setNewComment({ ...newComment, text: e.target.value })
+                    }
                     placeholder="Ваш комментарий..."
                   />
-                  
+
                   <div className="flex items-center mb-4">
                     <span className="mr-2">Оценка:</span>
                     <AddStarRating
@@ -778,9 +744,7 @@ export default function CoverageMap({
                       }}
                     />
                   </div>
-                  <button
-                    className="w-[150px] h-10 mb-3 relative text-base bg-black text-white px-6 py-2 rounded-[20px] font-medium overflow-hidden group transition-all duration-300 hover:bg-[#FF3495] flex justify-center items-center mx-auto"
-                  >
+                  <button className="w-[150px] h-10 mb-3 relative text-base bg-black text-white px-6 py-2 rounded-[20px] font-medium overflow-hidden group transition-all duration-300 hover:bg-[#FF3495] flex justify-center items-center mx-auto">
                     <span className="relative z-10 group-hover:text-white duration-300 text-[20px] font-bold tracking-normal leading-none text-center">
                       Отправить
                     </span>
@@ -821,16 +785,16 @@ export default function CoverageMap({
               if (ref) mapRef.current = ref;
             }}
             defaultState={{
-              center: initialCenter,
-              zoom: initialZoom,
+              center: [GEO.latitude, GEO.longitude],
+              zoom: 10,
             }}
             width="100%"
             height="100%"
             onBoundsChange={handleBoundsChange}
           >
-            {userLocation && (
+            {GEO?.latitude && GEO?.longitude && (
               <Placemark
-                geometry={userLocation}
+                geometry={[GEO.latitude, GEO.longitude]}
                 options={{
                   iconLayout: "default#image",
                   iconImageHref: "/images/Icons/Raul.svg",
@@ -889,11 +853,6 @@ export default function CoverageMap({
                 }}
               />
             ))}
-
-            {console.log(showTower)}
-            {console.log(cells)}
-
-            {console.log(showTower && mapRef?.current.getZoom())}
 
             {showTower &&
               mapRef?.current.getZoom() >= 13 &&
