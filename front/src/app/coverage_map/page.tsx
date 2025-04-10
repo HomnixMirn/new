@@ -47,6 +47,7 @@ export default function CoverageMap({
   const [showTower, setShowTower] = useState(false);
   
   const [showOffices, setShowOffices] = useState(true);
+  const [isShowNetwork, setIsShowNetwork] = useState(false);
 
   const [filters, setFilters] = useState({
     worksAfter20: false,
@@ -189,6 +190,7 @@ export default function CoverageMap({
   }, [services, filters, search]);
 
   useEffect(() => {
+    if (isShowNetwork){
     const loadCells = async () => {
       try {
         const data = {
@@ -214,12 +216,17 @@ export default function CoverageMap({
           createdAt: new Date().toISOString(),
         });
       }
+      
     };
 
     if (mapBounds.length > 0) {
       loadCells();
     }
-  }, [mapBounds]);
+  }
+  else{
+    setMapBounds([]);
+  }
+  }, [mapBounds, isShowNetwork]);
 
   const generateMergedCoverage = (cells) => {
     if (cells.length === 0) {
@@ -647,10 +654,11 @@ export default function CoverageMap({
             <label className="flex items-center w-2/3">
               <input
                 type="checkbox"
-                onChange={() => setShowRatings(!showRatings)}
+                checked={isShowNetwork}
+                onChange={() => setIsShowNetwork(!isShowNetwork)}
                 className="w-5 h-5 accent-[#d50069] mr-2 rounded flex-shrink-0 mt-0.5"
               />
-              Показать оценки связи от клиентов
+              Показать покрытие 4G
             </label>
           </>
         ) : (
