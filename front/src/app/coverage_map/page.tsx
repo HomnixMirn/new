@@ -225,6 +225,7 @@ export default function CoverageMap({
     }
     if (!isShowNetwork) {
       setMergedCoverage([]);
+      setCells([])
     }
   }, [mapBounds, isShowNetwork]);
 
@@ -429,7 +430,12 @@ export default function CoverageMap({
             office.id
           } }))" 
             style="background: #3fcbff; border: none; padding: 6px 12px; border-radius: 4px; color: white; cursor: pointer; font-size: 12px;">
-            Комментарии (${office.comments_count || 0})
+            <div style="font-size: 16px; margin-right: 8px;">
+              ${renderStars(averageRating)}
+            </div>
+            <span style="font-size: 14px; color: #666;">
+              ${averageRating.toFixed(1)}/5
+            </span>
           </button>
         </div>
       </div>
