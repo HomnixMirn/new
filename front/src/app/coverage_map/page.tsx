@@ -401,7 +401,7 @@ export default function CoverageMap({
     };
   
     return `
-      <div style="justify-content: center; width: 350px; height: 150px; border-radius: 16px; display: flex; flex-direction: column; padding: 16px; box-sizing: border-box; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+      <div style="justify-content: center; width: 350px; height: 150px;  display: flex; flex-direction: column; padding: 10px; box-sizing: border-box; background: white; 2px 10px rgba(0,0,0,0.2);">
         <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">${
           office.address
         }</div>
@@ -863,7 +863,6 @@ export default function CoverageMap({
                     iconImageHref: "/images/Icons/pointerIcon.svg",
                     iconImageSize: [40, 40],
                     iconImageOffset: [-20, -40],
-                    balloonShadow: true,
                     balloonOffset: [0, 0],
                     balloonAutoPan: true,
                     balloonCloseButton: true,
@@ -906,7 +905,6 @@ export default function CoverageMap({
                     iconImageHref: "/images/Icons/tvTower.svg",
                     iconImageSize: [40, 40],
                     iconImageOffset: [-20, -40],
-                    balloonShadow: true,
                     balloonOffset: [0, 0],
                     balloonAutoPan: true,
                     balloonCloseButton: true,
