@@ -593,33 +593,33 @@ export default function CoverageMap({
   return (
     <div className="flex h-[calc(100vh-68px)] overflow-hidden">
      <div className="w-1/4 bg-white flex flex-col shadow-[4px_0_10px_0_rgba(0,0,0,0.3)] relative z-10">
-  {/* Блок с табами - скрывается при showComments */}
-  {!showComments && (
-    <div className="flex flex-col p-4">
-      <div className="flex space-x-20 text-xl font-medium justify-center">
-        <button
-          onClick={() => setActiveTab("coverage")}
-          className={`pb-1 border-b-2 transition-colors duration-200 ${
-            activeTab === "coverage"
-              ? "border-[#E6007E] text-black"
-              : "border-transparent text-black hover:text-[#E6007E]"
-          }`}
-        >
-          Карта покрытия
-        </button>
+      {/* Блок с табами - скрывается при showComments */}
+      {!showComments && (
+        <div className="flex flex-col p-4">
+          <div className="flex space-x-20 text-xl font-medium justify-center">
+            <button
+              onClick={() => setActiveTab("coverage")}
+              className={`pb-1 border-b-2 transition-colors duration-200 ${
+                activeTab === "coverage"
+                  ? "border-[#E6007E] text-black"
+                  : "border-transparent text-black hover:text-[#E6007E]"
+              }`}
+            >
+              Карта покрытия
+            </button>
 
-        <button
-          onClick={() => setActiveTab("offices")}
-          className={`pb-1 border-b-2 transition-colors duration-200 ${
-            activeTab === "offices"
-              ? "border-[#E6007E] text-black"
-              : "border-transparent text-black hover:text-[#E6007E]"
-          }`}
-        >
-          Офисы
-        </button>
-      </div>
-
+            <button
+              onClick={() => setActiveTab("offices")}
+              className={`pb-1 border-b-2 transition-colors duration-200 ${
+                activeTab === "offices"
+                  ? "border-[#E6007E] text-black"
+                  : "border-transparent text-black hover:text-[#E6007E]"
+              }`}
+            >
+              Офисы
+            </button>
+          </div>
+          
       {/* Поиск и фильтры */}
       <div className="mt-4 relative flex justify-center">
         <input
@@ -748,6 +748,7 @@ export default function CoverageMap({
                           <StarRating rating={comment.rating} />
                         </div>
                         <p className="text-gray-800">{comment.text}</p>
+                        <p>{comment.author.user.username}</p>
                       </div>
                     ))
                   ) : (
