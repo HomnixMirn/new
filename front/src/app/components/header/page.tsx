@@ -8,6 +8,7 @@ import LoginForm from "@components/header/login/page";
 import RegisterForm from "@/app/components/header/register/page";
 import axi from "@/utils/api";
 import Image from "next/image";
+import { useNotificationManager } from "@/hooks/notification-context";
 
 export default function Header() {
   const pathname = usePathname();
@@ -15,12 +16,23 @@ export default function Header() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const { user, cleanupUser, fetchUser } = useUser();
+  const { addNotification } = useNotificationManager();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const telegramBotLink =
     "https://t.me/shadow7xbot?start=u_129&utm_campaign=115371697&utm_content=16641918526|clid|15984713945027182591&utm_term=бесплатный%20телеграм%20бот&yclid=15984713945027182591";
   useEffect(() => {
     setIsLoggedIn(!!user);
   }, []);
+
+  const handleTestNotification = () => {
+    addNotification({
+      id: Date.now(),
+      title: "Тестовое уведомление",
+      description: "Это тестовое сообщение для демонстрации",
+      status: 200,
+      createdAt: new Date(),
+    });
+  };
 
   useEffect(() => {
     setIsLoggedIn(!!user);
@@ -36,7 +48,7 @@ export default function Header() {
     setIsLoginOpen(false);
     try {
       await fetchUser();
-      setIsLoggedIn(true); 
+      setIsLoggedIn(true);
     } catch (error) {
       console.error("Ошибка загрузки пользователя:", error);
     }
@@ -64,7 +76,6 @@ export default function Header() {
       window.location.href = "/";
     }
   };
-  
 
   return (
     <>
@@ -80,6 +91,12 @@ export default function Header() {
           </Link>
 
           <div className="flex w-[35%] content-evenly gap-[20px] flex-row items-center justify-between">
+            <button
+              onClick={handleTestNotification}
+              className="flex flex-col items-center text-[#898989] hover:text-white"
+            >
+              Тест уведомлений
+            </button>
             <Link
               className="flex flex-col items-center text-[#898989] hover:text-white "
               href="/coverage_map"
@@ -122,7 +139,7 @@ export default function Header() {
               <SolidButton
                 onClick={() => setIsLoginOpen(true)}
                 color="gradien"
-                label="Авторизоваться"
+                label="Войти"
               />
             )}
           </div>

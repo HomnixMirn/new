@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: 'T2 Rooftop';
-  src: url('/fonts/T2_Rooftop-Regular.woff2') format('woff2');
+  font-family: "T2 Rooftop";
+  src: url("/fonts/T2_Rooftop-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'T2 Rooftop';
-  src: url('/fonts/T2-Rooftop-Medium.woff2') format('woff2');
+  font-family: "T2 Rooftop";
+  src: url("/fonts/T2-Rooftop-Medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -19,7 +19,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  }
+}
 
 @theme inline {
   --color-background: var(--background);
@@ -39,13 +39,13 @@
   font-family: 'T2 Rooftop', sans-serif;
 } */
 
-@keyframes slideIn {
-  0% {
-    transform: translateX(100%);
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(100%);
     opacity: 0;
   }
-  100% {
-    transform: translateX(0);
+  to {
+    transform: translateY(0);
     opacity: 1;
   }
 }
