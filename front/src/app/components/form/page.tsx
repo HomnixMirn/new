@@ -30,9 +30,17 @@ export default function Form({
 
   const [imgSrc, setImgSrc] = useState("/images/Icons/cross.svg");
 
-  return (
-    <div className="z-1000 w-full h-full fixed inset-0 bg-black/50">
-      <div className="bg-white rounded-[16px] w-[432px] h-[500px] "></div>
+  return <div className="z-1000 w-full h-full fixed inset-0 bg-black/50">
+    <div className="bg-white rounded-[16px] w-[432px] h-[500px]">
+        <p className="">Оставить оценку
+        качества сети</p>
+        <input 
+        type="text"
+        placeholder="Ваш комментарий"
+        className="bg-[#F2F2F2] w-[340px] h-[140px]"
+        />
+        <p>Поставьте оценку</p>
+
     </div>
-  );
+  </div>
 }
