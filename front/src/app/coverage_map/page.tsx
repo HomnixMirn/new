@@ -223,8 +223,8 @@ export default function CoverageMap({
       loadCells();
     }
   }
-  else{
-    setMapBounds([]);
+  if (!isShowNetwork){
+    setMergedCoverage([])
   }
   }, [mapBounds, isShowNetwork]);
 
