@@ -26,22 +26,14 @@ export default function Home() {
         id: 0,
         status: "помогите улчшить сервис!",
       });
-    }, 5 * 1000);
+    }, 2* 60 * 1000);
 
     return () => clearTimeout(timer);
   }, []);
 
   return (
     <div>
-      {isFormOpen && (
-        <Form
-          onClose={() => setIsLoginOpen(false)}
-          onRegisterOpen={() => {
-            setIsLoginOpen(false);
-            setIsRegisterOpen(true);
-          }}
-        />
-      )}
+      {isFormOpen && <Form onClose={() => setIsFormOpen(false)} />}
 
       <CoverageMap />
     </div>

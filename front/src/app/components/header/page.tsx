@@ -24,16 +24,6 @@ export default function Header() {
     setIsLoggedIn(!!user);
   }, []);
 
-  const handleTestNotification = () => {
-    addNotification({
-      id: Date.now(),
-      title: "Тестовое уведомление",
-      description: "Это тестовое сообщение для демонстрации",
-      status: 200,
-      createdAt: new Date(),
-    });
-  };
-
   useEffect(() => {
     setIsLoggedIn(!!user);
   }, [user]);
@@ -91,12 +81,6 @@ export default function Header() {
           </Link>
 
           <div className="flex w-[35%] content-evenly gap-[20px] flex-row items-center justify-between">
-            <button
-              onClick={handleTestNotification}
-              className="flex flex-col items-center text-[#898989] hover:text-white"
-            >
-              Тест уведомлений
-            </button>
             <Link
               className="flex flex-col items-center text-[#898989] hover:text-white "
               href="/coverage_map"
