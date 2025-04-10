@@ -99,17 +99,6 @@ export default function Header() {
               Наш бот
             </Link>
 
-            {isLoggedIn && (
-              <Link
-                className="flex flex-col items-center text-[#898989] hover:text-white hover:bg-blue"
-                href="/profile"
-              >
-                Профиль
-                {pathname === "/profile" && (
-                  <div className="relative w-[200%] h-0.5 bg-white"></div>
-                )}
-              </Link>
-            )}
           </div>
 
           <div className="content-center justify-around flex">
