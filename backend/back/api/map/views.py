@@ -1,28 +1,13 @@
 from rest_framework.response import Response
 from rest_framework import status
-from django.contrib.auth import authenticate  
-from django.contrib.auth.models import User
-from django.db.models import Q
 from rest_framework.request import Request
 from core.models.models import *
-from core.utils.validators import validate_email
 from rest_framework.decorators import api_view
 from core.utils.serializers import OfficeSerializer,commentsSerializer,CellsSerializer
 from core.utils.auth_decor import token_required
 import math
 from datetime import datetime
 
-
-# import json
-# url = 'D:/pusto/перенос/python/Thonny/Thony/2025/new/backend/parser/ceils.json'
-# with open(url, 'r', encoding='utf-8') as f:
-#     pars = json.load(f)
-    
-# cells.objects.all().delete()
-# for i in pars['Enbs']:
-#     for sector in i['Sectors']:
-#         cells.objects.create(latitude = sector['Latitude'], longitude = sector['Longitude'], type = "4G")
-#         print("Создана ячейка")
 
 
 @api_view(['GET'])

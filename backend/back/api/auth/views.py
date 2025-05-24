@@ -10,63 +10,7 @@ from rest_framework.decorators import api_view
 
 
 
-# import json
 
-
-# file_path = r'D:\pusto\перенос\python\Thonny\Thony\2025\new\backend\parser\pars.json'
-
-# # Открываем файл с помощью контекстного менеджера
-# with open(file_path, 'r', encoding='utf-8') as f:
-#     pars = json.load(f)
-# Office.objects.all().delete()
-# daySchedule.objects.all().delete()
-# service.objects.all().delete()
-# site.objects.all().delete()
-
-# for i in pars:
-#     if "daySchedules" in i:
-#         days =[]
-#         for day in  i["daySchedules"]:
-#             del day['id']
-#             if daySchedule.objects.filter(**day).exists():
-#                 newDay= daySchedule.objects.get(**day)
-#             else:
-#                 newDay=daySchedule.objects.create(day=day["day"], openTime=day["openTime"], closeTime=day["closeTime"], dayOff=day["dayOff"])
-                
-#             days.append(newDay)
-#         del i["daySchedules"]
-#     if 'services' in i:
-#         services = []
-#         for servic in i['services']:
-#             del servic['id']
-#             if service.objects.filter(**servic).exists():
-#                 newService= service.objects.get(**servic)
-#             else:
-#                 newService=service.objects.create(**servic)
-#             services.append(newService)
-#         del i['services']
-#     if 'sites' in i:
-#         sites = []
-#         for sit in i['sites']:
-#             del sit['id']
-#             if site.objects.filter(**sit).exists():
-#                 newSite= site.objects.get(**sit)
-#             else:
-#                 newSite=site.objects.create(**sit)
-#             sites.append(newSite)
-#         del i['sites']
-#     del i['id']
-#     newOffice = Office.objects.create(**i)
-#     for j in days:
-#         if newOffice.daySchedules.filter(day=j.day).exists():
-#             continue
-#         newOffice.daySchedules.add(j)
-#     for k in services:
-#         newOffice.services.add(k)
-#     for l in sites:
-#         newOffice.sites.add(l)
-#     print("СОздался офис") 
-            
 @api_view(['POST'])
 def register(request:Request): 
     if request.method == 'POST':
